@@ -6,7 +6,7 @@ Referência visual e de interação para todas as telas. Implementado como tema 
 ## 1. Direção
 
 **Editorial institucional.** O EduSpace tem cara de publicação acadêmica bem diagramada:
-papel levemente quente, tinta escura, um verde institucional como cor principal, tipografia com
+papel frio levemente esverdeado, tinta escura, um verde institucional como cor principal, tipografia com
 serifa nos títulos e uma fonte de interface feita para legibilidade. A hierarquia vem de
 tipografia, espaço e linhas finas. Nada de enfeite.
 
@@ -26,12 +26,12 @@ Princípios:
 | Não usar | Usar no lugar |
 |---|---|
 | Gradientes, orbes radiais, grades de pontinhos | Fundos sólidos de papel |
-| Fundo branco puro `#FFFFFF` | Papel `#F4F2EC` e superfície `#FBFAF6` |
-| Cores arco-íris, neon, pastel básico, roxo com preto | Paleta da seção 3, com um verde e um ocre |
+| Fundo branco puro `#FFFFFF` | Papel `#EDF0EC` e superfície `#F7F8F5` |
+| Cores arco-íris, neon, pastel básico, roxo com preto | Paleta da seção 3: neutros frios, um verde de ação e um azul só para foco |
 | Sombras (`box-shadow`) | Borda de 1px e contraste de fundo |
 | Cantos arredondados suaves | Raio de 2px em controles e 0 em tabelas e painéis |
 | Ícones Lucide, ícones de brilho ou estrelinha, emojis | Material Symbols **Sharp** (`@mui/icons-material`, variantes `*Sharp`) |
-| Inter, Geist, Space Grotesk | Newsreader, Atkinson Hyperlegible Next, Atkinson Hyperlegible Mono |
+| Inter, Geist, Space Grotesk | Literata, Atkinson Hyperlegible Next, Atkinson Hyperlegible Mono |
 | "Liquid glass", `backdrop-filter`, translucidez | Superfícies opacas |
 | Animações de hover, setas animadas | Troca imediata de cor no hover, sem transição |
 | Três cards de funcionalidades em fileira, bento grid, card dentro de card | Listas numeradas, tabelas e seções com fio divisório |
@@ -42,34 +42,36 @@ Princípios:
 
 ## 3. Cores
 
-Contrastes medidos contra o papel `#F4F2EC` (WCAG 2.2).
+Neutros frios com leve tom de verde, puxados para a cor institucional. Contrastes medidos contra
+o papel `#EDF0EC` (WCAG 2.2).
 
 | Token | Hex | Uso | Contraste |
 |---|---|---|---|
-| `paper` | `#F4F2EC` | Fundo da aplicação | |
-| `surface` | `#FBFAF6` | Painéis, diálogos, campos | |
-| `sunken` | `#ECE9E1` | Áreas rebaixadas, cabeçalho de tabela, horário passado | |
-| `hatch` | `#E4E0D6` | Textura de "ocupado" | ink 12,2:1 |
-| `ink` | `#1C2321` | Texto principal | 14,3:1 |
-| `ink-muted` | `#545C58` | Texto secundário, legendas | 6,2:1 |
-| `ink-disabled` | `#7B827E` | Texto desabilitado (só junto de outro indicador) | 3,5:1 |
-| `line` | `#D6D2C7` | Divisórias decorativas | |
-| `line-strong` | `#8C877B` | Borda de campo, contorno de controles | 3,2:1 |
-| `primary` | `#1F4D3F` | Ação principal, links, seleção | 8,6:1 |
+| `paper` | `#EDF0EC` | Fundo da aplicação | |
+| `surface` | `#F7F8F5` | Painéis, diálogos, campos | |
+| `sunken` | `#E1E6E1` | Áreas rebaixadas, cabeçalho de tabela, horário passado | |
+| `hatch` | `#D5DCD5` | Textura de "ocupado" | ink 11,4:1 |
+| `ink` | `#1A2420` | Texto principal | 13,9:1 |
+| `ink-muted` | `#4E5A54` | Texto secundário, legendas | 6,3:1 |
+| `ink-disabled` | `#727C76` | Texto desabilitado (só junto de outro indicador) | 3,8:1 |
+| `line` | `#C9D0C9` | Divisórias decorativas | |
+| `line-strong` | `#7E8881` | Borda de campo, contorno de controles | 3,2:1 |
+| `primary` | `#1F4D3F` | Ação principal, links, seleção | 8,3:1 |
 | `primary-hover` | `#173B30` | Hover e pressionado da ação principal | |
-| `primary-tint` | `#DFE7E2` | Fundo de item ativo na navegação | |
-| `accent` | `#A3561C` | Anel de foco e destaque pontual (no máximo um por tela) | 4,8:1 |
-| `error` | `#9E3A26` | Erro, cancelamento, conflito | 6,1:1 |
-| `warning` | `#8A5A12` | Avisos de prazo (ex.: cancelamento perto do limite) | 5,3:1 |
-| `success` | `#1F4D3F` | Sucesso usa o próprio verde primário | 8,6:1 |
+| `primary-tint` | `#D6E2DB` | Fundo de item ativo na navegação | |
+| `focus` | `#24508F` | Anel de foco do teclado (diferente do verde de seleção) | 7,0:1 |
+| `error` | `#9E3A26` | Erro, cancelamento, conflito | 5,9:1 |
+| `warning` | `#845A10` | Avisos de prazo (ex.: cancelamento perto do limite) | 5,3:1 |
+| `success` | `#1F4D3F` | Sucesso usa o próprio verde primário | 8,3:1 |
 
-Tema escuro fica para depois do MVP.
+Evitado de propósito: papel creme com acento terracota, que virou assinatura de design gerado
+por IA. Tema escuro fica para depois do MVP.
 
 ## 4. Tipografia
 
 | Papel | Fonte | Pesos | Uso |
 |---|---|---|---|
-| Display | **Newsreader** (serifa, Google Fonts) | 500, 600 | Títulos de página, landing, comprovante |
+| Display | **Literata** (serifa, Google Fonts) | 500, 600 | Títulos de página, landing, comprovante |
 | Interface | **Atkinson Hyperlegible Next** (Google Fonts) | 400, 500, 700 | Todo o resto: textos, botões, campos, tabelas |
 | Dados | **Atkinson Hyperlegible Mono** (Google Fonts) | 400, 500 | Horários, datas na grade, código do comprovante |
 
@@ -77,9 +79,9 @@ Carregar com `font-display: swap` e apenas os pesos listados.
 
 | Token | Fonte | Tamanho / altura | Peso |
 |---|---|---|---|
-| `display` | Newsreader | 44 / 52 (mobile 34 / 40) | 500 |
-| `h1` | Newsreader | 32 / 40 (mobile 28 / 34) | 500 |
-| `h2` | Newsreader | 24 / 32 | 500 |
+| `display` | Literata | 44 / 52 (mobile 34 / 40) | 500 |
+| `h1` | Literata | 32 / 40 (mobile 28 / 34) | 500 |
+| `h2` | Literata | 24 / 32 | 500 |
 | `h3` | Atkinson Next | 18 / 26 | 700 |
 | `body` | Atkinson Next | 16 / 26 | 400 |
 | `body-sm` | Atkinson Next | 14 / 22 | 400 |
@@ -101,7 +103,7 @@ Texto corrido com no máximo 70 caracteres por linha. Corpo nunca menor que 16px
 - **Raio:** 2px em botões, campos, chips e diálogos. 0 em tabelas, painéis e grade de horários.
 - **Bordas:** 1px `line` para divisórias e 1px `line-strong` para controles.
 - **Elevação:** inexistente. Diálogo se destaca pelo fundo `surface`, borda `line-strong` e
-  véu `rgba(28, 35, 33, 0.48)` atrás.
+  véu `rgba(26, 36, 32, 0.48)` atrás.
 - **Camadas (z-index):** conteúdo 0, barra fixa 10, navegação 20, menu/popover 30, diálogo 40,
   snackbar 50.
 
@@ -122,7 +124,7 @@ Texto corrido com no máximo 70 caracteres por linha. Corpo nunca menor que 16px
 - **Skeleton:** pulsação lenta de opacidade (1,6s). Com `prefers-reduced-motion: reduce`, fica
   estático.
 - **Ripple do MUI desligado** em todo o app (`disableRipple`).
-- Foco do teclado com anel de 2px `accent` e 2px de afastamento, sempre visível.
+- Foco do teclado com anel de 2px `focus` e 2px de afastamento, sempre visível.
 
 ## 8. Componentes
 
@@ -172,7 +174,7 @@ Texto em caixa alta 12px com ícone de 16px, sem fundo colorido cheio:
 `CONCLUÍDA` (`ink-muted`, `HistorySharp`).
 
 ### Comprovante
-Documento de uma coluna em `surface` com borda `line-strong`: título em Newsreader, código em
+Documento de uma coluna em `surface` com borda `line-strong`: título em Literata, código em
 fonte de dados grande (`EDU-7K3F9Q`), QR code de 160px, dados da reserva em pares
 rótulo/valor, fio tracejado separando o canhoto. Versão de impressão sem navegação.
 
