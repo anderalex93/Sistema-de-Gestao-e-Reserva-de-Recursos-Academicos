@@ -6,7 +6,7 @@ Referência visual e de interação para todas as telas. Implementado como tema 
 ## 1. Direção
 
 **Editorial institucional.** O EduSpace tem cara de publicação acadêmica bem diagramada:
-papel frio levemente esverdeado, tinta escura, um verde institucional como cor principal, tipografia com
+papel azulado claro, tinta azul-marinho, o azul institucional da UMJ como cor principal, tipografia com
 serifa nos títulos e uma fonte de interface feita para legibilidade. A hierarquia vem de
 tipografia, espaço e linhas finas. Nada de enfeite.
 
@@ -15,7 +15,7 @@ Princípios:
 1. **O produto é a vitrine.** A grade de horários e o comprovante são as peças visuais mais
    importantes. Tudo o mais sai do caminho.
 2. **Linha antes de sombra.** Separação por fios de 1px e mudança de fundo. Nenhuma sombra.
-3. **Uma cor de ação.** O verde é a única cor que chama para clicar. Cores de status aparecem
+3. **Uma cor de ação.** O azul UMJ é a única cor que chama para clicar. Cores de status aparecem
    só quando comunicam estado.
 4. **Estado nunca depende só de cor.** Livre, ocupado, selecionado e passado têm texto, ícone ou
    textura além da cor.
@@ -26,8 +26,8 @@ Princípios:
 | Não usar | Usar no lugar |
 |---|---|
 | Gradientes, orbes radiais, grades de pontinhos | Fundos sólidos de papel |
-| Fundo branco puro `#FFFFFF` | Papel `#EDF0EC` e superfície `#F7F8F5` |
-| Cores arco-íris, neon, pastel básico, roxo com preto | Paleta da seção 3: neutros frios, um verde de ação e um azul só para foco |
+| Fundo branco puro `#FFFFFF` | Papel `#F5F7FA` e superfície `#FCFDFE` |
+| Cores arco-íris, neon, pastel básico, roxo com preto | Paleta da seção 3: cores oficiais da UMJ, um azul de ação e o ciano só como detalhe de marca |
 | Sombras (`box-shadow`) | Borda de 1px e contraste de fundo |
 | Cantos arredondados suaves | Raio de 2px em controles e 0 em tabelas e painéis |
 | Ícones Lucide, ícones de brilho ou estrelinha, emojis | Material Symbols **Sharp** (`@mui/icons-material`, variantes `*Sharp`) |
@@ -42,30 +42,32 @@ Princípios:
 
 ## 3. Cores
 
-Neutros frios com leve tom de verde, puxados para a cor institucional. Contrastes medidos contra
-o papel `#EDF0EC` (WCAG 2.2).
+Paleta da marca UMJ, a partir dos tokens oficiais do `kode-design-kit` da Pro-Tech
+(`brands/umj`), adaptada às regras da seção 2. Contrastes medidos contra o papel `#F5F7FA`
+(WCAG 2.2).
 
-| Token | Hex | Uso | Contraste |
-|---|---|---|---|
-| `paper` | `#EDF0EC` | Fundo da aplicação | |
-| `surface` | `#F7F8F5` | Painéis, diálogos, campos | |
-| `sunken` | `#E1E6E1` | Áreas rebaixadas, cabeçalho de tabela, horário passado | |
-| `hatch` | `#D5DCD5` | Textura de "ocupado" | ink 11,4:1 |
-| `ink` | `#1A2420` | Texto principal | 13,9:1 |
-| `ink-muted` | `#4E5A54` | Texto secundário, legendas | 6,3:1 |
-| `ink-disabled` | `#727C76` | Texto desabilitado (só junto de outro indicador) | 3,8:1 |
-| `line` | `#C9D0C9` | Divisórias decorativas | |
-| `line-strong` | `#7E8881` | Borda de campo, contorno de controles | 3,2:1 |
-| `primary` | `#1F4D3F` | Ação principal, links, seleção | 8,3:1 |
-| `primary-hover` | `#173B30` | Hover e pressionado da ação principal | |
-| `primary-tint` | `#D6E2DB` | Fundo de item ativo na navegação | |
-| `focus` | `#24508F` | Anel de foco do teclado (diferente do verde de seleção) | 7,0:1 |
-| `error` | `#9E3A26` | Erro, cancelamento, conflito | 5,9:1 |
-| `warning` | `#845A10` | Avisos de prazo (ex.: cancelamento perto do limite) | 5,3:1 |
-| `success` | `#1F4D3F` | Sucesso usa o próprio verde primário | 8,3:1 |
+| Token | Hex | Origem | Uso | Contraste |
+|---|---|---|---|---|
+| `paper` | `#F5F7FA` | UMJ background | Fundo da aplicação | |
+| `surface` | `#FCFDFE` | derivado | Painéis, diálogos, campos (o kit usa branco puro, proibido aqui) | |
+| `sunken` | `#E6E9EF` | UMJ muted | Áreas rebaixadas, cabeçalho de tabela, horário passado | |
+| `hatch` | `#D5DBE4` | derivado | Textura de "ocupado" | ink 12,1:1 |
+| `ink` | `#041C40` | UMJ foreground | Texto principal | 15,7:1 |
+| `ink-muted` | `#596370` | UMJ muted-foreground | Texto secundário, legendas | 5,7:1 |
+| `ink-disabled` | `#83929B` | UMJ muted-foreground (escuro) | Texto desabilitado (só junto de outro indicador) | 3,0:1 |
+| `line` | `#D5DBE4` | derivado | Divisórias (a borda `#E6E9EF` do kit some sobre o papel) | |
+| `line-strong` | `#7A8794` | derivado | Borda de campo e contorno de controles (a do kit dá 2,99:1) | 3,4:1 |
+| `primary` | `#2F52A0` | UMJ primary | Ação principal, links, seleção | 6,9:1 |
+| `primary-hover` | `#24417F` | derivado | Hover e pressionado da ação principal | |
+| `primary-tint` | `#E3E9F5` | derivado | Fundo de item ativo na navegação | primary 6,1:1 |
+| `brand-accent` | `#23B9D6` | UMJ accent | Ciano da marca, **só decorativo** e sempre sobre `ink` (7,2:1). Sobre o papel dá 2,2:1: nunca usar como texto ou borda | |
+| `focus` | `#041C40` | UMJ foreground | Anel de foco do teclado | 15,7:1 |
+| `error` | `#B91C1C` | UMJ destructive | Erro, cancelamento, conflito | 6,0:1 |
+| `warning` | `#92400E` | UMJ warning | Avisos de prazo (ex.: cancelamento perto do limite) | 6,6:1 |
+| `success` | `#1A7F37` | UMJ success | Reserva confirmada, sucesso | 4,7:1 |
 
-Evitado de propósito: papel creme com acento terracota, que virou assinatura de design gerado
-por IA. Tema escuro fica para depois do MVP.
+Do kit UMJ ficam de fora, por conflitarem com a seção 2: fonte Inter, cards brancos, sombras e
+raio de 12px. Tema escuro fica para depois do MVP.
 
 ## 4. Tipografia
 
@@ -170,7 +172,7 @@ espaço e bloco, horário, rótulo de status e ações à direita. No celular a 
 
 ### Rótulo de status
 Texto em caixa alta 12px com ícone de 16px, sem fundo colorido cheio:
-`CONFIRMADA` (verde, `EventAvailableSharp`), `CANCELADA` (erro, `EventBusySharp`),
+`CONFIRMADA` (`success`, `EventAvailableSharp`), `CANCELADA` (erro, `EventBusySharp`),
 `CONCLUÍDA` (`ink-muted`, `HistorySharp`).
 
 ### Comprovante

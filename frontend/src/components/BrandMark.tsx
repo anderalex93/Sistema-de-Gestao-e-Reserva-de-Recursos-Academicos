@@ -20,8 +20,8 @@ export function BrandMark() {
           height: 28,
           display: 'grid',
           placeItems: 'center',
-          backgroundColor: colors.primary,
-          color: colors.surface,
+          backgroundColor: colors.ink,
+          color: colors.brandAccent,
           fontFamily: fonts.display,
           fontWeight: 600,
         }}

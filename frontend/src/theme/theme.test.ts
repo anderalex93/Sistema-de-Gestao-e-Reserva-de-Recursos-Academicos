@@ -7,6 +7,12 @@ import { colors } from '@/theme/tokens';
 describe('createAppTheme', () => {
   const theme = createAppTheme();
 
+  it('uses the official UMJ brand colors', () => {
+    expect(theme.palette.primary.main).toBe('#2F52A0');
+    expect(theme.palette.text.primary).toBe('#041C40');
+    expect(theme.palette.background.default).toBe('#F5F7FA');
+  });
+
   it('has no shadows', () => {
     expect(new Set(theme.shadows)).toEqual(new Set(['none']));
   });

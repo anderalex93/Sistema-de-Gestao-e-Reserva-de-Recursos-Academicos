@@ -1,21 +1,26 @@
-/** Tokens do design system (docs/design/design-system.md). Nenhuma cor fora daqui. */
+/**
+ * Tokens do design system (docs/design/design-system.md), com as cores oficiais da UMJ
+ * (kode-design-kit, brands/umj). Nenhuma cor fora daqui.
+ */
 export const colors = {
-  paper: '#EDF0EC',
-  surface: '#F7F8F5',
-  sunken: '#E1E6E1',
-  hatch: '#D5DCD5',
-  ink: '#1A2420',
-  inkMuted: '#4E5A54',
-  inkDisabled: '#727C76',
-  line: '#C9D0C9',
-  lineStrong: '#7E8881',
-  primary: '#1F4D3F',
-  primaryHover: '#173B30',
-  primaryTint: '#D6E2DB',
-  focus: '#24508F',
-  error: '#9E3A26',
-  warning: '#845A10',
-  scrim: 'rgba(26, 36, 32, 0.48)',
+  paper: '#F5F7FA',
+  surface: '#FCFDFE',
+  sunken: '#E6E9EF',
+  hatch: '#D5DBE4',
+  ink: '#041C40',
+  inkMuted: '#596370',
+  inkDisabled: '#83929B',
+  line: '#D5DBE4',
+  lineStrong: '#7A8794',
+  primary: '#2F52A0',
+  primaryHover: '#24417F',
+  primaryTint: '#E3E9F5',
+  brandAccent: '#23B9D6',
+  focus: '#041C40',
+  error: '#B91C1C',
+  warning: '#92400E',
+  success: '#1A7F37',
+  scrim: 'rgba(4, 28, 64, 0.48)',
 } as const;
 
 export const fonts = {
