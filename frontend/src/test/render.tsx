@@ -54,7 +54,7 @@ interface RenderRouteOptions {
 export function renderRoute(path: string, { user = buildUser() }: RenderRouteOptions = {}) {
   if (user) signIn(user);
   const router = createMemoryRouter(routes, { initialEntries: [path] });
-  const user$ = userEvent.setup();
+  const user$ = userEvent.setup({ delay: null });
   const view = render(
     <AppProviders queryClient={createTestQueryClient()}>
       <RouterProvider router={router} />
@@ -65,7 +65,7 @@ export function renderRoute(path: string, { user = buildUser() }: RenderRouteOpt
 
 /** Renderiza um componente isolado com os providers globais. */
 export function renderWithProviders(ui: ReactElement) {
-  const user = userEvent.setup();
+  const user = userEvent.setup({ delay: null });
   const view = render(<AppProviders queryClient={createTestQueryClient()}>{ui}</AppProviders>);
   return { ...view, user };
 }
