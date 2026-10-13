@@ -12,6 +12,7 @@ from app.core.clock import Clock, SystemClock
 from app.core.config import Settings
 from app.core.enums import UserRole
 from app.core.exceptions import ForbiddenError, UnauthorizedError
+from app.core.reservation_codes import CodeGenerator, RandomCodeGenerator
 from app.core.security import PasswordHasher, TokenService
 from app.db.unit_of_work import UnitOfWork
 from app.models.user import User
@@ -25,6 +26,7 @@ from app.services.auth_service import AuthService
 from app.services.availability_service import AvailabilityService
 from app.services.catalog_service import CatalogService
 from app.services.health_service import HealthService
+from app.services.reservation_service import ReservationService
 from app.services.rules_service import RulesService
 from app.services.user_service import UserService
 
@@ -125,6 +127,26 @@ def get_availability_service(
     )
 
 
+def get_code_generator() -> CodeGenerator:
+    return RandomCodeGenerator()
+
+
+def get_reservation_service(
+    session: SessionDep,
+    schedule: CampusScheduleDep,
+    clock: ClockDep,
+    codes: Annotated[CodeGenerator, Depends(get_code_generator)],
+) -> ReservationService:
+    return ReservationService(
+        resources=ResourceRepository(session),
+        reservations=ReservationRepository(session),
+        uow=UnitOfWork(session),
+        schedule=schedule,
+        clock=clock,
+        codes=codes,
+    )
+
+
 def get_rules_service(schedule: CampusScheduleDep) -> RulesService:
     return RulesService(schedule)
 
@@ -135,6 +157,7 @@ AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 CatalogServiceDep = Annotated[CatalogService, Depends(get_catalog_service)]
 AvailabilityServiceDep = Annotated[AvailabilityService, Depends(get_availability_service)]
 RulesServiceDep = Annotated[RulesService, Depends(get_rules_service)]
+ReservationServiceDep = Annotated[ReservationService, Depends(get_reservation_service)]
 
 
 def get_current_user(
