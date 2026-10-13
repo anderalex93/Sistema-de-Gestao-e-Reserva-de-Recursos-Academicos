@@ -83,3 +83,20 @@ def get_reservation(
     reservation_id: int, user: CurrentUserDep, service: ReservationServiceDep
 ) -> Reservation:
     return service.get_for(reservation_id, user)
+
+
+@router.post(
+    "/{reservation_id}/cancelar",
+    summary="Cancela uma reserva (até 30 minutos antes do início)",
+    response_model=MyReservationRead,
+    responses={
+        403: {"model": ErrorResponse, "description": "A reserva é de outra pessoa"},
+        404: {"model": ErrorResponse, "description": "Reserva inexistente"},
+        409: {"model": ErrorResponse, "description": "Reserva já cancelada"},
+        422: {"model": ErrorResponse, "description": "Fora do prazo de cancelamento"},
+    },
+)
+def cancel_reservation(
+    reservation_id: int, user: CurrentUserDep, service: ReservationServiceDep
+) -> MyReservationRead:
+    return service.with_permissions(service.cancel(reservation_id, user))

@@ -196,3 +196,26 @@ def test_my_reservations_rejects_unknown_scope(client: TestClient, headers: dict
     response = client.get(f"{RESERVATIONS}/minhas", headers=headers, params={"escopo": "todas"})
 
     assert response.status_code == 422
+
+
+def test_cancel_endpoint(
+    client: TestClient,
+    headers: dict[str, str],
+    room: Resource,
+    make_user: Callable[..., User],
+) -> None:
+    created = client.post(RESERVATIONS, headers=headers, json=payload(room)).json()
+    make_user(email="ana@umj.edu.br")
+
+    forbidden = client.post(
+        f"{RESERVATIONS}/{created['id']}/cancelar", headers=login(client, "ana@umj.edu.br")
+    )
+    cancelled = client.post(f"{RESERVATIONS}/{created['id']}/cancelar", headers=headers)
+    again = client.post(f"{RESERVATIONS}/{created['id']}/cancelar", headers=headers)
+
+    assert forbidden.status_code == 403
+    assert cancelled.status_code == 200
+    assert (cancelled.json()["status"], cancelled.json()["pode_cancelar"]) == ("CANCELADA", False)
+    assert (again.status_code, again.json()["code"]) == (409, "RESERVA_JA_CANCELADA")
+    retaken = client.post(RESERVATIONS, headers=login(client, "ana@umj.edu.br"), json=payload(room))
+    assert retaken.status_code == 201

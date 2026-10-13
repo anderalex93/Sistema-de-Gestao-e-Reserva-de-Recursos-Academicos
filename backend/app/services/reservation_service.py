@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from app.core.campus_schedule import CampusSchedule
 from app.core.clock import Clock
 from app.core.enums import ReservationScope, ReservationStatus, UserRole
-from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
+from app.core.exceptions import BusinessRuleError, ConflictError, ForbiddenError, NotFoundError
 from app.core.reservation_codes import CodeGenerator
 from app.db.unit_of_work import UnitOfWork
 from app.models.reservation import Reservation
@@ -49,6 +49,20 @@ class OutsideOpeningHoursError(BusinessRuleError):
 class CapacityExceededError(BusinessRuleError):
     code = "CAPACIDADE_EXCEDIDA"
     default_detail = "O número de participantes passa da capacidade deste espaço."
+
+
+class CancellationDeadlineError(BusinessRuleError):
+    code = "PRAZO_CANCELAMENTO_EXPIRADO"
+    default_detail = "Cancelamentos só até 30 minutos antes do início da reserva."
+
+
+class AlreadyCancelledError(ConflictError):
+    code = "RESERVA_JA_CANCELADA"
+    default_detail = "Esta reserva já estava cancelada."
+
+
+class NotReservationOwnerError(ForbiddenError):
+    default_detail = "Só quem fez a reserva pode cancelá-la."
 
 
 class ReservationNotFoundError(NotFoundError):
@@ -141,6 +155,27 @@ class ReservationService:
     def with_permissions(self, reservation: Reservation) -> MyReservationRead:
         base = ReservationRead.model_validate(reservation)
         return MyReservationRead(**dict(base), pode_cancelar=self.can_cancel(reservation))
+
+    def cancel(self, reservation_id: int, user: User) -> Reservation:
+        """RF04. Nada é apagado: a reserva fica CANCELADA e o horário volta a ficar livre.
+
+        O dono cancela até 30 minutos antes (relógio do servidor); o admin, a qualquer momento.
+        """
+        reservation = self._reservations.get(reservation_id)
+        if reservation is None:
+            raise ReservationNotFoundError
+        is_admin = user.perfil is UserRole.ADMIN
+        if reservation.usuario_id != user.id and not is_admin:
+            raise NotReservationOwnerError
+        if reservation.status is ReservationStatus.CANCELADA:
+            raise AlreadyCancelledError
+        if not is_admin and not self.can_cancel(reservation):
+            raise CancellationDeadlineError
+        reservation.status = ReservationStatus.CANCELADA
+        reservation.cancelada_em = self._clock.now()
+        reservation.cancelada_por_id = user.id
+        self._uow.commit()
+        return reservation
 
     def can_cancel(self, reservation: Reservation) -> bool:
         return (
