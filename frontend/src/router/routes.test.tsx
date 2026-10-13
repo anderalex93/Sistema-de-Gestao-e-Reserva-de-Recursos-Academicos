@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { renderRoute } from '@/test/render';
+import { adminUser, renderRoute } from '@/test/render';
 
 describe('routes', () => {
   it.each([
@@ -10,12 +10,13 @@ describe('routes', () => {
     ['/recursos/204', 'Recurso 204'],
     ['/minhas-reservas', 'Minhas reservas'],
     ['/conta', 'Minha conta'],
-    ['/admin/recursos', 'Administração'],
+    ['/admin', 'Administração'],
     ['/login', 'Entrar'],
     ['/cadastro', 'Criar conta'],
     ['/comprovantes/EDU-7K3F9Q', 'Comprovante EDU-7K3F9Q'],
   ])('%s renders "%s" with a unique document title', async (path, title) => {
-    renderRoute(path);
+    const publicPage = ['/login', '/cadastro'].includes(path);
+    renderRoute(path, { user: publicPage ? null : adminUser });
 
     expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
     await waitFor(() => expect(document.title).toBe(`${title} · EduSpace`));
@@ -46,7 +47,7 @@ describe('routes', () => {
   });
 
   it('public pages have no app navigation', async () => {
-    renderRoute('/login');
+    renderRoute('/login', { user: null });
 
     await screen.findByRole('heading', { level: 1, name: 'Entrar' });
     expect(screen.queryByRole('navigation', { name: 'Navegação principal' })).toBeNull();

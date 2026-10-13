@@ -8,4 +8,5 @@ export const paths = {
   receipt: (code: string) => `/comprovantes/${code}`,
   account: '/conta',
   admin: '/admin',
+  adminUsers: '/admin/usuarios',
 } as const;

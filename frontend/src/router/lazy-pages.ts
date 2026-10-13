@@ -11,3 +11,4 @@ export const LoginPage = lazy(() => import('@/pages/LoginPage'));
 export const SignupPage = lazy(() => import('@/pages/SignupPage'));
 export const ReceiptPage = lazy(() => import('@/pages/ReceiptPage'));
 export const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+export const AdminUsersPage = lazy(() => import('@/pages/AdminUsersPage'));

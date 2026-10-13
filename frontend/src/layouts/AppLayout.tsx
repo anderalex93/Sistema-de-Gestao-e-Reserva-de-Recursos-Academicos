@@ -6,6 +6,7 @@ import { NavLink, Link as RouterLink, Outlet } from 'react-router';
 
 import { BrandMark } from '@/components/BrandMark';
 import { PageSkeleton } from '@/components/PageSkeleton';
+import { useAuth } from '@/hooks/useAuth';
 import { accountNav, adminNav, primaryNav, type NavItem } from '@/layouts/navigation';
 import { paths } from '@/router/paths';
 import { colors, layout, zIndex } from '@/theme/tokens';
@@ -37,6 +38,8 @@ function SideNavLink({ item }: { item: NavItem }) {
 }
 
 function SideNav() {
+  const { user } = useAuth();
+  const items = user?.perfil === 'ADMIN' ? [...primaryNav, adminNav] : primaryNav;
   return (
     <Box
       component="aside"
@@ -59,7 +62,7 @@ function SideNav() {
         <BrandMark />
       </Box>
       <Box component="nav" aria-label="Navegação principal" sx={{ display: 'grid', gap: 0.5 }}>
-        {[...primaryNav, adminNav].map((item) => (
+        {items.map((item) => (
           <SideNavLink key={item.to} item={item} />
         ))}
       </Box>
@@ -68,6 +71,7 @@ function SideNav() {
 }
 
 function TopBar() {
+  const { user, logout } = useAuth();
   return (
     <Box
       component="header"
@@ -88,9 +92,20 @@ function TopBar() {
       <Box sx={{ display: { xs: 'block', md: 'none' } }}>
         <BrandMark />
       </Box>
-      <Button component={RouterLink} to={paths.login} variant="outlined" size="small">
-        Entrar
-      </Button>
+      {user && (
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
+          <Box
+            component={RouterLink}
+            to={paths.account}
+            sx={{ color: 'text.secondary', fontSize: '0.875rem', textDecoration: 'none' }}
+          >
+            {user.nome}
+          </Box>
+          <Button variant="outlined" size="small" onClick={logout}>
+            Sair
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 }

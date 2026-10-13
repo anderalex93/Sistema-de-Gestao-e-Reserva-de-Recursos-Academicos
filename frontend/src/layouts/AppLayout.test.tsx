@@ -1,11 +1,11 @@
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { renderRoute } from '@/test/render';
+import { adminUser, renderRoute } from '@/test/render';
 
 describe('AppLayout', () => {
   it('offers the desktop side navigation with the current page marked', async () => {
-    renderRoute('/minhas-reservas');
+    renderRoute('/minhas-reservas', { user: adminUser });
     await screen.findByRole('heading', { level: 1, name: 'Minhas reservas' });
 
     const nav = screen.getByRole('navigation', { name: 'Navegação principal' });
@@ -47,7 +47,7 @@ describe('AppLayout', () => {
     ).toBeInTheDocument();
   });
 
-  it('has a skip link to the main content and an entry point to log in', async () => {
+  it('has a skip link to the main content and a way to sign out', async () => {
     renderRoute('/');
     await screen.findByRole('heading', { level: 1, name: 'Início' });
 
@@ -56,6 +56,6 @@ describe('AppLayout', () => {
       '#conteudo',
     );
     expect(screen.getByRole('main')).toHaveAttribute('id', 'conteudo');
-    expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
   });
 });

@@ -58,12 +58,14 @@ export class HttpClient {
   }
 
   async #request<T>(request: AxiosRequestConfig): Promise<T> {
+    const hadSession = this.#tokenStore.get() !== null;
     try {
       const response = await this.#axios.request<T>(request);
       return response.data;
     } catch (error) {
       const apiError = ApiError.from(error);
-      if (apiError.status === 401) {
+      // 401 sem token é credencial errada (login), não sessão expirada.
+      if (apiError.status === 401 && hadSession) {
         this.#tokenStore.clear();
         this.#onUnauthorized?.();
       }

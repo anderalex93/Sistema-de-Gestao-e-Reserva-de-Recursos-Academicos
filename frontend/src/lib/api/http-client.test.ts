@@ -150,6 +150,24 @@ describe('HttpClient', () => {
     expect(onUnauthorized).toHaveBeenCalledOnce();
   });
 
+  it('does not end a session on 401 when there was no session (wrong password)', async () => {
+    const onUnauthorized = vi.fn<() => void>();
+    client.setUnauthorizedHandler(onUnauthorized);
+    server.use(
+      http.post(`${API_URL}/auth/login`, () =>
+        HttpResponse.json(
+          { detail: 'E-mail ou senha incorretos.', code: 'CREDENCIAIS_INVALIDAS' },
+          { status: 401 },
+        ),
+      ),
+    );
+
+    const error = await captureError(client.post('/auth/login', {}));
+
+    expect(error.code).toBe('CREDENCIAIS_INVALIDAS');
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
   it('supports put, patch and delete', async () => {
     server.use(
       http.put(`${API_URL}/x`, () => HttpResponse.json('put')),
