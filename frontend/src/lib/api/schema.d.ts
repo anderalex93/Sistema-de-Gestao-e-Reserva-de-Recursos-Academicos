@@ -174,6 +174,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/reservas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reserva um recurso num intervalo livre */
+    post: operations['create_reservation_api_v1_reservas_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/reservas/{reservation_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Detalhe de uma reserva (dono ou administrador) */
+    get: operations['get_reservation_api_v1_reservas__reservation_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/admin/usuarios': {
     parameters: {
       query?: never;
@@ -306,6 +340,62 @@ export interface components {
       /** Total Pages */
       total_pages: number;
     };
+    /** ReservationCreate */
+    ReservationCreate: {
+      /** Recurso Id */
+      recurso_id: number;
+      /**
+       * Inicio
+       * Format: date-time
+       */
+      inicio: string;
+      /**
+       * Fim
+       * Format: date-time
+       */
+      fim: string;
+      /** Finalidade */
+      finalidade?: string | null;
+      /** Qtd Participantes */
+      qtd_participantes?: number | null;
+    };
+    /** ReservationRead */
+    ReservationRead: {
+      /** Id */
+      id: number;
+      /** Codigo */
+      codigo: string;
+      status: components['schemas']['ReservationStatus'];
+      /**
+       * Inicio
+       * Format: date-time
+       */
+      inicio: string;
+      /**
+       * Fim
+       * Format: date-time
+       */
+      fim: string;
+      /** Finalidade */
+      finalidade: string | null;
+      /** Qtd Participantes */
+      qtd_participantes: number | null;
+      recurso: components['schemas']['ResourceRead'];
+      /** Usuario Id */
+      usuario_id: number;
+      /**
+       * Criado Em
+       * Format: date-time
+       */
+      criado_em: string;
+      /** Cancelada Em */
+      cancelada_em: string | null;
+    };
+    /**
+     * ReservationStatus
+     * @enum {string}
+     */
+    ReservationStatus: 'CONFIRMADA' | 'CANCELADA';
     /** ResourceRead */
     ResourceRead: {
       /** Id */
@@ -852,6 +942,115 @@ export interface operations {
         };
       };
       /** @description Recurso inexistente ou inativo */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_reservation_api_v1_reservas_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ReservationCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReservationRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Recurso inexistente ou inativo */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Horário ocupado (RESERVA_CONFLITO) */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Horário ou participantes fora das regras */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  get_reservation_api_v1_reservas__reservation_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        reservation_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReservationRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Reserva inexistente ou de outra pessoa */
       404: {
         headers: {
           [name: string]: unknown;

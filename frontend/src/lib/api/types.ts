@@ -19,6 +19,8 @@ export type SlotStatus = Schemas['SlotStatus'];
 export type SlotRead = Schemas['SlotRead'];
 export type AvailabilityRead = Schemas['AvailabilityRead'];
 export type RulesRead = Schemas['RulesRead'];
+export type ReservationCreate = Schemas['ReservationCreate'];
+export type ReservationRead = Schemas['ReservationRead'];
 
 export interface Page<Item> {
   items: Item[];

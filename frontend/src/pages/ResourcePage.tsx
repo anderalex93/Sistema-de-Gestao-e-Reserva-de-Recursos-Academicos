@@ -3,9 +3,11 @@ import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router';
 
 import { AvailabilitySection } from '@/components/availability/AvailabilitySection';
+import { ReservationDialog } from '@/components/reservation/ReservationDialog';
 import { FeatureChips } from '@/components/catalog/FeatureChips';
 import { DetailList, type DetailItem } from '@/components/DetailList';
 import { LoadError } from '@/components/LoadError';
@@ -13,6 +15,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { capacityLabel, resourceTypeLabels } from '@/domain/resource-types';
 import { useResource } from '@/hooks/useCatalog';
 import { ApiError } from '@/lib/api/api-error';
+import type { SelectedInterval } from '@/domain/slot-selection';
 import type { ResourceRead } from '@/lib/api/types';
 import { paths } from '@/router/paths';
 
@@ -75,6 +78,11 @@ export default function ResourcePage() {
   const { id = '' } = useParams();
   const resourceId = Number(id);
   const query = useResource(resourceId);
+  const [pending, setPending] = useState<{
+    interval: SelectedInterval;
+    date: string;
+    clearSelection: () => void;
+  } | null>(null);
 
   const notFound =
     !Number.isInteger(resourceId) ||
@@ -115,7 +123,28 @@ export default function ResourcePage() {
             <Typography sx={{ mt: 2.5, maxWidth: '65ch' }}>{resource.descricao}</Typography>
           )}
         </Box>
-        <AvailabilitySection resourceId={resource.id} resourceName={resource.nome} />
+        <AvailabilitySection
+          resourceId={resource.id}
+          resourceName={resource.nome}
+          renderActions={(interval, date, clearSelection) => (
+            <Button
+              variant="contained"
+              onClick={() => setPending({ interval, date, clearSelection })}
+            >
+              Reservar este horário
+            </Button>
+          )}
+        />
+        {pending && (
+          <ReservationDialog
+            open
+            resource={resource}
+            date={pending.date}
+            interval={pending.interval}
+            onClose={() => setPending(null)}
+            onConflict={pending.clearSelection}
+          />
+        )}
       </Stack>
     </>
   );

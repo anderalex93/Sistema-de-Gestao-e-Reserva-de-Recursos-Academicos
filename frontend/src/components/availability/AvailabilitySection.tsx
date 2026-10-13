@@ -28,7 +28,11 @@ interface AvailabilitySectionProps {
   resourceId: number;
   resourceName: string;
   /** Ações sobre o intervalo escolhido (ex.: "Reservar este horário"). */
-  renderActions?: (interval: SelectedInterval, date: string) => ReactNode;
+  renderActions?: (
+    interval: SelectedInterval,
+    date: string,
+    clearSelection: () => void,
+  ) => ReactNode;
 }
 
 /** Dia na URL (`?data=`), para o link do resultado da busca já abrir no dia certo. */
@@ -114,7 +118,7 @@ function DayAvailability({
         </Typography>
       </Box>
       <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }} useFlexGap>
-        {renderActions?.(interval, date)}
+        {renderActions?.(interval, date, () => setPicked(null))}
         <Button variant="text" onClick={() => setPicked(null)}>
           Limpar seleção
         </Button>
