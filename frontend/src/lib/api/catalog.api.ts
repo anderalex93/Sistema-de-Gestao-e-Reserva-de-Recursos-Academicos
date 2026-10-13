@@ -1,9 +1,17 @@
 import type { HttpClient } from '@/lib/api/http-client';
-import type { BuildingRead, FeatureRead, Page, ResourceRead } from '@/lib/api/types';
+import type { BuildingRead, FeatureRead, Page, ResourceRead, ResourceType } from '@/lib/api/types';
 
+/** Parâmetros de `GET /recursos`. `inicio` e `fim` em ISO UTC, sempre juntos. */
 export interface ResourceListParams {
   page: number;
   per_page: number;
+  bloco_id?: number;
+  tipo?: ResourceType;
+  caracteristicas?: number[];
+  capacidade_min?: number;
+  busca?: string;
+  inicio?: string;
+  fim?: string;
 }
 
 export class CatalogApi {

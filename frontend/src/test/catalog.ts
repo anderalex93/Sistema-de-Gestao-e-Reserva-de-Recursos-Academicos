@@ -1,8 +1,18 @@
 import { http, HttpResponse } from 'msw';
 
-import type { Page, ResourceRead } from '@/lib/api/types';
+import type { BuildingRead, FeatureRead, Page, ResourceRead } from '@/lib/api/types';
 import { api } from '@/test/render';
 import { server } from '@/test/server';
+
+export const buildings: BuildingRead[] = [
+  { id: 1, nome: 'Bloco A', descricao: 'Entrada principal' },
+  { id: 4, nome: 'Bloco D', descricao: null },
+];
+
+export const features: FeatureRead[] = [
+  { id: 2, nome: 'Ar-condicionado' },
+  { id: 1, nome: 'Projetor' },
+];
 
 export function buildResource(overrides: Partial<ResourceRead> = {}): ResourceRead {
   return {
@@ -28,9 +38,11 @@ export function resourcePage(
   return { items, total, page, per_page: perPage, total_pages: Math.ceil(total / perPage) };
 }
 
-/** Catálogo respondendo com estes recursos na lista e no detalhe. */
+/** Catálogo respondendo com estes recursos na lista e no detalhe, mais blocos e características. */
 export function serveCatalog(resources: ResourceRead[]) {
   server.use(
+    http.get(api('/blocos'), () => HttpResponse.json(buildings)),
+    http.get(api('/caracteristicas'), () => HttpResponse.json(features)),
     http.get(api('/recursos'), () => HttpResponse.json(resourcePage(resources))),
     http.get(api('/recursos/:id'), ({ params }) => {
       const found = resources.find((resource) => String(resource.id) === params.id);

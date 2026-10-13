@@ -23,7 +23,13 @@ export class HttpClient {
   constructor({ baseURL, tokenStore, timeoutMs = 15_000 }: HttpClientOptions) {
     this.#tokenStore = tokenStore;
     // Adaptador fetch: mesmo transporte no navegador e nos testes (o MSW intercepta fetch).
-    this.#axios = axios.create({ baseURL, timeout: timeoutMs, adapter: 'fetch' });
+    // Listas na query string repetem a chave (`c=1&c=2`), o formato que o FastAPI lê.
+    this.#axios = axios.create({
+      baseURL,
+      timeout: timeoutMs,
+      adapter: 'fetch',
+      paramsSerializer: { indexes: null },
+    });
     this.#axios.interceptors.request.use((request) => {
       const token = this.#tokenStore.get();
       if (token) {

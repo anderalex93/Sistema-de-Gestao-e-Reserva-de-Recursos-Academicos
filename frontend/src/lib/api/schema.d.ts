@@ -110,8 +110,8 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Lista os recursos disponíveis para reserva */
-    get: operations['list_resources_api_v1_recursos_get'];
+    /** Busca recursos para reservar, com filtros e horário livre */
+    get: operations['search_resources_api_v1_recursos_get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -587,11 +587,21 @@ export interface operations {
       };
     };
   };
-  list_resources_api_v1_recursos_get: {
+  search_resources_api_v1_recursos_get: {
     parameters: {
       query?: {
         page?: number;
         per_page?: number;
+        bloco_id?: number | null;
+        tipo?: components['schemas']['ResourceType'] | null;
+        /** @description IDs de características; o recurso precisa ter todas */
+        caracteristicas?: number[];
+        capacidade_min?: number | null;
+        /** @description Trecho do nome */
+        busca?: string | null;
+        /** @description Com `fim`: só recursos livres no intervalo */
+        inicio?: string | null;
+        fim?: string | null;
       };
       header?: never;
       path?: never;
@@ -617,13 +627,13 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Validation Error */
+      /** @description Intervalo inválido ou no passado */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['HTTPValidationError'];
+          'application/json': components['schemas']['ErrorResponse'];
         };
       };
     };

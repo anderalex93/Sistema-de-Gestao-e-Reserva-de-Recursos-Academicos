@@ -9,4 +9,6 @@ export const queryKeys = {
   resources: ['recursos'] as const,
   resourceList: (params: ResourceListParams) => ['recursos', 'lista', params] as const,
   resource: (id: number) => ['recursos', 'detalhe', id] as const,
+  buildings: ['blocos'] as const,
+  features: ['caracteristicas'] as const,
 };

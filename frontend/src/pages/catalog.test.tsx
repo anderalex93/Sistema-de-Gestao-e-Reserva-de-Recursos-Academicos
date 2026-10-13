@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import { delay, http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { buildResource, resourcePage, serveCatalog } from '@/test/catalog';
 import { api, renderRoute } from '@/test/render';
@@ -17,6 +17,9 @@ const projetor = buildResource({
   bloco: { id: 4, nome: 'Bloco D', descricao: null },
   caracteristicas: [{ id: 1, nome: 'Projetor' }],
 });
+
+// Blocos e características sempre respondem; cada teste ajusta a lista quando precisa.
+beforeEach(() => serveCatalog([]));
 
 describe('reserve page (catalog list)', () => {
   it('shows each resource with type, location, capacity and features', async () => {
