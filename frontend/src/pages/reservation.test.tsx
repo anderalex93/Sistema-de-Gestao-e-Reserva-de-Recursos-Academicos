@@ -36,6 +36,8 @@ async function openSummary() {
   await view.user.click(within(slots).getByRole('button', { name: /^19:30 às 20:00/ }));
   await view.user.click(screen.getByRole('button', { name: 'Reservar este horário' }));
   const dialog = await screen.findByRole('dialog', { name: 'Confirmar reserva?' });
+  // A ação segura recebe o foco quando o diálogo termina de abrir.
+  await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Voltar' })).toHaveFocus());
   return { ...view, dialog };
 }
 

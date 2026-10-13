@@ -14,6 +14,7 @@ import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
 import { useCancelReservation } from '@/hooks/useReservations';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ApiError } from '@/lib/api/api-error';
+import { focusIfIdle } from '@/lib/focus';
 import type { MyReservationRead } from '@/lib/api/types';
 
 interface CancelReservationDialogProps {
@@ -49,7 +50,7 @@ export function CancelReservationDialog({ reservation, onClose }: CancelReservat
       fullWidth
       maxWidth="xs"
       aria-labelledby="cancelar-reserva-titulo"
-      slotProps={{ transition: { onEntered: () => keepButton.current?.focus() } }}
+      slotProps={{ transition: { onEntered: () => focusIfIdle(keepButton) } }}
     >
       <DialogTitle
         id="cancelar-reserva-titulo"

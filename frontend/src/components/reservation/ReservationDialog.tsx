@@ -20,6 +20,7 @@ import { durationLabel, type SelectedInterval } from '@/domain/slot-selection';
 import { useFeedback } from '@/hooks/useFeedback';
 import { reservationsApi } from '@/lib/api';
 import { ApiError } from '@/lib/api/api-error';
+import { focusIfIdle } from '@/lib/focus';
 import type { ResourceRead } from '@/lib/api/types';
 import { queryKeys } from '@/lib/query-keys';
 import { paths } from '@/router/paths';
@@ -131,7 +132,7 @@ export function ReservationDialog({
       maxWidth="sm"
       aria-labelledby="resumo-reserva-titulo"
       // Foco inicial na ação segura (design system, diálogo de confirmação).
-      slotProps={{ transition: { onEntered: () => backButton.current?.focus() } }}
+      slotProps={{ transition: { onEntered: () => focusIfIdle(backButton) } }}
     >
       <DialogTitle id="resumo-reserva-titulo" sx={{ fontFamily: 'h2.fontFamily', fontWeight: 500 }}>
         Confirmar reserva?
