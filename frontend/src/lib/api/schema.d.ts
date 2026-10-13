@@ -69,6 +69,74 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/blocos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lista os blocos do campus */
+    get: operations['list_buildings_api_v1_blocos_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/caracteristicas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lista as características usadas nos filtros */
+    get: operations['list_features_api_v1_caracteristicas_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/recursos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lista os recursos disponíveis para reserva */
+    get: operations['list_resources_api_v1_recursos_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/recursos/{resource_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Detalhe de um recurso */
+    get: operations['get_resource_api_v1_recursos__resource_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/admin/usuarios': {
     parameters: {
       query?: never;
@@ -91,6 +159,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** BuildingRead */
+    BuildingRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      /** Descricao */
+      descricao: string | null;
+    };
     /**
      * ErrorResponse
      * @description Formato de todo erro de domínio. Usado nos `responses` dos endpoints para o OpenAPI.
@@ -100,6 +177,13 @@ export interface components {
       detail: string;
       /** Code */
       code: string;
+    };
+    /** FeatureRead */
+    FeatureRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -129,6 +213,19 @@ export interface components {
       /** Senha */
       senha: string;
     };
+    /** Page[ResourceRead] */
+    Page_ResourceRead_: {
+      /** Items */
+      items: components['schemas']['ResourceRead'][];
+      /** Total */
+      total: number;
+      /** Page */
+      page: number;
+      /** Per Page */
+      per_page: number;
+      /** Total Pages */
+      total_pages: number;
+    };
     /** Page[UserRead] */
     Page_UserRead_: {
       /** Items */
@@ -142,6 +239,28 @@ export interface components {
       /** Total Pages */
       total_pages: number;
     };
+    /** ResourceRead */
+    ResourceRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      tipo: components['schemas']['ResourceType'];
+      /** Capacidade */
+      capacidade: number | null;
+      /** Andar */
+      andar: string | null;
+      /** Descricao */
+      descricao: string | null;
+      bloco: components['schemas']['BuildingRead'];
+      /** Caracteristicas */
+      caracteristicas: components['schemas']['FeatureRead'][];
+    };
+    /**
+     * ResourceType
+     * @enum {string}
+     */
+    ResourceType: 'SALA_ESTUDO' | 'LABORATORIO' | 'AUDITORIO' | 'EQUIPAMENTO';
     /** TokenRead */
     TokenRead: {
       /** Access Token */
@@ -406,6 +525,154 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  list_buildings_api_v1_blocos_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BuildingRead'][];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  list_features_api_v1_caracteristicas_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeatureRead'][];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  list_resources_api_v1_recursos_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        per_page?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_ResourceRead_'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_resource_api_v1_recursos__resource_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        resource_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ResourceRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Recurso inexistente ou inativo */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };

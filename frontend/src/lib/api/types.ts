@@ -11,6 +11,10 @@ export type UserSignup = Schemas['UserSignup'];
 export type UserAdminCreate = Schemas['UserAdminCreate'];
 export type LoginRequest = Schemas['LoginRequest'];
 export type TokenRead = Schemas['TokenRead'];
+export type BuildingRead = Schemas['BuildingRead'];
+export type FeatureRead = Schemas['FeatureRead'];
+export type ResourceType = Schemas['ResourceType'];
+export type ResourceRead = Schemas['ResourceRead'];
 
 export interface Page<Item> {
   items: Item[];

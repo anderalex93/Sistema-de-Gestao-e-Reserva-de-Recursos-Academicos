@@ -1,13 +1,16 @@
 import { screen, waitFor, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
+import { buildResource, serveCatalog } from '@/test/catalog';
 import { adminUser, renderRoute } from '@/test/render';
 
 describe('routes', () => {
+  beforeEach(() => serveCatalog([buildResource()]));
+
   it.each([
     ['/', 'Início'],
     ['/reservar', 'Reservar espaço'],
-    ['/recursos/204', 'Recurso 204'],
+    ['/recursos/204', 'Sala de estudo 204'],
     ['/minhas-reservas', 'Minhas reservas'],
     ['/conta', 'Minha conta'],
     ['/admin', 'Administração'],
@@ -38,12 +41,13 @@ describe('routes', () => {
   it('shows breadcrumbs on second-level pages', async () => {
     renderRoute('/recursos/204');
 
-    const crumbs = await screen.findByRole('navigation', { name: 'Você está em' });
+    await screen.findByRole('heading', { level: 1, name: 'Sala de estudo 204' });
+    const crumbs = screen.getByRole('navigation', { name: 'Você está em' });
     expect(within(crumbs).getByRole('link', { name: 'Reservar' })).toHaveAttribute(
       'href',
       '/reservar',
     );
-    expect(within(crumbs).getByText('Recurso 204')).toHaveAttribute('aria-current', 'page');
+    expect(within(crumbs).getByText('Sala de estudo 204')).toHaveAttribute('aria-current', 'page');
   });
 
   it('public pages have no app navigation', async () => {

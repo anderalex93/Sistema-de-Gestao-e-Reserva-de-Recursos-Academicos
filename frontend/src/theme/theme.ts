@@ -133,6 +133,17 @@ export function createAppTheme() {
         defaultProps: { underline: 'always' },
         styleOverrides: { root: { textUnderlineOffset: 3 } },
       },
+      MuiChip: {
+        styleOverrides: {
+          root: { borderRadius: 2, transition: 'none' },
+          outlined: { borderColor: colors.line, color: colors.ink },
+        },
+      },
+      MuiPaginationItem: {
+        styleOverrides: {
+          root: { borderRadius: 2, minWidth: 44, height: 44, transition: 'none' },
+        },
+      },
       MuiSkeleton: {
         defaultProps: { animation: 'pulse' },
         styleOverrides: { root: { backgroundColor: colors.sunken, borderRadius: 0 } },
