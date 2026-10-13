@@ -26,11 +26,19 @@ class Settings(BaseSettings):
     database_url: str
     test_database_url: str | None = None
 
-    jwt_secret: SecretStr
+    jwt_secret: SecretStr = Field(min_length=32)  # HS256 exige chave de 32+ bytes (RFC 7518)
     jwt_expires_minutes: int = Field(default=480, gt=0)
+    rate_limit_enabled: bool = True
 
-    allowed_email_domains: CommaSeparated = Field(min_length=1)
+    # Vazio = cadastro aberto a qualquer e-mail. Preencha para restringir (ex.: "umj.edu.br").
+    allowed_email_domains: CommaSeparated = Field(default_factory=list)
     cors_origins: CommaSeparated = Field(default_factory=list)
+
+    seed_admin_name: str = Field(
+        default="Administrador EduSpace", validation_alias="SEED_ADMIN_NOME"
+    )
+    seed_admin_email: str | None = Field(default=None, validation_alias="SEED_ADMIN_EMAIL")
+    seed_admin_password: SecretStr | None = Field(default=None, validation_alias="SEED_ADMIN_SENHA")
 
     display_timezone: str = Field(default="America/Maceio", validation_alias="TZ_EXIBICAO")
     opening_time: time = Field(default=time(7, 0), validation_alias="HORARIO_ABERTURA")

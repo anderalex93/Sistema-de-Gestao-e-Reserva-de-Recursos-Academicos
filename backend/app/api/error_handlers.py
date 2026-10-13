@@ -8,6 +8,7 @@ from typing import cast
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.exceptions import DomainError
@@ -28,7 +29,9 @@ def _error(status_code: int, detail: str, code: str) -> JSONResponse:
 
 async def handle_domain_error(_request: Request, exc: Exception) -> JSONResponse:
     error = cast("DomainError", exc)
-    return _error(error.status_code, error.detail, error.code)
+    response = _error(error.status_code, error.detail, error.code)
+    response.headers.update(error.headers)
+    return response
 
 
 async def handle_http_exception(_request: Request, exc: Exception) -> JSONResponse:
@@ -42,6 +45,12 @@ async def handle_http_exception(_request: Request, exc: Exception) -> JSONRespon
     return response
 
 
+async def handle_rate_limit(_request: Request, _exc: Exception) -> JSONResponse:
+    return _error(
+        429, "Muitas tentativas seguidas. Aguarde um minuto e tente de novo.", "MUITAS_TENTATIVAS"
+    )
+
+
 async def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
     logger.exception(
         "Unhandled error on %s %s: %s", request.method, request.url.path, type(exc).__name__
@@ -52,4 +61,5 @@ async def handle_unexpected_error(request: Request, exc: Exception) -> JSONRespo
 def register_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(DomainError, handle_domain_error)
     app.add_exception_handler(StarletteHTTPException, handle_http_exception)
+    app.add_exception_handler(RateLimitExceeded, handle_rate_limit)
     app.add_exception_handler(Exception, handle_unexpected_error)

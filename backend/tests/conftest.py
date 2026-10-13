@@ -5,7 +5,8 @@ aplicadas do zero). Cada teste roda dentro de uma transação desfeita no final;
 pelos services vira um savepoint, então nada vaza entre testes.
 """
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -18,7 +19,10 @@ from sqlalchemy.orm import Session
 from alembic import command
 from app.api.dependencies import get_db
 from app.core.config import Settings
+from app.core.enums import UserRole
+from app.core.security import PasswordHasher
 from app.main import create_app
+from app.models.user import User
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
@@ -40,6 +44,8 @@ def settings() -> Settings:
             "database_url": base.test_database_url,
             "app_env": "test",
             "cors_origins": ["http://localhost:5173"],
+            "allowed_email_domains": [],
+            "rate_limit_enabled": False,
         }
     )
 
@@ -98,3 +104,45 @@ def app(settings: Settings, db_session: Session) -> FastAPI:
 def client(app: FastAPI) -> Iterator[TestClient]:
     with TestClient(app) as test_client:
         yield test_client
+
+
+class FixedClock:
+    """Relógio controlável nos testes."""
+
+    def __init__(self, now: datetime) -> None:
+        self.current = now
+
+    def now(self) -> datetime:
+        return self.current
+
+
+@pytest.fixture
+def hasher() -> PasswordHasher:
+    return PasswordHasher()
+
+
+@pytest.fixture
+def make_user(db_session: Session, hasher: PasswordHasher) -> Callable[..., User]:
+    """Cria usuários direto no banco. Senha padrão: `Senha123`."""
+
+    def factory(
+        email: str = "lucas@umj.edu.br",
+        perfil: UserRole = UserRole.ALUNO,
+        senha: str = "Senha123",
+        nome: str = "Lucas Andrade",
+        ativo: bool = True,
+    ) -> User:
+        user = User(
+            nome=nome, email=email, senha_hash=hasher.hash(senha), perfil=perfil, ativo=ativo
+        )
+        db_session.add(user)
+        db_session.flush()
+        return user
+
+    return factory
+
+
+def login(client: TestClient, email: str, senha: str = "Senha123") -> dict[str, str]:
+    response = client.post("/api/v1/auth/login", json={"email": email, "senha": senha})
+    assert response.status_code == 200, response.text
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}

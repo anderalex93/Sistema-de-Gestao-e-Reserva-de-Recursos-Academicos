@@ -8,7 +8,7 @@ from app.core.config import Settings, get_settings
 
 REQUIRED: dict[str, Any] = {
     "database_url": "postgresql+psycopg://user:pass@localhost:5433/eduspace",
-    "jwt_secret": "segredo-de-teste",
+    "jwt_secret": "segredo-de-teste-com-pelo-menos-32-bytes",
     "allowed_email_domains": "umj.edu.br",
 }
 
@@ -56,13 +56,17 @@ def test_rejects_closing_before_opening() -> None:
         build(opening_time=time(22, 0), closing_time=time(7, 0))
 
 
-def test_requires_at_least_one_email_domain() -> None:
+def test_empty_domain_list_means_open_signup() -> None:
+    assert build(allowed_email_domains="").allowed_email_domains == []
+
+
+def test_requires_strong_jwt_secret() -> None:
     with pytest.raises(ValidationError):
-        build(allowed_email_domains="")
+        build(jwt_secret="curto")
 
 
 def test_secret_is_not_exposed_in_repr() -> None:
-    assert "segredo-de-teste" not in repr(build())
+    assert "segredo-de-teste-com-pelo-menos-32-bytes" not in repr(build())
 
 
 def test_get_settings_reads_environment_once(monkeypatch: pytest.MonkeyPatch) -> None:

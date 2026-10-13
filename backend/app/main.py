@@ -8,6 +8,8 @@ from app.api.error_handlers import register_error_handlers
 from app.api.v1.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
+from app.core.rate_limit import limiter
+from app.core.security import PasswordHasher
 from app.db.session import build_engine, build_session_factory
 
 
@@ -29,6 +31,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = settings
+    app.state.password_hasher = PasswordHasher()
+    app.state.limiter = limiter
+    limiter.enabled = settings.rate_limit_enabled
 
     app.add_middleware(
         CORSMiddleware,

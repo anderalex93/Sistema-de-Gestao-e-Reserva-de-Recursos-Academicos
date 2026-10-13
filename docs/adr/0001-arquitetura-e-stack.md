@@ -273,14 +273,16 @@ devolve `409 RESERVA_CONFLITO`. O intervalo `[)` permite reservas adjacentes (19
 
 ### 9. Autenticação e sessão
 
-- Cadastro restrito aos domínios de `ALLOWED_EMAIL_DOMAINS` (variável de ambiente).
+- Contas nascem de dois jeitos: **autocadastro** (sempre perfil `ALUNO`) ou **criação pelo admin**
+  (escolhe o perfil). O cadastro aceita qualquer e-mail; a restrição ao e-mail institucional existe,
+  desligada, e liga preenchendo `ALLOWED_EMAIL_DOMAINS` (decisão da equipe em 13/10/2026).
 - Login devolve um **access token JWT** (`sub` = id do usuário, `perfil`, `exp`) válido por
   **8 horas**. Sem refresh token no MVP: expirou, o usuário faz login de novo.
 - No front, o token fica no `localStorage`, acessado **somente** pelo `HttpClient` e pelo
   `AuthContext`. Mitigações de XSS: renderização declarativa do React, nenhum
   `dangerouslySetInnerHTML`, expiração curta.
 - Perfis (`UserRole`): `ALUNO` (padrão no cadastro), `PROFESSOR` e `ADMIN`. O primeiro admin é
-  criado por CLI (`python -m app.cli criar-admin`), sem endpoint público.
+  criado pelo seed (`make seed`, com `SEED_ADMIN_*` no `.env`), sem endpoint público.
 - Rate limit com `slowapi`: login 5/min por IP, cadastro 3/min por IP.
 - Logs nunca contêm senha, token ou e-mail completo.
 

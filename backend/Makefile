@@ -1,7 +1,7 @@
 UV ?= uv
 COMPOSE ?= docker compose -f ../docker-compose.yml
 
-.PHONY: install db-up db-down dev migrate revision lint format typecheck test ci openapi
+.PHONY: install db-up db-down dev migrate seed revision lint format typecheck test migrations-check ci openapi
 
 install:  ## Instala dependências (inclui as de desenvolvimento)
 	$(UV) sync
@@ -17,6 +17,9 @@ dev:  ## API com hot reload em http://localhost:8000
 
 migrate:  ## Aplica as migrações pendentes
 	$(UV) run alembic upgrade head
+
+seed:  ## Cria o admin inicial (SEED_ADMIN_* no .env); pode rodar várias vezes
+	$(UV) run python -m app.seed
 
 revision:  ## Gera migração a partir dos models: make revision m="create reserva"
 	$(UV) run alembic revision --autogenerate -m "$(m)"
@@ -35,7 +38,11 @@ typecheck:
 test:
 	$(UV) run pytest --cov --cov-report=term-missing
 
-ci: lint typecheck test  ## Gate completo: ruff, mypy --strict e pytest
+migrations-check:  ## Falha se algum model mudou sem migração
+	$(UV) run alembic upgrade head
+	$(UV) run alembic check
+
+ci: lint typecheck test migrations-check  ## Gate completo: ruff, mypy --strict, pytest e migrações em dia
 
 openapi:  ## Exporta o OpenAPI para ../frontend/openapi.json (usado por npm run gen:api)
 	$(UV) run python -m scripts.export_openapi ../frontend/openapi.json

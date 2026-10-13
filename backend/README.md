@@ -4,22 +4,40 @@ Backend do EduSpace em FastAPI. Decisões de arquitetura no
 [ADR 0001](../docs/adr/0001-arquitetura-e-stack.md); modelo de dados em
 [docs/modelagem/der.md](../docs/modelagem/der.md).
 
-## Rodar em 5 passos
+## Rodar em 6 passos
 
 Pré-requisitos: Docker, Python 3.13, [uv](https://docs.astral.sh/uv/) e `make`
 (no Windows, use o Git Bash).
 
 ```bash
 cd backend
-cp .env.example .env        # 1. configure (gere um JWT_SECRET forte)
+cp .env.example .env        # 1. configure JWT_SECRET (32+ caracteres) e SEED_ADMIN_SENHA
 make install                # 2. instala as dependências
 make db-up                  # 3. sobe o PostgreSQL na porta 5433
 make migrate                # 4. aplica as migrações
-make dev                    # 5. API em http://localhost:8000
+make seed                   # 5. cria o administrador inicial
+make dev                    # 6. API em http://localhost:8000
 ```
 
 Confira em <http://localhost:8000/api/v1/health> (`{"status": "ok", "db": "ok"}`) e a
 documentação interativa em <http://localhost:8000/docs>.
+
+## Contas e acesso
+
+| Como a conta nasce | Rota | Perfil |
+|---|---|---|
+| Seed do administrador inicial | `make seed` (lê `SEED_ADMIN_NOME`, `SEED_ADMIN_EMAIL`, `SEED_ADMIN_SENHA`) | `ADMIN` |
+| Autocadastro | `POST /api/v1/auth/cadastro` | sempre `ALUNO` |
+| Criada pelo admin | `POST /api/v1/admin/usuarios` | escolhido pelo admin |
+
+- O seed é idempotente: rodar de novo não duplica a conta nem troca a senha; se o e-mail já
+  existir como aluno ou desativado, ele é promovido a admin e reativado.
+- Login em `POST /api/v1/auth/login` devolve um JWT de 8 horas; envie como
+  `Authorization: Bearer <token>`. No Swagger, use o botão **Authorize**.
+- O cadastro aceita qualquer e-mail. Para exigir o institucional, defina
+  `ALLOWED_EMAIL_DOMAINS=umj.edu.br` (só vale para o autocadastro; o admin cria qualquer conta).
+- Senhas: 8 a 128 caracteres, com letras e números, guardadas com argon2.
+- Rate limit por IP: login 20/min, cadastro 10/min.
 
 ## Comandos
 
@@ -28,6 +46,7 @@ documentação interativa em <http://localhost:8000/docs>.
 | `make ci` | Gate completo: ruff, `mypy --strict` e pytest com cobertura mínima de 90% |
 | `make test` | Só os testes, com relatório de cobertura |
 | `make format` | Corrige lint e formata o código |
+| `make seed` | Cria ou confere o administrador inicial |
 | `make revision m="create reserva"` | Gera migração a partir dos models (revise o arquivo antes de commitar) |
 | `make db-down` | Para o PostgreSQL mantendo os dados |
 

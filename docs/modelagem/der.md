@@ -103,7 +103,7 @@ Pessoa que usa o sistema: aluno, professor ou administrador.
 | Coluna | Tipo | Nulo | Regra |
 |---|---|---|---|
 | `nome` | `VARCHAR(120)` | não | Nome completo, sem espaços nas pontas |
-| `email` | `VARCHAR(254)` | não | Único. Gravado em minúsculas (`CHECK (email = lower(email))`). Domínio validado na aplicação contra `ALLOWED_EMAIL_DOMAINS` |
+| `email` | `VARCHAR(254)` | não | Único. Gravado em minúsculas (`CHECK (email = lower(email))`). Domínio validado contra `ALLOWED_EMAIL_DOMAINS` quando configurado (por padrão, qualquer domínio) |
 | `senha_hash` | `VARCHAR(255)` | não | Hash argon2. A senha em texto nunca é gravada |
 | `perfil` | `VARCHAR(20)` | não | `ALUNO`, `PROFESSOR` ou `ADMIN` (`CHECK`). Padrão `ALUNO` |
 | `matricula` | `VARCHAR(20)` | sim | Única quando informada |
