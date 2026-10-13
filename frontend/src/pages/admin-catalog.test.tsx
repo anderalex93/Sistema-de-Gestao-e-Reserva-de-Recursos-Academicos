@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { BuildingAdminRead, FeatureAdminRead, Page, ResourceAdminRead } from '@/lib/api/types';
 import { adminUser, api, renderRoute } from '@/test/render';
@@ -53,8 +53,23 @@ function serveCatalog(resources: () => ResourceAdminRead[] = () => [sala, reform
   );
 }
 
+// O jsdom não tem `matchMedia`: sem ele a tela fica no layout de desktop. Com `isolate: false`
+// o `window` é compartilhado entre arquivos, então a emulação de celular sai sempre no fim.
+function emulatePhone() {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (query: string) =>
+      ({
+        matches: query.includes('max-width'),
+        media: query,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      }) as unknown as MediaQueryList,
+  });
+}
+
 afterEach(() => {
-  vi.unstubAllGlobals();
+  Reflect.deleteProperty(window, 'matchMedia');
 });
 
 describe('admin resources', () => {
@@ -277,16 +292,7 @@ describe('admin resources', () => {
   });
 
   it('stacks resources as a list on small screens', async () => {
-    vi.stubGlobal(
-      'matchMedia',
-      (query: string) =>
-        ({
-          matches: query.includes('max-width'),
-          media: query,
-          addEventListener: () => undefined,
-          removeEventListener: () => undefined,
-        }) as unknown as MediaQueryList,
-    );
+    emulatePhone();
     serveCatalog();
     renderRoute('/admin/recursos', { user: adminUser });
 

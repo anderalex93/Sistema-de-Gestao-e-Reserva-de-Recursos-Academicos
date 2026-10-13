@@ -124,7 +124,9 @@ describe('board page', () => {
   it('is reachable from the reserve page', async () => {
     renderRoute('/reservar');
 
-    expect(await screen.findByRole('link', { name: 'Quadro de horários' })).toHaveAttribute(
+    // O link da própria página, não o da navegação lateral (que o jsdom só esconde via CSS).
+    const main = await screen.findByRole('main');
+    expect(await within(main).findByRole('link', { name: 'Quadro de horários' })).toHaveAttribute(
       'href',
       '/quadro',
     );
