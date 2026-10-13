@@ -21,8 +21,9 @@ class InvalidTokenError(UnauthorizedError):
 class PasswordHasher:
     """Argon2 (recomendação atual da OWASP). A senha em texto nunca sai daqui."""
 
-    def __init__(self) -> None:
-        self._hasher = PasswordHash.recommended()
+    def __init__(self, backend: PasswordHash | None = None) -> None:
+        # `backend` só é trocado nos testes, por um Argon2 de custo mínimo.
+        self._hasher = backend or PasswordHash.recommended()
         # Hash de referência para gastar o mesmo tempo quando o e-mail não existe.
         self._dummy_hash = self._hasher.hash("senha-inexistente-para-tempo-constante")
 

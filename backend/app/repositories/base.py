@@ -46,6 +46,10 @@ class BaseRepository[ModelT: Base]:
         self._session.flush()
         return entity
 
+    def add_all(self, entities: Sequence[ModelT]) -> None:
+        self._session.add_all(entities)
+        self._session.flush()
+
     def paginate(self, statement: Select[ModelT], page: int, per_page: int) -> PageResult[ModelT]:
         count_statement = select(func.count()).select_from(statement.order_by(None).subquery())
         total = self._session.scalar(count_statement) or 0

@@ -37,10 +37,10 @@ class ResourceRepository(BaseRepository[Resource]):
             raise NotFoundError(self.not_found_message)
         return resource
 
-    def get_by_name(self, bloco_id: int, nome: str) -> Resource | None:
-        return self._session.scalar(
-            select(Resource).where(Resource.bloco_id == bloco_id, Resource.nome == nome)
-        )
+    def existing_keys(self) -> set[tuple[int, str]]:
+        """Chaves naturais `(bloco_id, nome)` de todos os recursos, numa consulta."""
+        rows = self._session.execute(select(Resource.bloco_id, Resource.nome)).all()
+        return {(bloco_id, nome) for bloco_id, nome in rows}
 
 
 def _active_resources() -> Select[Resource]:

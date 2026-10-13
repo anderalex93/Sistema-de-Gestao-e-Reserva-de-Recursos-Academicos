@@ -5,6 +5,7 @@ aplicadas do zero). Cada teste roda dentro de uma transação desfeita no final;
 pelos services vira um savepoint, então nada vaza entre testes.
 """
 
+import os
 from collections.abc import Callable, Iterator
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +14,8 @@ import pytest
 from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from pwdlib import PasswordHash
+from pwdlib.hashers.argon2 import Argon2Hasher
 from sqlalchemy import Connection, Engine, create_engine, make_url, text
 from sqlalchemy.orm import Session
 
@@ -25,6 +28,29 @@ from app.main import create_app
 from app.models.user import User
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
+
+
+def _worker_database_url(url: str) -> str:
+    """Com pytest-xdist, cada worker usa o próprio banco (`eduspace_gw0_test`...) e o cria se
+    preciso. Sem xdist, usa o banco configurado. Assim os workers nunca apagam o schema um
+    do outro."""
+    worker = os.environ.get("PYTEST_XDIST_WORKER")
+    parsed = make_url(url)
+    if not worker:
+        return url
+    base = (parsed.database or "").removesuffix("_test")
+    database = f"{base}_{worker}_test"
+    admin = create_engine(parsed.set(database="postgres"), isolation_level="AUTOCOMMIT")
+    try:
+        with admin.connect() as connection:
+            exists = connection.scalar(
+                text("SELECT 1 FROM pg_database WHERE datname = :name"), {"name": database}
+            )
+            if not exists:
+                connection.execute(text(f'CREATE DATABASE "{database}"'))
+    finally:
+        admin.dispose()
+    return parsed.set(database=database).render_as_string(hide_password=False)
 
 
 @pytest.fixture(scope="session")
@@ -41,7 +67,7 @@ def settings() -> Settings:
         )
     return base.model_copy(
         update={
-            "database_url": base.test_database_url,
+            "database_url": _worker_database_url(base.test_database_url),
             "app_env": "test",
             "cors_origins": ["http://localhost:5173"],
             "allowed_email_domains": [],
@@ -91,7 +117,7 @@ def db_session(connection: Connection) -> Iterator[Session]:
 
 @pytest.fixture
 def app(settings: Settings, db_session: Session) -> FastAPI:
-    app = create_app(settings)
+    app = create_app(settings, FAST_HASHER)
 
     def override_get_db() -> Iterator[Session]:
         yield db_session
@@ -116,9 +142,15 @@ class FixedClock:
         return self.current
 
 
+# Argon2 de custo mínimo: mesmo algoritmo, sem os ~100 ms por hash que a produção usa de propósito.
+FAST_HASHER = PasswordHasher(
+    PasswordHash((Argon2Hasher(time_cost=1, memory_cost=1024, parallelism=1),))
+)
+
+
 @pytest.fixture
 def hasher() -> PasswordHasher:
-    return PasswordHasher()
+    return FAST_HASHER
 
 
 @pytest.fixture

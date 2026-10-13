@@ -45,12 +45,13 @@ class CatalogSeeder:
     ) -> CatalogSeedResult:
         features_by_name, created_features = self._ensure_features(features)
         buildings_by_name, created_buildings = self._ensure_buildings(buildings)
-        created_resources = 0
+        existing = self._resources.existing_keys()
+        new_resources: list[Resource] = []
         for seed in resources:
             building = buildings_by_name[seed.bloco]
-            if self._resources.get_by_name(building.id, seed.nome) is not None:
+            if (building.id, seed.nome) in existing:
                 continue
-            self._resources.add(
+            new_resources.append(
                 Resource(
                     bloco=building,
                     nome=seed.nome,
@@ -61,9 +62,10 @@ class CatalogSeeder:
                     caracteristicas=[features_by_name[name] for name in seed.caracteristicas],
                 )
             )
-            created_resources += 1
+        # Um flush só para todos os recursos novos.
+        self._resources.add_all(new_resources)
         self._uow.commit()
-        return CatalogSeedResult(created_buildings, created_features, created_resources)
+        return CatalogSeedResult(created_buildings, created_features, len(new_resources))
 
     def _ensure_features(self, names: Iterable[str]) -> tuple[dict[str, Feature], int]:
         found: dict[str, Feature] = {}

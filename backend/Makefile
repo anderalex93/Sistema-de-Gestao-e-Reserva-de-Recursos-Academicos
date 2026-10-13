@@ -36,7 +36,7 @@ typecheck:
 	$(UV) run mypy
 
 test:
-	$(UV) run pytest --cov --cov-report=term-missing
+	$(UV) run pytest -n auto --maxprocesses=4 --cov --cov-report=term-missing
 
 migrations-check:  ## Falha se algum model mudou sem migração
 	$(UV) run alembic upgrade head

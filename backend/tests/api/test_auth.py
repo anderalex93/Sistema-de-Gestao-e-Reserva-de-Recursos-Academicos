@@ -13,7 +13,7 @@ from app.core.enums import UserRole
 from app.core.rate_limit import limiter
 from app.main import create_app
 from app.models.user import User
-from tests.conftest import FixedClock, login
+from tests.conftest import FAST_HASHER, FixedClock, login
 
 SIGNUP = "/api/v1/auth/cadastro"
 LOGIN = "/api/v1/auth/login"
@@ -187,7 +187,7 @@ class TestMe:
 
 
 def test_login_is_rate_limited(settings: Settings, db_session: Session) -> None:
-    app = create_app(settings.model_copy(update={"rate_limit_enabled": True}))
+    app = create_app(settings.model_copy(update={"rate_limit_enabled": True}), FAST_HASHER)
     app.dependency_overrides[get_db] = lambda: db_session
     limiter.reset()
     try:
