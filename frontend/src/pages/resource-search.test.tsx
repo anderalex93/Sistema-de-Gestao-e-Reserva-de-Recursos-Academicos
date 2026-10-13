@@ -67,6 +67,21 @@ describe('resource search filters', () => {
     expect(searches.some((params) => params.get('busca') === 'r')).toBe(false);
   });
 
+  it('keeps a filter picked while the typed name is still waiting to be applied', async () => {
+    const { user, router } = renderRoute('/reservar');
+    await screen.findByRole('link', { name: /Sala de estudo 204/ });
+
+    await user.type(screen.getByRole('textbox', { name: 'Nome' }), 'redes');
+    await user.click(screen.getByRole('button', { name: 'Ar-condicionado', pressed: false }));
+
+    await waitFor(() => {
+      const params = new URLSearchParams(router.state.location.search);
+      expect(params.get('busca')).toBe('redes');
+      expect(params.getAll('caracteristicas')).toEqual(['2']);
+    });
+    expect(screen.getByRole('button', { name: 'Ar-condicionado', pressed: true })).toBeVisible();
+  });
+
   it('drops an end time that would come before the new start', async () => {
     const day = nextWeekday();
     const { user, router } = renderRoute(`/reservar?data=${day}&inicio=08:00&fim=09:00`);
