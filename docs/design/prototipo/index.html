@@ -1,0 +1,1129 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Protótipo EduSpace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;500&family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=Literata:opsz,wght@7..72,500;7..72,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,400,0,0&display=block">
+<style>
+/*
+ * Protótipo navegável do EduSpace (issue #14).
+ * Layout: índice de telas à esquerda, palco com a moldura do aparelho (360px ou 1280px) no centro.
+ * Tokens: docs/design/design-system.md, cores oficiais da UMJ. O produto ainda não tem tema escuro
+ * (fica para depois do MVP), então o protótipo mostra só o tema claro, de propósito.
+ */
+:root {
+  color-scheme: light;
+  --paper: #F5F7FA;
+  --surface: #FCFDFE;
+  --sunken: #E6E9EF;
+  --hatch: #D5DBE4;
+  --ink: #041C40;
+  --ink-muted: #596370;
+  --ink-disabled: #83929B;
+  --line: #D5DBE4;
+  --line-strong: #7A8794;
+  --primary: #2F52A0;
+  --primary-hover: #24417F;
+  --primary-tint: #E3E9F5;
+  --brand-accent: #23B9D6;
+  --error: #B91C1C;
+  --warning: #92400E;
+  --success: #1A7F37;
+  --scrim: rgba(4, 28, 64, 0.48);
+
+  --font-display: "Literata", Georgia, "Times New Roman", serif;
+  --font-ui: "Atkinson Hyperlegible Next", "Segoe UI", system-ui, sans-serif;
+  --font-data: "Atkinson Hyperlegible Mono", ui-monospace, Consolas, monospace;
+
+  --radius: 2px;
+  --hatch-pattern: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 8px);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 16px/1.625 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--primary); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ms {
+  font-family: "Material Symbols Sharp";
+  font-weight: normal; font-style: normal; font-size: 20px; line-height: 1;
+  letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr;
+  display: inline-block; vertical-align: middle; flex-shrink: 0;
+  font-feature-settings: "liga"; -webkit-font-feature-settings: "liga";
+  overflow: hidden; width: 1em;
+}
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+
+/* ---------- Moldura do protótipo ---------- */
+.proto { min-height: 100vh; display: flex; flex-direction: column; }
+.proto-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
+  padding: 12px 16px; background: var(--ink); color: var(--paper);
+}
+.proto-bar h1 { margin: 0; font: 500 20px/1.3 var(--font-display); }
+.proto-bar h1 small { display: block; font: 400 13px/1.4 var(--font-ui); color: var(--hatch); }
+.proto-bar .spacer { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; }
+.seg button {
+  border: 0; background: transparent; color: var(--paper); padding: 8px 14px; min-height: 40px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; font-weight: 500;
+}
+.seg button[aria-pressed="true"] { background: var(--paper); color: var(--ink); font-weight: 700; }
+.proto-next {
+  border: 1px solid var(--brand-accent); color: var(--paper); background: transparent; border-radius: var(--radius);
+  padding: 8px 14px; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700;
+}
+.proto-main { flex: 1; display: grid; grid-template-columns: 264px minmax(0, 1fr); }
+.proto-index {
+  border-right: 1px solid var(--line); background: var(--surface); padding: 16px 0;
+  max-height: calc(100vh - 64px); overflow: auto; position: sticky; top: 0;
+}
+.proto-index h2 { margin: 16px 16px 4px; font: 700 12px/16px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); }
+.proto-index h2:first-child { margin-top: 0; }
+.proto-index a {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  padding: 6px 16px; color: var(--ink); text-decoration: none; font-size: 15px;
+}
+.proto-index a:hover { background: var(--sunken); }
+.proto-index a[aria-current="page"] { background: var(--primary-tint); color: var(--primary); font-weight: 700; }
+.proto-index a .tag { font: 500 12px var(--font-data); color: var(--ink-muted); }
+.proto-select { display: none; }
+.proto-select select { width: 100%; min-height: 44px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); padding: 0 12px; }
+.stage { min-width: 0; padding: 20px 24px 40px; display: flex; flex-direction: column; gap: 16px; }
+.stage-meta { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: flex-end; justify-content: space-between; }
+.stage-meta h2 { margin: 0; font: 500 24px/32px var(--font-display); text-wrap: balance; }
+.stage-meta .crumb { font: 700 12px/16px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); }
+.variants { display: flex; flex-wrap: wrap; gap: 8px; }
+.variants button {
+  min-height: 36px; padding: 4px 12px; border: 1px solid var(--line-strong); border-radius: var(--radius);
+  background: var(--surface); cursor: pointer;
+}
+.variants button[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--paper); font-weight: 700; }
+.frame-wrap { position: relative; }
+.device {
+  position: relative; overflow: hidden; background: var(--paper);
+  border: 1px solid var(--line-strong); transform-origin: top left;
+}
+.device-scroll { height: 100%; overflow: auto; }
+.notes { max-width: 70ch; margin: 0; color: var(--ink-muted); font-size: 15px; }
+.notes strong { color: var(--ink); }
+
+@media (max-width: 860px) {
+  .proto-main { grid-template-columns: minmax(0, 1fr); }
+  .proto-index { display: none; }
+  .proto-select { display: block; }
+  .stage { padding: 16px; }
+}
+
+/* ---------- Componentes do app (tokens do design system) ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 18px; border-radius: var(--radius); border: 1px solid transparent;
+  font-weight: 700; font-size: 15px; text-decoration: none; cursor: pointer; white-space: nowrap;
+}
+.btn-primary { background: var(--primary); color: var(--paper); }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-outlined { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+.btn-outlined:hover { background: var(--sunken); }
+.btn-danger { background: transparent; border-color: var(--error); color: var(--error); }
+.btn-danger-fill { background: var(--error); color: var(--paper); }
+.btn-text { background: transparent; color: var(--primary); padding: 0 8px; }
+.btn-text:hover { text-decoration: underline; }
+.btn[aria-disabled="true"] { color: var(--ink-disabled); border-color: var(--line); cursor: not-allowed; }
+.btn-block { width: 100%; }
+.icon-btn {
+  width: 44px; height: 44px; display: inline-grid; place-items: center; border: 1px solid var(--line);
+  border-radius: var(--radius); background: transparent; cursor: pointer;
+}
+.icon-btn[disabled] { color: var(--ink-disabled); cursor: not-allowed; }
+
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field > label, .field > .label { font: 700 14px/20px var(--font-ui); }
+.input, .select, .textarea {
+  min-height: 44px; width: 100%; padding: 0 12px; border: 1px solid var(--line-strong);
+  border-radius: var(--radius); background: var(--surface);
+}
+.textarea { min-height: 88px; padding: 10px 12px; resize: vertical; }
+.select { appearance: none; padding-right: 36px; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-wrap .ms { position: absolute; left: 12px; color: var(--ink-muted); }
+.input-wrap .input { padding-left: 40px; }
+.input-wrap .trail { position: absolute; right: 4px; border: 0; background: transparent; width: 40px; height: 40px; cursor: pointer; }
+.field.has-error .input { border-color: var(--error); border-width: 2px; }
+.help { font-size: 14px; line-height: 22px; color: var(--ink-muted); }
+.err { display: flex; gap: 6px; align-items: flex-start; font-size: 14px; line-height: 20px; color: var(--error); }
+.err .ms { font-size: 16px; margin-top: 2px; }
+.alert { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--error); border-radius: var(--radius); padding: 10px 12px; color: var(--error); background: var(--surface); }
+.alert.info { border-color: var(--primary); color: var(--ink); }
+.alert.info .ms { color: var(--primary); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 8px;
+  border: 1px solid var(--line); border-radius: var(--radius); font-size: 13px; background: transparent;
+}
+.chip.toggle { min-height: 36px; padding: 0 12px; border-color: var(--line-strong); cursor: pointer; font-size: 14px; }
+.chip.toggle[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--paper); font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+
+.overline { font: 700 12px/16px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); }
+.h1 { margin: 0; font: 500 32px/40px var(--font-display); text-wrap: balance; }
+.h2 { margin: 0; font: 500 24px/32px var(--font-display); text-wrap: balance; }
+.h3 { margin: 0; font: 700 18px/26px var(--font-ui); }
+.muted { color: var(--ink-muted); }
+.small { font-size: 14px; line-height: 22px; }
+.data { font-family: var(--font-data); font-weight: 500; font-variant-numeric: tabular-nums; }
+.panel { border: 1px solid var(--line); background: var(--surface); padding: 24px; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+.page-head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.page-head .main { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between; }
+.page-head .main > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px; font-size: 14px; color: var(--ink-muted); list-style: none; margin: 0; padding: 0; }
+.crumbs li + li::before { content: "/"; margin-right: 6px; }
+.crumbs a { color: var(--ink-muted); }
+.crumbs [aria-current] { color: var(--ink); font-weight: 700; }
+
+dl.pairs { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 10px 24px; }
+dl.pairs dt { color: var(--ink-muted); }
+dl.pairs dd { margin: 0; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+/* No celular o par empilha, como no app (DetailList). */
+.is-mobile dl.pairs { grid-template-columns: 1fr; gap: 2px; }
+.is-mobile dl.pairs dt:not(:first-child) { margin-top: 10px; }
+
+.status { display: inline-flex; align-items: center; gap: 6px; font: 700 12px/16px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; }
+.status .ms { font-size: 16px; }
+.status.large { font-size: 16px; line-height: 24px; }
+.status.large .ms { font-size: 24px; }
+.status.ok { color: var(--success); }
+.status.cancel { color: var(--error); }
+.status.done { color: var(--ink-muted); }
+
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+.tabs button { border: 0; background: transparent; min-height: 48px; padding: 0 16px; cursor: pointer; font-weight: 500; color: var(--ink-muted); border-bottom: 2px solid transparent; }
+.tabs button[aria-selected="true"] { color: var(--primary); font-weight: 700; border-bottom-color: var(--primary); }
+
+.skel { background: var(--sunken); display: block; }
+.skel-pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.55; } }
+
+table.tbl { width: 100%; border-collapse: collapse; background: var(--surface); }
+table.tbl th, table.tbl td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.tbl thead th { background: var(--sunken); font-weight: 700; font-size: 14px; white-space: nowrap; }
+.tbl-wrap { border: 1px solid var(--line); overflow-x: auto; }
+
+/* Shell do app: celular */
+.m-app { min-height: 100%; display: flex; flex-direction: column; }
+.m-top { position: sticky; top: 0; z-index: 10; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.m-main { flex: 1; padding: 24px 16px 32px; }
+.m-bottom { position: sticky; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, 1fr); height: 64px; background: var(--surface); border-top: 1px solid var(--line); }
+.m-bottom a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; color: var(--ink-muted); text-decoration: none; border-top: 2px solid transparent; }
+.m-bottom a .ms { font-size: 24px; }
+.m-bottom a[aria-current="page"] { color: var(--primary); font-weight: 700; border-top-color: var(--primary); }
+.m-sumbar { position: sticky; bottom: 64px; z-index: 15; background: var(--surface); border-top: 1px solid var(--line-strong); padding: 12px 16px; }
+
+/* Shell do app: desktop */
+.d-app { min-height: 100%; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+.d-side { border-right: 1px solid var(--line); background: var(--surface); position: sticky; top: 0; height: 800px; padding: 0 12px; }
+.d-side .brand { height: 56px; }
+.d-side nav { display: flex; flex-direction: column; gap: 2px; margin-top: 16px; }
+.d-side nav a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; color: var(--ink); text-decoration: none; border-radius: var(--radius); }
+.d-side nav a .ms { font-size: 24px; }
+.d-side nav a:hover { background: var(--sunken); }
+.d-side nav a[aria-current="page"] { background: var(--primary-tint); color: var(--primary); font-weight: 700; }
+.d-top { position: sticky; top: 0; z-index: 10; height: 56px; display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 0 32px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.d-main { padding: 32px; }
+.d-inner { max-width: 1200px; margin: 0 auto; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 17px; }
+.brand-mark { width: 32px; height: 32px; display: grid; place-items: center; background: var(--ink); color: var(--brand-accent); font: 600 18px var(--font-display); }
+
+/* Shell público */
+.p-app { min-height: 100%; display: flex; flex-direction: column; }
+.p-top { height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.p-main { flex: 1; width: 100%; margin: 0 auto; padding: 32px 16px 48px; }
+.p-foot { border-top: 1px solid var(--line); background: var(--surface); padding: 24px 16px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; }
+.p-foot nav { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+
+/* Cards de recurso */
+.res-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.res-card { display: flex; flex-direction: column; gap: 12px; height: 100%; padding: 20px; border: 1px solid var(--line); background: var(--surface); color: inherit; text-decoration: none; }
+.res-card:hover { background: var(--sunken); border-color: var(--line-strong); }
+.res-type { display: flex; gap: 8px; align-items: center; color: var(--ink-muted); }
+
+/* Grade de horários */
+.slots { list-style: none; margin: 0; padding: 0; }
+.slot { width: 100%; min-height: 44px; display: flex; align-items: center; gap: 16px; padding: 0 16px; border: 1px solid var(--line); margin-top: -1px; background: var(--surface); cursor: pointer; text-align: left; }
+.slot:hover { background: var(--primary-tint); }
+.slot .t { font-family: var(--font-data); font-weight: 500; min-width: 48px; }
+.slot .s { display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 500; }
+.slot.busy { background-color: var(--surface); background-image: var(--hatch-pattern); cursor: not-allowed; }
+.slot.mine { background-color: var(--primary-tint); background-image: var(--hatch-pattern); cursor: not-allowed; }
+.slot.past { background: var(--sunken); color: var(--ink-disabled); cursor: not-allowed; }
+.slot.sel { background: var(--primary); border-color: var(--primary); color: var(--paper); }
+.slot.sel .s { font-weight: 700; }
+.slot-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 12px; padding: 0; list-style: none; font-size: 14px; }
+.slot-legend li { display: flex; gap: 8px; align-items: center; }
+.sw { width: 18px; height: 18px; border: 1px solid var(--line); display: inline-block; }
+
+/* Quadro */
+.board { border-collapse: collapse; table-layout: fixed; }
+.board th, .board td { border: 1px solid var(--line); padding: 0; }
+.board thead th { background: var(--sunken); font: 500 12px var(--font-data); height: 32px; }
+.board th[scope="row"] { text-align: left; padding: 6px 12px; background: var(--surface); position: sticky; left: 0; }
+.board td { height: 44px; }
+.board td.busy { background: var(--surface) var(--hatch-pattern); text-align: center; }
+.board td.mine { background: var(--primary-tint) var(--hatch-pattern); text-align: center; }
+.board td.past { background: var(--sunken); }
+.board td.free { background: var(--surface); }
+
+/* Sobreposições dentro do aparelho */
+.overlay { position: absolute; inset: 0; z-index: 40; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.overlay.sheet { align-items: flex-end; padding: 0; }
+.dialog { width: 100%; max-width: 560px; max-height: 100%; overflow: auto; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius); }
+.dialog.xs { max-width: 420px; }
+.dialog h2 { margin: 0; padding: 20px 24px 8px; font: 500 22px/30px var(--font-display); }
+.dialog .body { padding: 8px 24px 16px; display: flex; flex-direction: column; gap: 16px; }
+.dialog .actions { padding: 8px 24px 24px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.sheet .dialog { max-width: none; max-height: 90%; border-width: 1px 0 0; }
+.snack { position: absolute; left: 16px; bottom: 16px; z-index: 50; max-width: calc(100% - 32px); display: flex; gap: 12px; align-items: center; padding: 12px 16px; background: var(--ink); color: var(--paper); border-radius: var(--radius); font-size: 15px; }
+.snack.m { bottom: 80px; }
+.snack button { border: 0; background: transparent; color: var(--paper); cursor: pointer; }
+
+.qr { width: 160px; height: 160px; background: var(--surface); }
+.qr img, .qr canvas { width: 160px !important; height: 160px !important; image-rendering: pixelated; }
+.steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: grid; gap: 16px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: start; }
+.steps li::before { content: counter(s); width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--ink); font: 500 18px var(--font-display); }
+details.faq { border-top: 1px solid var(--line); padding: 12px 0; }
+details.faq summary { cursor: pointer; font-weight: 700; }
+.photo { aspect-ratio: 4 / 3; max-width: 100%; background: var(--sunken); display: grid; place-items: center; color: var(--ink-muted); font-size: 14px; text-align: center; padding: 12px; border: 1px dashed var(--line-strong); }
+</style>
+</head>
+<body>
+<div class="proto">
+  <header class="proto-bar">
+    <h1>Protótipo EduSpace<small>Telas do MVP, navegáveis. Clique nos botões e links dentro do aparelho.</small></h1>
+    <span class="spacer"></span>
+    <div class="seg" role="group" aria-label="Tamanho da tela">
+      <button type="button" id="dev-mobile" data-device="mobile"><span class="ms" aria-hidden="true">smartphone</span>Celular 360</button>
+      <button type="button" id="dev-desktop" data-device="desktop"><span class="ms" aria-hidden="true">desktop_windows</span>Desktop 1280</button>
+    </div>
+    <button type="button" class="proto-next" id="flow-next"><span>Próxima no fluxo</span><span class="ms" aria-hidden="true">arrow_forward</span></button>
+  </header>
+  <div class="proto-main">
+    <nav class="proto-index" id="index" aria-label="Telas do protótipo"></nav>
+    <div class="stage">
+      <div class="proto-select"><label class="sr" for="screen-select">Tela</label><select id="screen-select"></select></div>
+      <div class="stage-meta">
+        <div><div class="crumb" id="meta-group"></div><h2 id="meta-title"></h2></div>
+        <div class="variants" id="variants" role="group" aria-label="Estados da tela"></div>
+      </div>
+      <div class="frame-wrap" id="frame-wrap">
+        <div class="device" id="device" role="region" aria-label="Tela do aparelho">
+          <div class="device-scroll" id="screen"></div>
+          <div id="layer"></div>
+        </div>
+      </div>
+      <p class="notes" id="notes"></p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Dados de exemplo (catálogo do seed, persona Lucas) ---------- */
+  var TODAY = 'ter, 20 de out';
+  var DAY = 'qua, 21 de out';
+  var CODE = 'EDU-7K3F9Q';
+  var RESOURCES = [
+    { id: '204', nome: 'Sala de estudo 204', tipo: 'Sala de estudo', icon: 'meeting_room', bloco: 'Bloco A', andar: '1º andar', cap: 'Até 4 pessoas', feats: ['Ar-condicionado', 'Quadro branco', 'TV para apresentação', 'Tomadas nas mesas'] },
+    { id: '201', nome: 'Sala de estudo 201', tipo: 'Sala de estudo', icon: 'meeting_room', bloco: 'Bloco A', andar: '1º andar', cap: 'Até 6 pessoas', feats: ['Ar-condicionado', 'Quadro branco', 'TV para apresentação', 'Tomadas nas mesas'] },
+    { id: '202', nome: 'Sala de estudo 202', tipo: 'Sala de estudo', icon: 'meeting_room', bloco: 'Bloco A', andar: '1º andar', cap: 'Até 8 pessoas', feats: ['Ar-condicionado', 'Quadro branco', 'TV para apresentação', 'Tomadas nas mesas'] },
+    { id: '203', nome: 'Sala de estudo 203', tipo: 'Sala de estudo', icon: 'meeting_room', bloco: 'Bloco A', andar: '1º andar', cap: 'Até 12 pessoas', feats: ['Ar-condicionado', 'Quadro branco', 'TV para apresentação', 'Tomadas nas mesas'] },
+    { id: 'lab1', nome: 'Laboratório de Informática 1', tipo: 'Laboratório', icon: 'science', bloco: 'Bloco C', andar: 'Térreo', cap: 'Até 30 pessoas', feats: ['Acessível para cadeirantes', 'Ar-condicionado', 'Computadores', 'Projetor', 'Quadro branco'] },
+    { id: 'aud', nome: 'Auditório Central', tipo: 'Auditório', icon: 'co_present', bloco: 'Bloco D', andar: 'Térreo', cap: 'Até 180 pessoas', feats: ['Acessível para cadeirantes', 'Ar-condicionado', 'Kit de transmissão', 'Projetor', 'Sistema de som'] },
+    { id: 'epson', nome: 'Projetor Epson 01', tipo: 'Equipamento', icon: 'devices_other', bloco: 'Bloco D', andar: null, cap: null, feats: ['Portátil', 'Projetor'] }
+  ];
+  var FEATURES = ['Acessível para cadeirantes', 'Ar-condicionado', 'Computadores', 'Kit de transmissão', 'Portátil', 'Projetor', 'Quadro branco', 'Sistema de som', 'TV para apresentação', 'Tomadas nas mesas'];
+
+  function marks(open, close) {
+    var out = [];
+    for (var m = open * 60; m < close * 60; m += 30) out.push(pad(Math.floor(m / 60)) + ':' + pad(m % 60));
+    return out;
+  }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function plus30(t) { var p = t.split(':').map(Number); var m = p[0] * 60 + p[1] + 30; return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }
+  var SLOTS = marks(8, 21);
+
+  /* ---------- Estado ---------- */
+  var state = { route: 'landing', variant: 0, device: 'mobile', sel: null, overlay: null, snack: null, tab: 0, chips: { 'Ar-condicionado': true } };
+  try { var saved = localStorage.getItem('eduspace-proto-device'); if (saved === 'desktop' || saved === 'mobile') state.device = saved; } catch (e) { /* sem storage */ }
+
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var I = function (name, extra) { return '<span class="ms' + (extra ? ' ' + extra : '') + '" aria-hidden="true">' + name + '</span>'; };
+  var go = function (route, label, cls) { return '<a class="' + (cls || 'btn btn-primary') + '" href="#' + route + '">' + label + '</a>'; };
+
+  /* ---------- Shells ---------- */
+  function brand(href) { return '<a class="brand" href="#' + (href || 'inicio') + '"><span class="brand-mark" aria-hidden="true">E</span>EduSpace</a>'; }
+
+  function head(o) {
+    var crumbs = o.crumbs ? '<nav aria-label="Você está em"><ol class="crumbs">' + o.crumbs.map(function (c) {
+      return '<li>' + (c[1] ? '<a href="#' + c[1] + '">' + esc(c[0]) + '</a>' : '<span aria-current="page">' + esc(c[0]) + '</span>') + '</li>';
+    }).join('') + '</ol></nav>' : '';
+    return '<header class="page-head">' + crumbs + '<div class="main"><div>' +
+      (o.overline ? '<span class="overline">' + esc(o.overline) + '</span>' : '') +
+      '<h1 class="h1">' + esc(o.title) + '</h1>' +
+      (o.desc ? '<p class="muted" style="margin:0;max-width:65ch">' + esc(o.desc) + '</p>' : '') +
+      '</div>' + (o.actions || '') + '</div></header>';
+  }
+
+  function appShell(ctx, content, opt) {
+    opt = opt || {};
+    var admin = !!opt.admin;
+    if (ctx.mobile) {
+      var bottom = [['inicio', 'Início', 'home'], ['busca', 'Reservar', 'search'], ['reservas', 'Reservas', 'event_note'], ['conta', 'Conta', 'person']];
+      return '<div class="m-app"><header class="m-top">' + brand() +
+        (admin ? '<a class="btn btn-text" href="#admin">Administração</a>' : '') + '</header>' +
+        '<main class="m-main">' + content + '</main>' + (opt.sumbar || '') +
+        '<nav class="m-bottom" aria-label="Navegação inferior">' + bottom.map(function (b) {
+          return '<a href="#' + b[0] + '"' + (opt.active === b[0] ? ' aria-current="page"' : '') + '>' + I(b[2]) + b[1] + '</a>';
+        }).join('') + '</nav></div>';
+    }
+    var items = [['inicio', 'Início', 'home'], ['busca', 'Reservar', 'search'], ['quadro', 'Quadro de horários', 'calendar_view_day'], ['reservas', 'Minhas reservas', 'event_note']];
+    if (admin) items.push(['admin', 'Administração', 'admin_panel_settings']);
+    return '<div class="d-app"><aside class="d-side">' + '<div class="brand" style="height:56px">' + brand() + '</div>' +
+      '<nav aria-label="Navegação principal">' + items.map(function (b) {
+        return '<a href="#' + b[0] + '"' + (opt.active === b[0] ? ' aria-current="page"' : '') + '>' + I(b[2]) + b[1] + '</a>';
+      }).join('') + '</nav></aside>' +
+      '<div><header class="d-top"><a href="#conta" style="color:var(--ink)">' + (admin ? 'Renata Lima' : 'Lucas Andrade') + '</a>' +
+      '<a class="btn btn-outlined" href="#login">Sair</a></header>' +
+      '<main class="d-main"><div class="d-inner">' + content + '</div></main></div></div>';
+  }
+
+  function publicShell(ctx, content, opt) {
+    opt = opt || {};
+    var w = opt.wide ? 1100 : 560;
+    return '<div class="p-app"><header class="p-top">' + brand('landing') +
+      (opt.noLogin ? '' : '<a class="btn btn-outlined" href="#login">Entrar</a>') + '</header>' +
+      '<main class="p-main" style="max-width:' + w + 'px">' + content + '</main>' +
+      (opt.footer ? footer() : '') + '</div>';
+  }
+
+  function footer() {
+    return '<footer class="p-foot"><nav aria-label="Rodapé"><a href="#termos">Termos de Uso</a><a href="#privacidade">Privacidade</a><a href="#sobre">Sobre</a><a href="#ajuda">Ajuda</a></nav>' +
+      '<span>Centro Universitário Mário Pontes Jucá (UMJ), Maceió, AL · <a href="https://www.google.com/maps/search/?api=1&amp;query=Centro+Universit%C3%A1rio+M%C3%A1rio+Pontes+Juc%C3%A1+Macei%C3%B3" target="_blank" rel="noopener">Como chegar</a></span></footer>';
+  }
+
+  /* ---------- Peças reutilizadas ---------- */
+  function field(id, label, opt) {
+    opt = opt || {};
+    var input = opt.select
+      ? '<select class="select" id="' + id + '">' + opt.select.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('') + '</select>'
+      : opt.textarea
+        ? '<textarea class="textarea" id="' + id + '" placeholder="' + esc(opt.placeholder || '') + '">' + esc(opt.value || '') + '</textarea>'
+        : '<input class="input" id="' + id + '" type="' + (opt.type || 'text') + '" value="' + esc(opt.value || '') + '" placeholder="' + esc(opt.placeholder || '') + '"' + (opt.error ? ' aria-invalid="true"' : '') + '>';
+    if (opt.icon) input = '<div class="input-wrap">' + I(opt.icon) + input + '</div>';
+    if (opt.eye) input = '<div class="input-wrap" style="--x:0">' + input.replace('class="input"', 'class="input" style="padding-left:12px;padding-right:44px"') + '<button type="button" class="trail" aria-label="Mostrar senha">' + I('visibility') + '</button></div>';
+    return '<div class="field' + (opt.error ? ' has-error' : '') + '"' + (opt.style ? ' style="' + opt.style + '"' : '') + '><label for="' + id + '">' + esc(label) + '</label>' + input +
+      (opt.error ? '<span class="err">' + I('error') + esc(opt.error) + '</span>' : opt.help ? '<span class="help">' + esc(opt.help) + '</span>' : '') + '</div>';
+  }
+
+  function pairs(list) {
+    return '<dl class="pairs">' + list.map(function (p) { return '<dt>' + esc(p[0]) + '</dt><dd>' + p[1] + '</dd>'; }).join('') + '</dl>';
+  }
+  function chips(list) { return '<ul class="chips">' + list.map(function (f) { return '<li class="chip">' + esc(f) + '</li>'; }).join('') + '</ul>'; }
+  function status(kind, large) {
+    var map = { ok: ['event_available', 'Confirmada'], cancel: ['event_busy', 'Cancelada'], done: ['history', 'Concluída'] };
+    return '<span class="status ' + kind + (large ? ' large' : '') + '">' + I(map[kind][0]) + map[kind][1] + '</span>';
+  }
+  function skel(w, h) { return '<span class="skel skel-pulse" style="width:' + w + ';height:' + h + 'px"></span>'; }
+  function place(r) { return r.andar ? r.bloco + ' · ' + r.andar : r.bloco; }
+
+  function dayPicker(ctx, label, prevDisabled) {
+    return '<div class="row" style="gap:8px"><button type="button" class="icon-btn" aria-label="Dia anterior"' + (prevDisabled ? ' disabled' : '') + '>' + I('chevron_left') + '</button>' +
+      '<input class="input" style="width:180px" type="text" value="' + label + '" aria-label="Data" readonly>' +
+      '<button type="button" class="icon-btn" aria-label="Próximo dia">' + I('chevron_right') + '</button></div>';
+  }
+
+  /* ---------- Telas ---------- */
+  var S = {};
+
+  S.landing = {
+    group: 'Páginas públicas', title: 'Início público (landing)', issue: '#47',
+    notes: 'Primeira tela de quem chega pelo link. <strong>Validar:</strong> o título diz o que o sistema faz, o botão de entrar aparece sem rolar e a imagem mostra a grade real.',
+    render: function (ctx) {
+      var preview = SLOTS.slice(20, 26).map(function (t, i) {
+        var cls = i === 1 || i === 2 ? 'busy' : i === 3 || i === 4 ? 'sel' : '';
+        var lab = cls === 'busy' ? I('event_busy') + 'Ocupado' : cls === 'sel' ? I('check') + 'Selecionado' : 'Livre';
+        return '<li><div class="slot ' + cls + '" style="cursor:default"><span class="t">' + t + '</span><span class="s">' + lab + '</span></div></li>';
+      }).join('');
+      var faq = [
+        ['Quem pode usar?', 'Alunos, professores e equipe da UMJ. O cadastro é feito com o e-mail da instituição.'],
+        ['Quanto tempo dura uma reserva?', 'Até 4 horas por vez, em blocos de 30 minutos, com até 14 dias de antecedência.'],
+        ['Como cancelo?', 'Em Minhas reservas, até 30 minutos antes do início. O horário volta a ficar livre na hora.'],
+        ['Preciso mostrar alguma coisa na entrada?', 'O comprovante digital com QR code. Quem confere lê o código e vê a situação da reserva.'],
+        ['Equipamentos também são reservados aqui?', 'Sim. Projetores, kits de transmissão e caixas de som aparecem junto com as salas.']
+      ];
+      return publicShell(ctx,
+        '<section class="stack" style="gap:20px;margin-bottom:40px">' +
+        '<span class="overline">Reserva de espaços da UMJ</span>' +
+        '<h1 class="h1" style="font-size:' + (ctx.mobile ? '34px;line-height:40px' : '44px;line-height:52px') + '">Reserve salas, laboratórios e equipamentos do campus em poucos toques.</h1>' +
+        '<p class="muted" style="margin:0;max-width:60ch">Veja o que está livre agora, escolha o horário e receba o comprovante no celular.</p>' +
+        '<div class="row">' + go('login', 'Entrar com e-mail institucional') + go('cadastro', 'Criar conta', 'btn btn-outlined') + '</div></section>' +
+        '<figure class="panel" style="margin:0 0 40px;padding:16px"><ul class="slots">' + preview + '</ul>' +
+        '<figcaption class="small muted" style="margin-top:12px">Grade da Sala de estudo 204, ' + DAY + '. Captura do sistema.</figcaption></figure>' +
+        '<section class="stack" style="margin-bottom:40px"><h2 class="h2">Como funciona</h2><ol class="steps">' +
+        '<li><div><strong>Entre com o e-mail da UMJ.</strong><div class="muted small">A conta fica pronta na hora.</div></div></li>' +
+        '<li><div><strong>Filtre por bloco, tipo e horário.</strong><div class="muted small">Só aparece o que está livre.</div></div></li>' +
+        '<li><div><strong>Escolha o horário na grade e confirme.</strong><div class="muted small">O sistema não deixa duas pessoas reservarem o mesmo horário.</div></div></li>' +
+        '<li><div><strong>Apresente o comprovante na entrada.</strong><div class="muted small">QR code com a situação atual da reserva.</div></div></li>' +
+        '</ol></section>' +
+        '<section><h2 class="h2" style="margin-bottom:8px">Perguntas frequentes</h2>' + faq.map(function (q) {
+          return '<details class="faq"><summary>' + q[0] + '</summary><p class="muted" style="margin:8px 0 0">' + q[1] + '</p></details>';
+        }).join('') + '</section>',
+        { wide: true, footer: true });
+    }
+  };
+
+  S.sobre = {
+    group: 'Páginas públicas', title: 'Sobre', issue: '#47',
+    notes: 'Campos entre colchetes são para o PO preencher: nomes e foto real da equipe (o design system proíbe foto genérica).',
+    render: function (ctx) {
+      var team = ['Product Owner', 'Scrum Master', 'Desenvolvimento', 'UI/UX'];
+      return publicShell(ctx, head({ title: 'Sobre o EduSpace', overline: 'Projeto Integrador I' }) +
+        '<p style="max-width:65ch">O EduSpace nasceu para acabar com a sala ociosa e com o conflito de horário: cada espaço e equipamento do campus pode ser reservado pelo celular, com regra clara e comprovante.</p>' +
+        '<div class="photo" style="margin:24px 0">[Foto real da equipe]</div>' +
+        '<h2 class="h2" style="margin-bottom:12px">Equipe</h2><dl class="pairs">' + team.map(function (t) { return '<dt>' + t + '</dt><dd>[nome]</dd>'; }).join('') + '</dl>' +
+        '<p class="muted small" style="margin-top:24px">Disciplina Projeto Integrador I, Centro Universitário Mário Pontes Jucá, 2026.</p>', { wide: false, footer: true });
+    }
+  };
+
+  S.ajuda = {
+    group: 'Páginas públicas', title: 'Ajuda', issue: '#47',
+    notes: 'O canal de suporte e o prazo de resposta precisam de confirmação do PO.',
+    render: function (ctx) {
+      return publicShell(ctx, head({ title: 'Ajuda', desc: 'Respostas rápidas e como falar com o suporte.' }) +
+        ['Esqueci minha senha. E agora?|A recuperação por e-mail chega depois do MVP. Por enquanto, fale com a secretaria do seu bloco.', 'O horário que eu queria sumiu.|Alguém reservou antes. A grade sempre mostra a situação mais recente; escolha outro horário.', 'Posso reservar para um grupo?|Sim. Informe o número de participantes no resumo, até a capacidade da sala.'].map(function (q) {
+          var p = q.split('|'); return '<details class="faq" open><summary>' + p[0] + '</summary><p class="muted" style="margin:8px 0 0">' + p[1] + '</p></details>';
+        }).join('') +
+        '<section class="panel" style="margin-top:24px"><h2 class="h3">Fale com o suporte</h2><p style="margin:8px 0">[e-mail do suporte a definir]</p><p class="muted small" style="margin:0">Respondemos em até 1 dia útil.</p></section>', { footer: true });
+    }
+  };
+
+  function legalPage(title, sections) {
+    return function (ctx) {
+      return publicShell(ctx, head({ title: title, overline: 'Versão para revisão', desc: 'Texto final na issue #34 (LGPD). A estrutura abaixo é a que será publicada.' }) +
+        '<ol class="stack" style="padding-left:20px;gap:12px">' + sections.map(function (s) { return '<li><strong>' + s + '</strong></li>'; }).join('') + '</ol>', { footer: true });
+    };
+  }
+  S.termos = { group: 'Páginas públicas', title: 'Termos de Uso', issue: '#34', notes: 'Só a estrutura; o texto jurídico entra na #34.', render: legalPage('Termos de Uso', ['Quem pode usar o EduSpace', 'Regras de reserva: duração, antecedência e limite', 'Cancelamento e não comparecimento', 'Responsabilidade pelo espaço e pelo equipamento', 'Suspensão de contas', 'Contato']) };
+  S.privacidade = { group: 'Páginas públicas', title: 'Política de Privacidade', issue: '#34', notes: 'Estrutura segundo a LGPD (Art. 9º). O texto final entra na #34.', render: legalPage('Política de Privacidade', ['Quais dados coletamos e por quê', 'Base legal de cada tratamento', 'Quem vê seus dados (o comprovante público mostra só o primeiro nome)', 'Por quanto tempo guardamos', 'Seus direitos (Art. 18) e como exercê-los', 'Encarregado de dados (DPO)']) };
+
+  S.notfound = {
+    group: 'Páginas públicas', title: 'Página não encontrada (404)', issue: '#36',
+    notes: 'Mesma página para endereço digitado errado ou link antigo.',
+    render: function (ctx) {
+      return publicShell(ctx, head({ title: 'Página não encontrada', overline: 'Erro 404', desc: 'O endereço pode ter sido digitado errado ou a página mudou de lugar.' }) +
+        '<div class="row">' + go('landing', 'Ir para o início') + go('busca', 'Reservar espaço', 'btn btn-outlined') + '</div>', {});
+    }
+  };
+
+  S.login = {
+    group: 'Acesso', title: 'Entrar', issue: '#16', variants: ['Padrão', 'Com erro', 'Sessão expirada'],
+    notes: 'Rótulo sempre acima do campo, nunca só placeholder. O erro diz o que fazer.',
+    render: function (ctx) {
+      var v = state.variant;
+      return publicShell(ctx, head({ title: 'Entrar', desc: 'Acesse com o e-mail e a senha da sua conta.' }) +
+        '<form class="stack" data-act="login" novalidate>' +
+        (v === 1 ? '<div class="alert" role="alert">' + I('error') + '<span>E-mail ou senha incorretos. Confira e tente de novo.</span></div>' : '') +
+        (v === 2 ? '<div class="alert info" role="status">' + I('info') + '<span>Sua sessão expirou. Entre de novo para continuar de onde parou.</span></div>' : '') +
+        field('l-email', 'E-mail *', { type: 'email', value: 'lucas.andrade@umj.edu.br' }) +
+        field('l-senha', 'Senha *', { type: 'password', value: v === 1 ? 'senha' : '', eye: true }) +
+        '<button class="btn btn-primary btn-block" type="submit">Entrar</button>' +
+        '<p style="margin:0">Ainda não tem conta? <a href="#cadastro">Criar conta</a></p></form>', { noLogin: true });
+    }
+  };
+
+  S.cadastro = {
+    group: 'Acesso', title: 'Criar conta', issue: '#15', variants: ['Padrão', 'Com erros'],
+    notes: 'A senha é checada antes de enviar. E-mail já cadastrado aparece no próprio campo.',
+    render: function (ctx) {
+      var e = state.variant === 1;
+      return publicShell(ctx, head({ title: 'Criar conta', desc: 'Use seu e-mail da UMJ. A conta já sai pronta para reservar.' }) +
+        '<form class="stack" data-act="signup" novalidate>' +
+        field('c-nome', 'Nome completo *', { value: 'Lucas Andrade' }) +
+        field('c-email', 'E-mail *', { type: 'email', value: 'lucas.andrade@umj.edu.br', error: e ? 'Este e-mail já possui conta. Entre ou recupere o acesso.' : null }) +
+        field('c-senha', 'Senha *', { type: 'password', eye: true, help: 'Pelo menos 8 caracteres, com letras e números.', error: e ? 'A senha precisa ter letras e números.' : null }) +
+        field('c-senha2', 'Repita a senha *', { type: 'password', eye: true }) +
+        field('c-mat', 'Matrícula (opcional)', { value: '2026104' }) +
+        '<button class="btn btn-primary btn-block" type="submit">Criar conta</button>' +
+        '<p style="margin:0">Já tem conta? <a href="#login">Entrar</a></p></form>', { noLogin: true });
+    }
+  };
+
+  S.inicio = {
+    group: 'Reservar', title: 'Início (dashboard)', issue: '#25', variants: ['Com reserva', 'Sem reservas', 'Carregando'],
+    notes: 'Jornada passo 1. A próxima reserva e o atalho para reservar ficam acima da dobra no celular.',
+    render: function (ctx) {
+      var v = state.variant;
+      var body;
+      if (v === 2) body = '<div class="panel stack" aria-busy="true">' + skel('50%', 24) + skel('100%', 96) + '</div>';
+      else if (v === 1) body = '<div class="panel stack"><p style="margin:0">Você não tem reservas marcadas.</p><p class="muted small" style="margin:0">Veja o que está livre no quadro de horários ou procure um espaço.</p><div class="row">' + go('busca', 'Nova reserva') + go('quadro', 'Quadro de horários', 'btn btn-outlined') + '</div></div>';
+      else body = '<section class="panel" style="max-width:640px"><span class="overline">Sua próxima reserva</span><p class="h2" style="margin:4px 0 16px">Sala de estudo 204</p>' +
+        pairs([['Data', DAY], ['Horário', '<span class="data">19:00 às 21:00</span>'], ['Local', 'Bloco A · 1º andar'], ['Código', '<span class="data">' + CODE + '</span>']]) +
+        '<div class="row" style="margin-top:20px">' + go('comprovante', 'Ver comprovante', 'btn btn-outlined') + '<a href="#reservas">Ver todas as 2 reservas</a></div></section>';
+      return appShell(ctx, head({ overline: 'Olá, Lucas', title: 'Início', desc: 'Sua próxima reserva e o atalho para reservar um espaço.', actions: go('busca', 'Nova reserva') }) + body, { active: 'inicio' });
+    }
+  };
+
+  function filterForm(ctx) {
+    return '<div class="stack" style="gap:20px">' +
+      '<div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr))">' +
+      field('f-nome', 'Nome', { icon: 'search', placeholder: 'Ex.: Sala 204' }) +
+      field('f-bloco', 'Bloco', { select: ['Bloco A', 'Todos os blocos', 'Bloco B', 'Bloco C', 'Bloco D'] }) +
+      field('f-tipo', 'Tipo', { select: ['Sala de estudo', 'Todos os tipos', 'Laboratório', 'Auditório', 'Equipamento'] }) +
+      field('f-cap', 'Pessoas (mínimo)', { type: 'number', value: '3' }) + '</div>' +
+      '<fieldset style="border:0;margin:0;padding:0;min-width:0"><legend class="h3" style="font-size:14px">Livre em</legend><p class="help" style="margin:0 0 10px">Escolha data, início e fim para ver só o que está livre nesse horário.</p>' +
+      '<div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr))">' +
+      field('f-data', 'Data', { value: '21/10/2026' }) + field('f-ini', 'Início', { select: ['19:00', '18:30', '19:30'] }) + field('f-fim', 'Fim', { select: ['21:00', '20:00', '20:30'] }) + '</div></fieldset>' +
+      '<fieldset style="border:0;margin:0;padding:0;min-width:0"><legend class="h3" style="font-size:14px;margin-bottom:8px">Precisa ter</legend><div class="chips">' +
+      FEATURES.map(function (f) { var on = !!state.chips[f]; return '<button type="button" class="chip toggle" data-chip="' + esc(f) + '" aria-pressed="' + on + '">' + (on ? I('check') : '') + esc(f) + '</button>'; }).join('') +
+      '</div></fieldset></div>';
+  }
+
+  function resourceCard(r) {
+    return '<li><a class="res-card" href="#recurso"><span class="res-type">' + I(r.icon) + '<span class="overline">' + r.tipo + '</span></span>' +
+      '<div><h2 class="h3">' + r.nome + '</h2><div class="small muted">' + place(r) + (r.cap ? ' · ' + r.cap : '') + '</div></div>' + chips(r.feats) + '</a></li>';
+  }
+
+  S.busca = {
+    group: 'Reservar', title: 'Buscar e filtrar', issue: '#21', variants: ['Resultados', 'Carregando', 'Sem resultados', 'Erro'],
+    notes: 'Jornada passo 3: Bloco A, ar-condicionado, quarta 19h às 21h. No celular os filtros ficam no botão Filtrar, num painel que sobe de baixo.',
+    render: function (ctx) {
+      var v = state.variant;
+      var free = RESOURCES.slice(0, 4);
+      var list;
+      if (v === 1) list = '<ul class="res-grid" aria-busy="true">' + [0, 1, 2, 3].map(function () { return '<li><div class="res-card">' + skel('120px', 16) + skel('70%', 24) + skel('50%', 18) + skel('85%', 24) + '</div></li>'; }).join('') + '</ul>';
+      else if (v === 2) list = '<div class="panel"><p style="margin:0">Nenhum recurso atende a esses filtros.</p><button type="button" class="btn btn-outlined" style="margin-top:16px">Limpar filtros</button></div>';
+      else if (v === 3) list = '<div class="panel" role="alert"><p style="margin:0">Não foi possível conectar ao servidor. Verifique sua internet e tente de novo.</p><button type="button" class="btn btn-outlined" style="margin-top:16px">Tentar de novo</button></div>';
+      else list = '<p class="small muted" style="margin:0 0 12px">4 recursos livres em ' + DAY + ', 19:00 às 21:00</p><ul class="res-grid">' + free.map(resourceCard).join('') + '</ul>';
+      var filters = ctx.mobile
+        ? '<div class="row" style="margin-bottom:16px"><button type="button" class="btn btn-outlined" data-act="drawer">' + I('tune') + 'Filtrar (4)</button><button type="button" class="btn btn-text">Limpar filtros</button></div>'
+        : '<section class="panel" aria-label="Filtros" style="margin-bottom:24px">' + filterForm(ctx) + '<div style="margin-top:16px"><button type="button" class="btn btn-text">Limpar filtros</button></div></section>';
+      return appShell(ctx, head({ title: 'Reservar espaço', desc: 'Filtre por bloco, tipo, recursos e horário para encontrar um espaço livre.', actions: go('quadro', I('calendar_view_day') + 'Quadro de horários', 'btn btn-outlined') }) + filters + list, { active: 'busca' });
+    },
+    overlay: function (ctx) {
+      if (state.overlay !== 'drawer') return '';
+      return '<div class="overlay sheet"><div class="dialog" role="dialog" aria-label="Filtros">' +
+        '<div class="row" style="justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--line)"><h2 class="h3">Filtros</h2><button type="button" class="icon-btn" aria-label="Fechar filtros" data-act="close" style="border:0">' + I('close') + '</button></div>' +
+        '<div style="padding:16px">' + filterForm(ctx) + '</div>' +
+        '<div class="row" style="justify-content:space-between;padding:16px;border-top:1px solid var(--line)"><button type="button" class="btn btn-text">Limpar filtros</button><button type="button" class="btn btn-primary" data-act="close">Ver 4 resultados</button></div></div></div>';
+    }
+  };
+
+  function slotState(i, today) {
+    var t = SLOTS[i];
+    if (today && t < '15:30') return 'past';
+    if (['10:00', '10:30', '11:00', '14:00', '14:30'].indexOf(t) >= 0) return 'busy';
+    if (state.route === 'resumo-conflito' && (t === '19:00' || t === '19:30')) return 'busy';
+    return 'free';
+  }
+
+  function resourceScreen(ctx, opt) {
+    opt = opt || {};
+    var today = state.variant === 1 && state.route === 'recurso';
+    var r = RESOURCES[0];
+    var sel = state.sel;
+    var list = SLOTS.map(function (t, i) {
+      var st = slotState(i, today);
+      var selected = sel && i >= sel[0] && i <= sel[1];
+      var cls = selected ? 'sel' : st === 'free' ? '' : st;
+      var label = selected ? I('check') + 'Selecionado' : st === 'busy' ? I('event_busy') + 'Ocupado' : st === 'past' ? I('history') + 'Encerrado' : 'Livre';
+      var aria = t + ' às ' + plus30(t) + ', ' + (selected ? 'selecionado' : st === 'busy' ? 'ocupado' : st === 'past' ? 'encerrado' : 'livre');
+      return '<li><button type="button" class="slot ' + cls + '" data-slot="' + i + '"' + (st !== 'free' ? ' aria-disabled="true"' : ' aria-pressed="' + !!selected + '"') + ' aria-label="' + aria + '"><span class="t">' + t + '</span><span class="s">' + label + '</span></button></li>';
+    }).join('');
+    var summary = '';
+    if (sel) {
+      var mins = (sel[1] - sel[0] + 1) * 30;
+      var dur = mins >= 60 ? Math.floor(mins / 60) + 'h' + (mins % 60 ? '30' : '') : mins + ' min';
+      summary = '<div class="stack" style="gap:' + (ctx.mobile ? 8 : 12) + 'px"><div>' + (ctx.mobile ? '' : '<span class="overline">Horário escolhido</span>') + '<div style="font-weight:700">' + SLOTS[sel[0]] + ' às ' + plus30(SLOTS[sel[1]]) + ' · ' + dur + '</div><div class="small muted">' + (today ? TODAY : DAY) + ' · ' + r.nome + '</div></div>' +
+        '<div class="row" style="gap:8px"><button type="button" class="btn btn-primary" data-act="resumo">Reservar este horário</button><button type="button" class="btn btn-text" data-act="clear" aria-label="Limpar seleção">' + (ctx.mobile ? 'Limpar' : 'Limpar seleção') + '</button></div>' +
+        '</div>';
+    }
+    var details = '<section class="panel">' + pairs([['Tipo', r.tipo], ['Bloco', r.bloco], ['Sobre o bloco', 'Entrada principal, ao lado da secretaria acadêmica.'], ['Andar', r.andar], ['Capacidade', r.cap], ['Características', chips(r.feats)]]) + '</section>';
+    var gridCol = '<div><output class="small" style="display:block;font-weight:500;min-height:0">' + (state.hint || '') + '</output>' +
+      '<ul class="slot-legend" aria-label="Legenda"><li><span class="sw" style="background:var(--surface)"></span>Livre</li><li><span class="sw" style="background:var(--surface) var(--hatch-pattern)"></span>Ocupado</li><li><span class="sw" style="background:var(--primary)"></span>Selecionado</li><li><span class="sw" style="background:var(--sunken)"></span>Encerrado</li></ul>' +
+      '<ul class="slots" aria-label="Horários do dia">' + list + '</ul></div>';
+    var layout = ctx.mobile
+      ? gridCol
+      : '<div style="display:grid;gap:24px;grid-template-columns:minmax(0,480px) minmax(240px,320px);align-items:start">' + gridCol +
+        '<aside class="panel" style="position:sticky;top:80px;padding:20px">' + (summary || '<p class="muted" style="margin:0">Escolha um horário livre na grade para ver o resumo.</p>') + '</aside></div>';
+    var content = head({ title: r.nome, overline: r.tipo, crumbs: [['Reservar', 'busca'], [r.bloco, null], [r.nome, null]] }) +
+      '<div class="stack" style="gap:24px">' + details +
+      '<section><h2 class="h2">Horários</h2><p class="muted" style="margin:4px 0 16px">Toque no horário de início e depois no de fim. Cada bloco tem 30 minutos.</p>' +
+      dayPicker(ctx, today ? TODAY : DAY, today) + '<p class="small muted" style="margin:8px 0 16px">' + (today ? TODAY : DAY) + '</p>' + layout + '</section></div>';
+    var bar = ctx.mobile && sel ? '<section class="m-sumbar" aria-label="Horário escolhido">' + summary + '</section>' : '';
+    return appShell(ctx, content, { active: 'busca', sumbar: bar });
+  }
+
+  function summaryDialog() {
+    var sel = state.sel || [22, 25];
+    return '<div class="overlay"><div class="dialog" role="dialog" aria-labelledby="dlg-resumo">' +
+      '<h2 id="dlg-resumo">Confirmar reserva?</h2><div class="body">' +
+      pairs([['Recurso', 'Sala de estudo 204 (Sala de estudo)'], ['Local', 'Bloco A · 1º andar'], ['Data', DAY], ['Horário', '<span class="data">' + SLOTS[sel[0]] + ' às ' + plus30(SLOTS[sel[1]]) + '</span>'], ['Duração', ((sel[1] - sel[0] + 1) * 30 / 60) + 'h'], ['Capacidade', 'Até 4 pessoas'], ['Características', chips(RESOURCES[0].feats)]]) +
+      field('r-fin', 'Finalidade (opcional)', { placeholder: 'Ex.: Reunião do Projeto Integrador', value: 'Estudo de cálculo' }) +
+      field('r-part', 'Participantes (opcional)', { value: '3', help: 'Até 4 pessoas.', style: 'max-width:200px' }) +
+      '</div><div class="actions"><button type="button" class="btn btn-outlined" data-act="close">Voltar</button><a class="btn btn-primary" href="#comprovante">Confirmar reserva</a></div></div></div>';
+  }
+
+  S.recurso = {
+    group: 'Reservar', title: 'Detalhe do recurso e grade', issue: '#22', variants: ['Outro dia', 'Hoje (com horários encerrados)'],
+    notes: 'Fluxograma "Horário livre?". Estado nunca só por cor: textura e texto em Ocupado, ícone em Selecionado. Selecione início e fim para ver o resumo; no celular ele fica numa barra fixa.',
+    render: function (ctx) { return resourceScreen(ctx); },
+    overlay: function () { return state.overlay === 'resumo' ? summaryDialog() : ''; }
+  };
+
+  S.resumo = {
+    group: 'Reservar', title: 'Resumo da reserva (confirmação)', issue: '#23',
+    notes: 'História 02, CA2: o resumo aparece antes de confirmar. Foco inicial em Voltar. Confirmar leva ao comprovante.',
+    enter: function () { state.sel = [22, 25]; state.overlay = 'resumo'; },
+    render: function (ctx) { return resourceScreen(ctx); },
+    overlay: function () { return state.overlay === 'resumo' ? summaryDialog() : ''; }
+  };
+
+  S['resumo-conflito'] = {
+    group: 'Reservar', title: 'Horário tomado (conflito)', issue: '#23',
+    notes: 'Fluxograma "NÃO, alerta: espaço ocupado". Outra pessoa confirmou primeiro: o diálogo fecha, a grade é atualizada e a pessoa continua na tela.',
+    enter: function () { state.sel = null; state.snack = 'Este horário acabou de ser reservado por outra pessoa. Escolha outro horário na grade.'; },
+    render: function (ctx) { return resourceScreen(ctx); }
+  };
+
+  function qr() { return '<div class="qr" data-qr="https://eduspace.umj.edu.br/comprovantes/' + CODE + '" role="img" aria-label="QR code do comprovante ' + CODE + '"></div>'; }
+
+  S.comprovante = {
+    group: 'Reservar', title: 'Comprovante com QR code', issue: '#24', variants: ['Confirmada', 'Cancelada'],
+    notes: 'Jornada passo 5. Página pública: mostra só o primeiro nome. Na impressão saem só o documento e o QR.',
+    render: function (ctx) {
+      var cancelled = state.variant === 1;
+      return publicShell(ctx, head({ title: 'Comprovante ' + CODE, overline: 'Verificação de reserva' }) +
+        '<article style="border:1px solid var(--line-strong);background:var(--surface)" aria-label="Comprovante ' + CODE + '">' +
+        '<div class="stack" style="padding:24px">' + status(cancelled ? 'cancel' : 'ok', true) +
+        '<div><span class="overline">Código</span><div class="data" style="font-size:32px;line-height:40px;letter-spacing:0.04em">' + CODE + '</div></div>' +
+        pairs([['Recurso', 'Sala de estudo 204 (Sala de estudo)'], ['Local', 'Bloco A · 1º andar'], ['Data', DAY], ['Horário', '19:00 às 21:00'], ['Responsável', 'Lucas']]) +
+        (cancelled ? '<p style="margin:0;color:var(--error);font-weight:500">Esta reserva foi cancelada e não dá mais direito ao uso do espaço.</p>' : '') +
+        '</div><div class="row" style="padding:24px;border-top:1px dashed var(--line-strong);gap:20px">' + qr() +
+        '<p class="small muted" style="margin:0;max-width:32ch">Apresente na entrada. Quem ler o QR code vê a situação atual da reserva.</p></div></article>' +
+        '<div class="row" style="margin-top:24px"><button type="button" class="btn btn-primary">' + I('print') + 'Imprimir ou salvar PDF</button><button type="button" class="btn btn-outlined" data-act="copy">' + I('content_copy') + 'Copiar link</button></div>' +
+        '<p style="margin-top:24px"><a href="#reservas">Ir para Minhas reservas</a></p>', {});
+    }
+  };
+
+  var RES_ROWS = [
+    { day: DAY, nome: 'Sala de estudo 204', hora: '19:00 às 21:00', local: 'Bloco A · 1º andar', fin: 'Estudo de cálculo', st: 'ok', can: true },
+    { day: 'sex, 23 de out', nome: 'Laboratório de Informática 1', hora: '14:00 às 16:00', local: 'Bloco C · Térreo', fin: 'Lista de algoritmos', st: 'ok', can: true },
+    { day: TODAY, nome: 'Sala de estudo 101', hora: '15:30 às 16:30', local: 'Bloco A · Térreo', fin: null, st: 'ok', can: false }
+  ];
+  var HIST_ROWS = [
+    { day: 'seg, 19 de out', nome: 'Sala de estudo 202', hora: '18:00 às 19:00', local: 'Bloco A · 1º andar', fin: null, st: 'done' },
+    { day: 'qui, 15 de out', nome: 'Auditório Central', hora: '09:00 às 11:00', local: 'Bloco D · Térreo', fin: 'Ensaio da apresentação', st: 'cancel' }
+  ];
+
+  function reservationRow(ctx, r) {
+    var cancelBtn = r.st !== 'ok' ? '' : r.can
+      ? '<button type="button" class="btn btn-danger" data-act="cancelar">Cancelar</button>'
+      : '<button type="button" class="btn btn-outlined" aria-disabled="true" title="Cancelamentos só até 30 min antes do início">Cancelar</button>';
+    return '<li style="display:grid;gap:' + (ctx.mobile ? '8px' : '24px') + ';grid-template-columns:' + (ctx.mobile ? '1fr' : '128px minmax(0,1fr) auto') + ';align-items:center;padding:16px 20px;border-top:1px solid var(--line)">' +
+      '<span class="data">' + r.day + '</span><div style="min-width:0"><a href="#recurso" style="font-weight:700">' + r.nome + '</a><div class="small muted">' + r.hora + ' · ' + r.local + '</div>' + (r.fin ? '<div class="small">' + r.fin + '</div>' : '') + '</div>' +
+      '<div class="row" style="gap:8px"><span style="min-width:120px">' + status(r.st) + '</span><a class="btn btn-outlined" href="#comprovante">Ver comprovante</a>' + cancelBtn + '</div></li>';
+  }
+
+  function reservationsScreen(ctx) {
+    var hist = state.tab === 1;
+    var empty = state.route === 'reservas' && state.variant === 2;
+    var rows = hist ? HIST_ROWS : (state.cancelled ? RES_ROWS.slice(1) : RES_ROWS);
+    var list = empty
+      ? '<div class="panel"><p style="margin:0">Você não tem reservas marcadas.</p>' + go('busca', 'Reservar espaço', 'btn btn-outlined" style="margin-top:16px') + '</div>'
+      : '<ul style="list-style:none;margin:0;padding:0;border:1px solid var(--line);border-top:0;background:var(--surface)" aria-label="' + (hist ? 'Histórico de reservas' : 'Próximas reservas') + '">' + rows.map(function (r) { return reservationRow(ctx, r); }).join('') + '</ul>';
+    return appShell(ctx, head({ title: 'Minhas reservas', desc: 'Próximas reservas e histórico.', actions: go('busca', 'Nova reserva') }) +
+      '<div class="tabs" role="tablist" aria-label="Minhas reservas"><button type="button" role="tab" data-tab="0" aria-selected="' + !hist + '">Próximas</button><button type="button" role="tab" data-tab="1" aria-selected="' + hist + '">Histórico</button></div>' +
+      list, { active: 'reservas' });
+  }
+
+  function cancelDialog() {
+    return '<div class="overlay"><div class="dialog xs" role="dialog" aria-labelledby="dlg-cancel"><h2 id="dlg-cancel">Deseja cancelar esta reserva?</h2><div class="body">' +
+      pairs([['Recurso', 'Sala de estudo 204'], ['Local', 'Bloco A · 1º andar'], ['Data', DAY], ['Horário', '19:00 às 21:00'], ['Código', '<span class="data">' + CODE + '</span>']]) +
+      '<p class="small muted" style="margin:0">O horário fica livre para outras pessoas na hora. Não dá para desfazer.</p></div>' +
+      '<div class="actions"><button type="button" class="btn btn-outlined" data-act="close">Manter reserva</button><button type="button" class="btn btn-danger-fill" data-act="confirm-cancel">Sim, cancelar</button></div></div></div>';
+  }
+
+  S.reservas = {
+    group: 'Minhas reservas', title: 'Minhas reservas', issue: '#25', variants: ['Próximas', 'Histórico', 'Vazia'],
+    notes: 'Linhas separadas por fio, sem cards. Status com ícone e texto. A reserva de hoje às 15:30 já passou do prazo: Cancelar fica desativado e explica o motivo.',
+    enter: function () { state.tab = state.variant === 1 ? 1 : 0; },
+    render: reservationsScreen,
+    overlay: function () { return state.overlay === 'cancelar' ? cancelDialog() : ''; }
+  };
+
+  S.cancelar = {
+    group: 'Minhas reservas', title: 'Cancelar reserva (confirmação)', issue: '#26',
+    notes: 'História 03, CA1: a pergunta sempre vem antes. Ação segura com foco inicial; a destrutiva à direita, em vermelho.',
+    enter: function () { state.tab = 0; state.overlay = 'cancelar'; },
+    render: reservationsScreen,
+    overlay: function () { return state.overlay === 'cancelar' ? cancelDialog() : ''; }
+  };
+
+  S.quadro = {
+    group: 'Reservar', title: 'Quadro de horários', issue: '#51',
+    notes: 'O que já está reservado em todos os recursos no dia. Aluno e professor não veem quem reservou; o admin vê. No celular vira lista por recurso.',
+    render: function (ctx) {
+      var rows = [
+        ['Sala de estudo 101', 'Bloco A · Sala de estudo', [['08:00', '10:00', 'free'], ['10:00', '11:30', 'busy'], ['11:30', '21:00', 'free']]],
+        ['Sala de estudo 204', 'Bloco A · Sala de estudo', [['08:00', '19:00', 'free'], ['19:00', '21:00', 'mine']]],
+        ['Laboratório de Informática 1', 'Bloco C · Laboratório', [['08:00', '09:30', 'busy'], ['09:30', '14:00', 'free'], ['14:00', '16:00', 'busy'], ['16:00', '21:00', 'free']]],
+        ['Auditório Central', 'Bloco D · Auditório', [['08:00', '13:00', 'free'], ['13:00', '17:00', 'busy'], ['17:00', '21:00', 'free']]],
+        ['Projetor Epson 01', 'Bloco D · Equipamento', [['08:00', '21:00', 'free']]]
+      ];
+      var label = { free: 'Livre', busy: 'Ocupado', mine: 'Sua reserva' };
+      var hours = SLOTS.filter(function (t) { return t.slice(3) === '00'; });
+      var span = function (a, b) { return (SLOTS.indexOf(b) < 0 ? SLOTS.length : SLOTS.indexOf(b)) - SLOTS.indexOf(a); };
+      var view = ctx.mobile
+        ? '<ul style="list-style:none;margin:0;padding:0">' + rows.map(function (r) {
+            return '<li class="panel" style="padding:16px;margin-top:-1px"><a href="#recurso" style="font-weight:700">' + r[0] + '</a><div class="small muted">' + r[1] + '</div><ul style="list-style:none;margin:8px 0 0;padding:0">' + r[2].map(function (s) {
+              return '<li class="row" style="gap:8px;min-height:32px"><span class="sw" style="background:' + (s[2] === 'busy' ? 'var(--surface) var(--hatch-pattern)' : s[2] === 'mine' ? 'var(--primary-tint) var(--hatch-pattern)' : 'var(--surface)') + '"></span><span class="data small" style="min-width:104px">' + s[0] + ' às ' + s[1] + '</span><span class="small" style="font-weight:' + (s[2] === 'free' ? 400 : 700) + '">' + label[s[2]] + '</span></li>';
+            }).join('') + '</ul></li>';
+          }).join('') + '</ul>'
+        : '<div class="tbl-wrap"><table class="board" style="width:100%;min-width:' + (220 + SLOTS.length * 28) + 'px" aria-label="Quadro de horários"><colgroup><col style="width:220px">' + SLOTS.map(function () { return '<col style="width:28px">'; }).join('') + '</colgroup>' +
+          '<thead><tr><th scope="col" style="text-align:left;padding:0 12px;font-family:var(--font-ui)">Recurso</th>' + hours.map(function (h) { return '<th scope="colgroup" colspan="2">' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          rows.map(function (r) {
+            return '<tr><th scope="row"><a href="#recurso" style="font-weight:700">' + r[0] + '</a><div class="muted" style="font-size:12px">' + r[1] + '</div></th>' + r[2].map(function (s) {
+              var n = span(s[0], s[1]);
+              return '<td colspan="' + n + '" class="' + s[2] + '" title="' + s[0] + ' às ' + s[1] + ', ' + label[s[2]].toLowerCase() + '">' + (s[2] === 'free' ? '<a href="#recurso" style="display:block;height:44px"><span class="sr">' + s[0] + ' às ' + s[1] + ', livre</span></a>' : '<span class="row" style="justify-content:center;gap:4px;font-size:12px;font-weight:500">' + I(s[2] === 'mine' ? 'person' : 'event_busy') + (n >= 4 ? label[s[2]] : '') + '</span>') + '</td>';
+            }).join('') + '</tr>';
+          }).join('') + '</tbody></table></div>';
+      return appShell(ctx, head({ title: 'Quadro de horários', desc: 'O que já está reservado em cada espaço e equipamento, dia a dia.' }) +
+        '<div class="row" style="align-items:flex-end;margin-bottom:16px">' + '<div class="field"><span class="label">Dia</span>' + dayPicker(ctx, DAY) + '</div>' +
+        field('q-bloco', 'Bloco', { select: ['Todos os blocos', 'Bloco A', 'Bloco B', 'Bloco C', 'Bloco D'], style: 'min-width:180px' }) +
+        field('q-tipo', 'Tipo', { select: ['Todos os tipos', 'Sala de estudo', 'Laboratório', 'Auditório', 'Equipamento'], style: 'min-width:180px' }) + '</div>' +
+        '<ul class="slot-legend"><li><span class="sw" style="background:var(--surface)"></span>Livre</li><li><span class="sw" style="background:var(--surface) var(--hatch-pattern)"></span>Ocupado</li><li><span class="sw" style="background:var(--primary-tint) var(--hatch-pattern)"></span>Sua reserva</li><li><span class="sw" style="background:var(--sunken)"></span>Encerrado</li></ul>' + view, { active: 'quadro' });
+    }
+  };
+
+  S.conta = {
+    group: 'Minhas reservas', title: 'Minha conta', issue: '#16',
+    notes: 'Dados mínimos da conta (LGPD) e o botão de sair.',
+    render: function (ctx) {
+      return appShell(ctx, head({ title: 'Minha conta', desc: 'Seus dados de acesso ao EduSpace.' }) +
+        '<div class="panel" style="max-width:560px">' + pairs([['Nome', 'Lucas Andrade'], ['E-mail', 'lucas.andrade@umj.edu.br'], ['Perfil', 'Aluno'], ['Matrícula', '<span class="data">2026104</span>']]) + '</div>' +
+        '<a class="btn btn-outlined" href="#login" style="margin-top:24px">Sair da conta</a>', { active: 'conta' });
+    }
+  };
+
+  /* ---------- Administração ---------- */
+  S.admin = {
+    group: 'Administração', title: 'Painel da administração', issue: '#17',
+    notes: 'Só aparece para o perfil admin. Lista de seções com fio divisório, sem cards em fileira.',
+    render: function (ctx) {
+      var sections = [['admin-agenda', 'event', 'Agenda do dia', 'Todas as reservas de hoje e cancelamento com motivo.'], ['admin-recursos', 'meeting_room', 'Recursos', 'Salas, laboratórios e equipamentos: criar, editar e desativar.'], ['admin-blocos', 'apartment', 'Blocos e características', 'Prédios do campus e atributos usados nos filtros.'], ['admin-usuarios', 'group', 'Usuários', 'Contas, perfis e acesso.']];
+      return appShell(ctx, head({ title: 'Administração', desc: 'Gestão do patrimônio e das reservas do campus.' }) +
+        '<ul style="list-style:none;margin:0;padding:0;border:1px solid var(--line);background:var(--surface)">' + sections.map(function (s, i) {
+          return '<li style="' + (i ? 'border-top:1px solid var(--line)' : '') + '"><a href="#' + s[0] + '" class="row" style="padding:16px 20px;color:var(--ink);text-decoration:none;gap:16px;flex-wrap:nowrap">' + I(s[1]) + '<span style="min-width:0;flex:1"><strong>' + s[2] + '</strong><span class="small muted" style="display:block">' + s[3] + '</span></span>' + I('chevron_right') + '</a></li>';
+        }).join('') + '</ul>', { active: 'admin', admin: true });
+    }
+  };
+
+  var ADMIN_RES = [
+    ['Auditório Central', 'Auditório', 'Bloco D', '180', 5, true],
+    ['Laboratório de Informática 1', 'Laboratório', 'Bloco C', '30', 5, true],
+    ['Laboratório de Redes', 'Laboratório', 'Bloco C', '20', 4, true],
+    ['Sala de estudo 204', 'Sala de estudo', 'Bloco A', '4', 4, true],
+    ['Sala de estudo 103', 'Sala de estudo', 'Bloco B', '12', 2, false],
+    ['Projetor Epson 01', 'Equipamento', 'Bloco D', 'n/a', 2, true]
+  ];
+
+  S['admin-recursos'] = {
+    group: 'Administração', title: 'Recursos (lista)', issue: '#27',
+    notes: 'Tabela no desktop, lista no celular. <strong>Decisão para o PO:</strong> ao desativar um recurso com reservas futuras, cancelar essas reservas com aviso (proposta) ou recusar até elas acabarem.',
+    render: function (ctx) {
+      var toolbar = '<div class="row" style="align-items:flex-end;margin-bottom:16px">' + field('a-busca', 'Buscar', { icon: 'search', placeholder: 'Nome do recurso', style: 'min-width:240px;flex:1' }) +
+        field('a-bloco', 'Bloco', { select: ['Todos', 'Bloco A', 'Bloco B', 'Bloco C', 'Bloco D'], style: 'min-width:140px' }) +
+        field('a-sit', 'Situação', { select: ['Ativos e inativos', 'Só ativos', 'Só inativos'], style: 'min-width:180px' }) + '</div>';
+      var body = ctx.mobile
+        ? '<ul style="list-style:none;margin:0;padding:0;border:1px solid var(--line);background:var(--surface)">' + ADMIN_RES.map(function (r, i) {
+            return '<li style="padding:16px;' + (i ? 'border-top:1px solid var(--line)' : '') + '"><div style="font-weight:700">' + r[0] + '</div><div class="small muted">' + r[1] + ' · ' + r[2] + ' · ' + (r[3] === 'n/a' ? 'sem lotação' : r[3] + ' pessoas') + '</div><div class="row" style="margin-top:8px;gap:8px"><span class="small" style="flex:1">' + (r[5] ? 'Ativo' : 'Inativo') + '</span><a class="btn btn-outlined" href="#admin-recurso-form">Editar</a>' + (r[5] ? '<button type="button" class="btn btn-danger" data-act="desativar">Desativar</button>' : '<button type="button" class="btn btn-outlined">Reativar</button>') + '</div></li>';
+          }).join('') + '</ul>'
+        : '<div class="tbl-wrap"><table class="tbl" aria-label="Recursos"><thead><tr><th>Nome</th><th>Tipo</th><th>Bloco</th><th>Capacidade</th><th>Características</th><th>Situação</th><th><span class="sr">Ações</span></th></tr></thead><tbody>' +
+          ADMIN_RES.map(function (r) { return '<tr><td><strong>' + r[0] + '</strong></td><td>' + r[1] + '</td><td>' + r[2] + '</td><td class="data">' + r[3] + '</td><td>' + r[4] + '</td><td>' + (r[5] ? 'Ativo' : '<span class="muted">Inativo</span>') + '</td><td><div class="row" style="gap:8px;flex-wrap:nowrap"><a class="btn btn-outlined" href="#admin-recurso-form">Editar</a>' + (r[5] ? '<button type="button" class="btn btn-danger" data-act="desativar">Desativar</button>' : '<button type="button" class="btn btn-outlined">Reativar</button>') + '</div></td></tr>'; }).join('') +
+          '</tbody></table></div>';
+      return appShell(ctx, head({ title: 'Recursos', desc: '34 recursos, 33 ativos.', crumbs: [['Administração', 'admin'], ['Recursos', null]], actions: go('admin-recurso-form', I('add') + 'Novo recurso') }) + toolbar + body, { active: 'admin', admin: true });
+    },
+    overlay: function () {
+      if (state.overlay !== 'desativar') return '';
+      return '<div class="overlay"><div class="dialog xs" role="dialog" aria-labelledby="dlg-off"><h2 id="dlg-off">Desativar Laboratório de Redes?</h2><div class="body">' +
+        '<p style="margin:0">O recurso some da busca, mas o histórico continua guardado.</p><div class="alert" role="status" style="border-color:var(--warning);color:var(--warning)">' + I('warning') + '<span>Há 3 reservas futuras. Elas serão canceladas e as pessoas, avisadas.</span></div></div>' +
+        '<div class="actions"><button type="button" class="btn btn-outlined" data-act="close">Manter ativo</button><button type="button" class="btn btn-danger-fill" data-act="close">Desativar e cancelar 3 reservas</button></div></div></div>';
+    }
+  };
+
+  S['admin-recurso-form'] = {
+    group: 'Administração', title: 'Recurso (formulário)', issue: '#27', variants: ['Editar', 'Com erros'],
+    notes: 'Nome único dentro do bloco e capacidade maior que zero, validados antes de salvar. Equipamento não tem capacidade.',
+    render: function (ctx) {
+      var e = state.variant === 1;
+      var feats = { 'Computadores': 1, 'Projetor': 1, 'Ar-condicionado': 1, 'Tomadas nas mesas': 1 };
+      return appShell(ctx, head({ title: 'Editar recurso', crumbs: [['Administração', 'admin'], ['Recursos', 'admin-recursos'], ['Editar', null]] }) +
+        '<form class="panel stack" style="max-width:720px" novalidate>' +
+        '<div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))">' +
+        field('rf-bloco', 'Bloco *', { select: ['Bloco C', 'Bloco A', 'Bloco B', 'Bloco D'] }) + field('rf-tipo', 'Tipo *', { select: ['Laboratório', 'Sala de estudo', 'Auditório', 'Equipamento'] }) +
+        field('rf-nome', 'Nome *', { value: e ? 'Laboratório de Informática 1' : 'Laboratório de Redes', error: e ? 'Já existe um recurso com este nome no Bloco C.' : null }) +
+        field('rf-cap', 'Capacidade *', { type: 'number', value: e ? '0' : '20', error: e ? 'Informe pelo menos 1 pessoa.' : null, help: 'Número de pessoas.' }) +
+        field('rf-andar', 'Andar', { value: '1º andar' }) + '</div>' +
+        field('rf-desc', 'Descrição', { textarea: true, value: 'Bancadas com switches e roteadores para prática.' }) +
+        '<fieldset style="border:0;margin:0;padding:0"><legend class="h3" style="font-size:14px;margin-bottom:8px">Características</legend><div class="chips">' +
+        FEATURES.map(function (f) { var on = !!feats[f]; return '<span class="chip toggle" aria-pressed="' + on + '" role="button">' + (on ? I('check') : '') + f + '</span>'; }).join('') + '</div></fieldset>' +
+        '<div class="row"><a class="btn btn-primary" href="#admin-recursos">Salvar recurso</a><a class="btn btn-outlined" href="#admin-recursos">Cancelar</a></div></form>', { active: 'admin', admin: true });
+    }
+  };
+
+  S['admin-blocos'] = {
+    group: 'Administração', title: 'Blocos e características', issue: '#27',
+    notes: 'Duas abas no mesmo painel. Bloco ou característica em uso não é apagado, só desativado.',
+    enter: function () { state.tab = 0; },
+    render: function (ctx) {
+      var blocos = [['Bloco A', 'Entrada principal, ao lado da secretaria acadêmica.', 10], ['Bloco B', 'Atrás da praça de convivência.', 7], ['Bloco C', 'Laboratórios de informática e de saúde.', 5], ['Bloco D', 'Biblioteca, auditório e apoio audiovisual.', 12]];
+      var feats = [['Ar-condicionado', 25], ['Projetor', 14], ['Quadro branco', 22], ['Computadores', 4], ['Kit de transmissão', 3]];
+      var t = state.tab;
+      var table = t === 0
+        ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Bloco</th><th>Descrição</th><th>Recursos</th><th><span class="sr">Ações</span></th></tr></thead><tbody>' + blocos.map(function (b) { return '<tr><td><strong>' + b[0] + '</strong></td><td>' + b[1] + '</td><td class="data">' + b[2] + '</td><td><button type="button" class="btn btn-outlined">Editar</button></td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Característica</th><th>Usada em</th><th><span class="sr">Ações</span></th></tr></thead><tbody>' + feats.map(function (f) { return '<tr><td><strong>' + f[0] + '</strong></td><td>' + f[1] + ' recursos</td><td><button type="button" class="btn btn-outlined">Renomear</button></td></tr>'; }).join('') + '</tbody></table></div>';
+      return appShell(ctx, head({ title: 'Blocos e características', crumbs: [['Administração', 'admin'], ['Blocos e características', null]], actions: '<button type="button" class="btn btn-primary">' + I('add') + (t === 0 ? 'Novo bloco' : 'Nova característica') + '</button>' }) +
+        '<div class="tabs" role="tablist"><button type="button" role="tab" data-tab="0" aria-selected="' + (t === 0) + '">Blocos</button><button type="button" role="tab" data-tab="1" aria-selected="' + (t === 1) + '">Características</button></div>' + table, { active: 'admin', admin: true });
+    }
+  };
+
+  var AGENDA = [
+    ['08:00 às 09:30', 'Laboratório de Informática 1', 'Bloco C', 'Maria Souza', 'Professora', 'EDU-Q2M8RT'],
+    ['10:00 às 11:30', 'Sala de estudo 101', 'Bloco A', 'Ana Beatriz Lima', 'Aluna', 'EDU-H7KX3P'],
+    ['13:00 às 17:00', 'Auditório Central', 'Bloco D', 'Coordenação de Direito', 'Professor', 'EDU-9VB4NC'],
+    ['14:00 às 16:00', 'Laboratório de Informática 1', 'Bloco C', 'Lucas Andrade', 'Aluno', 'EDU-C5T2WY'],
+    ['19:00 às 21:00', 'Sala de estudo 204', 'Bloco A', 'Lucas Andrade', 'Aluno', CODE]
+  ];
+
+  S['admin-agenda'] = {
+    group: 'Administração', title: 'Agenda do dia', issue: '#30',
+    notes: 'Todas as reservas do dia em ordem de horário. O admin vê quem reservou e pode cancelar a qualquer momento, com motivo obrigatório.',
+    render: function (ctx) {
+      var body = ctx.mobile
+        ? '<ul style="list-style:none;margin:0;padding:0;border:1px solid var(--line);background:var(--surface)">' + AGENDA.map(function (a, i) {
+            return '<li style="padding:16px;' + (i ? 'border-top:1px solid var(--line)' : '') + '"><div class="data">' + a[0] + '</div><div style="font-weight:700">' + a[1] + '</div><div class="small muted">' + a[2] + ' · ' + a[3] + ' (' + a[4] + ')</div><div class="row" style="margin-top:8px;gap:8px"><span class="data small" style="flex:1">' + a[5] + '</span><button type="button" class="btn btn-danger" data-act="cancelar-admin">Cancelar</button></div></li>';
+          }).join('') + '</ul>'
+        : '<div class="tbl-wrap"><table class="tbl" aria-label="Agenda do dia"><thead><tr><th>Horário</th><th>Recurso</th><th>Reservado por</th><th>Código</th><th><span class="sr">Ações</span></th></tr></thead><tbody>' +
+          AGENDA.map(function (a) { return '<tr><td class="data">' + a[0] + '</td><td><strong>' + a[1] + '</strong><div class="small muted">' + a[2] + '</div></td><td>' + a[3] + '<div class="small muted">' + a[4] + '</div></td><td class="data">' + a[5] + '</td><td><button type="button" class="btn btn-danger" data-act="cancelar-admin">Cancelar</button></td></tr>'; }).join('') + '</tbody></table></div>';
+      return appShell(ctx, head({ title: 'Agenda do dia', crumbs: [['Administração', 'admin'], ['Agenda do dia', null]] }) +
+        '<div class="row" style="justify-content:space-between;margin-bottom:16px">' + dayPicker(ctx, DAY) + '<span class="small muted">5 reservas confirmadas</span></div>' + body, { active: 'admin', admin: true });
+    },
+    overlay: function () {
+      if (state.overlay !== 'cancelar-admin') return '';
+      return '<div class="overlay"><div class="dialog xs" role="dialog" aria-labelledby="dlg-adm"><h2 id="dlg-adm">Cancelar a reserva de Maria Souza?</h2><div class="body">' +
+        pairs([['Recurso', 'Laboratório de Informática 1'], ['Horário', DAY + ', 08:00 às 09:30'], ['Código', '<span class="data">EDU-Q2M8RT</span>']]) +
+        field('adm-motivo', 'Motivo *', { textarea: true, value: 'Manutenção elétrica no Bloco C.', help: 'A pessoa recebe esse motivo no histórico da reserva.' }) +
+        '</div><div class="actions"><button type="button" class="btn btn-outlined" data-act="close">Manter reserva</button><button type="button" class="btn btn-danger-fill" data-act="close">Cancelar reserva</button></div></div></div>';
+    }
+  };
+
+  S['admin-usuarios'] = {
+    group: 'Administração', title: 'Usuários', issue: '#17 · #50',
+    notes: 'Já existe no sistema. Alterar perfil e desativar entram na #50 (ações à direita).',
+    render: function (ctx) {
+      var users = [['Admin EduSpace', 'admin@umj.edu.br', 'Administrador', '', 'Ativa'], ['Ana Beatriz Lima', 'ana.lima@umj.edu.br', 'Aluno', '2025311', 'Ativa'], ['Lucas Andrade', 'lucas.andrade@umj.edu.br', 'Aluno', '2026104', 'Ativa'], ['Maria Souza', 'maria.souza@umj.edu.br', 'Professor', '', 'Ativa']];
+      return appShell(ctx, head({ title: 'Usuários', desc: 'Contas com acesso ao EduSpace.', crumbs: [['Administração', 'admin'], ['Usuários', null]], actions: '<button type="button" class="btn btn-primary">' + I('person_add') + 'Nova conta</button>' }) +
+        field('u-busca', 'Buscar', { icon: 'search', placeholder: 'Nome, e-mail ou matrícula', style: 'max-width:420px;margin-bottom:16px' }) +
+        '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Matrícula</th><th>Situação</th></tr></thead><tbody>' +
+        users.map(function (u) { return '<tr><td>' + u[0] + '</td><td>' + u[1] + '</td><td>' + u[2] + '</td><td class="data">' + (u[3] || '<span class="muted" style="font-family:var(--font-ui)">Não informada</span>') + '</td><td>' + u[4] + '</td></tr>'; }).join('') +
+        '</tbody></table></div>', { active: 'admin', admin: true });
+    }
+  };
+
+  /* ---------- Estados do sistema ---------- */
+  S.estados = {
+    group: 'Estados', title: 'Carregando, sem conexão e acesso restrito', issue: '#36', variants: ['Carregando página', 'Sem conexão', 'Acesso restrito'],
+    notes: 'Esqueleto com a mesma geometria da tela final (sem salto). Erro em linguagem simples, sempre com "Tentar de novo".',
+    render: function (ctx) {
+      var v = state.variant;
+      var body = v === 0
+        ? '<div class="stack" aria-busy="true">' + skel('220px', 36) + skel('60%', 20) + '<div style="margin-top:16px">' + skel('100%', 120) + '</div></div>'
+        : v === 1
+          ? head({ title: 'Não foi possível conectar', desc: 'O servidor não respondeu. Verifique sua internet e tente de novo em instantes.' }) + '<button type="button" class="btn btn-primary">' + I('refresh') + 'Tentar de novo</button>'
+          : head({ title: 'Acesso restrito', overline: 'Erro 403', desc: 'Esta área é só para a administração do campus. Se você precisa de acesso, fale com a secretaria.' }) + go('inicio', 'Voltar para o início');
+      return appShell(ctx, body, { active: 'inicio' });
+    }
+  };
+
+  /* ---------- Índice, fluxo e navegação ---------- */
+  var ORDER = ['landing', 'sobre', 'ajuda', 'termos', 'privacidade', 'notfound', 'login', 'cadastro', 'inicio', 'busca', 'recurso', 'resumo', 'resumo-conflito', 'comprovante', 'quadro', 'reservas', 'cancelar', 'conta', 'admin', 'admin-agenda', 'admin-recursos', 'admin-recurso-form', 'admin-blocos', 'admin-usuarios', 'estados'];
+  // Fluxograma da Sprint 1, de ponta a ponta.
+  var FLOW = ['landing', 'login', 'inicio', 'busca', 'recurso', 'resumo', 'comprovante', 'reservas', 'cancelar', 'quadro', 'admin', 'admin-agenda'];
+
+  var GROUP_ORDER = ['Páginas públicas', 'Acesso', 'Reservar', 'Minhas reservas', 'Administração', 'Estados'];
+  function buildIndex() {
+    var nav = document.getElementById('index');
+    var sel = document.getElementById('screen-select');
+    var html = '', opts = '';
+    GROUP_ORDER.forEach(function (g) {
+      var ids = ORDER.filter(function (id) { return S[id].group === g; });
+      html += '<h2>' + g + '</h2>' + ids.map(function (id) { return '<a href="#' + id + '" data-index="' + id + '"><span>' + S[id].title + '</span><span class="tag">' + S[id].issue + '</span></a>'; }).join('');
+      opts += '<optgroup label="' + g + '">' + ids.map(function (id) { return '<option value="' + id + '">' + S[id].title + '</option>'; }).join('') + '</optgroup>';
+    });
+    nav.innerHTML = html;
+    sel.innerHTML = opts;
+    sel.addEventListener('change', function () { location.hash = sel.value; });
+  }
+
+  var screenEl = document.getElementById('screen');
+  var layerEl = document.getElementById('layer');
+  var device = document.getElementById('device');
+  var wrap = document.getElementById('frame-wrap');
+
+  function enterRoute(route) {
+    state.route = S[route] ? route : 'landing';
+    state.variant = 0; state.overlay = null; state.snack = null; state.hint = null; state.tab = 0; state.sel = null; state.cancelled = false;
+    if (S[state.route].enter) S[state.route].enter();
+    render();
+    screenEl.scrollTop = 0;
+  }
+
+  function render() {
+    var spec = S[state.route];
+    var ctx = { mobile: state.device === 'mobile' };
+    screenEl.innerHTML = spec.render(ctx);
+    var overlay = spec.overlay ? spec.overlay(ctx) : '';
+    var snack = state.snack ? '<div class="snack' + (ctx.mobile ? ' m' : '') + '" role="status"><span>' + esc(state.snack) + '</span><button type="button" data-act="snack-close" aria-label="Fechar aviso">' + I('close') + '</button></div>' : '';
+    layerEl.innerHTML = overlay + snack;
+    document.getElementById('meta-group').textContent = spec.group + ' · issue ' + spec.issue;
+    document.getElementById('meta-title').textContent = spec.title;
+    document.getElementById('notes').innerHTML = spec.notes || '';
+    document.getElementById('variants').innerHTML = (spec.variants || []).map(function (v, i) {
+      return '<button type="button" data-variant="' + i + '" aria-pressed="' + (i === state.variant) + '">' + v + '</button>';
+    }).join('');
+    document.querySelectorAll('[data-index]').forEach(function (a) {
+      if (a.dataset.index === state.route) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    document.getElementById('screen-select').value = state.route;
+    ['mobile', 'desktop'].forEach(function (d) { document.getElementById('dev-' + d).setAttribute('aria-pressed', String(state.device === d)); });
+    var flowIdx = FLOW.indexOf(state.route);
+    var next = FLOW[(flowIdx + 1) % FLOW.length];
+    document.getElementById('flow-next').firstElementChild.textContent = flowIdx >= 0 ? 'Próxima no fluxo: ' + S[next].title : 'Começar o fluxo';
+    drawQr();
+    fit();
+  }
+
+  function drawQr() {
+    document.querySelectorAll('[data-qr]').forEach(function (el) {
+      if (typeof window.QRCode !== 'function') { el.textContent = 'QR code'; return; }
+      el.innerHTML = '';
+      try { new window.QRCode(el, { text: el.dataset.qr, width: 160, height: 160, colorDark: '#041C40', colorLight: '#FCFDFE', correctLevel: window.QRCode.CorrectLevel.M }); }
+      catch (e) { el.textContent = 'QR code'; }
+    });
+  }
+
+  function fit() {
+    var w = state.device === 'mobile' ? 360 : 1280;
+    var h = state.device === 'mobile' ? 740 : 800;
+    var avail = wrap.clientWidth;
+    var scale = Math.min(1, avail / w);
+    device.classList.toggle('is-mobile', state.device === 'mobile');
+    device.style.width = w + 'px';
+    device.style.height = h + 'px';
+    device.style.transform = scale < 1 ? 'scale(' + scale + ')' : 'none';
+    wrap.style.height = Math.ceil(h * scale) + 'px';
+  }
+
+  /* Interações dentro do aparelho */
+  device.addEventListener('click', function (ev) {
+    var t = ev.target.closest('[data-act],[data-slot],[data-tab],[data-chip]');
+    if (!t) {
+      if (ev.target.classList && ev.target.classList.contains('overlay')) { state.overlay = null; render(); }
+      return;
+    }
+    if (t.dataset.slot !== undefined) {
+      var i = Number(t.dataset.slot);
+      if (t.getAttribute('aria-disabled') === 'true') return;
+      var sel = state.sel;
+      state.hint = null;
+      if (sel && sel[0] === sel[1] && i === sel[0]) state.sel = null;
+      else if (sel && sel[0] === sel[1] && i > sel[0]) {
+        var blocked = false;
+        for (var k = sel[0]; k <= i; k++) if (slotState(k, state.variant === 1) !== 'free') blocked = true;
+        if (i - sel[0] + 1 > 8) { state.hint = 'Cada reserva pode ter no máximo 4h.'; }
+        else state.sel = blocked ? [i, i] : [sel[0], i];
+      } else state.sel = [i, i];
+      render(); return;
+    }
+    if (t.dataset.tab !== undefined) { state.tab = Number(t.dataset.tab); render(); return; }
+    if (t.dataset.chip !== undefined) { state.chips[t.dataset.chip] = !state.chips[t.dataset.chip]; render(); return; }
+    var act = t.dataset.act;
+    if (act === 'close') { state.overlay = null; render(); return; }
+    if (act === 'drawer') { state.overlay = 'drawer'; render(); return; }
+    if (act === 'resumo') { state.overlay = 'resumo'; render(); return; }
+    if (act === 'clear') { state.sel = null; render(); return; }
+    if (act === 'cancelar' || act === 'desativar' || act === 'cancelar-admin') { state.overlay = act; render(); return; }
+    if (act === 'confirm-cancel') { state.overlay = null; state.cancelled = true; state.snack = 'Reserva cancelada. O horário ficou livre de novo.'; render(); return; }
+    if (act === 'snack-close') { state.snack = null; render(); return; }
+    if (act === 'copy') {
+      var link = 'https://eduspace.umj.edu.br/comprovantes/' + CODE;
+      var done = function () { state.snack = 'Link do comprovante copiado.'; render(); };
+      if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, done); else done();
+    }
+  });
+  device.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var act = ev.target.dataset.act;
+    if (act === 'login' && state.variant !== 1) location.hash = 'inicio';
+    else if (act === 'signup' && state.variant !== 1) { state.snack = null; location.hash = 'inicio'; }
+  });
+
+  document.getElementById('variants').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-variant]');
+    if (!b) return;
+    state.variant = Number(b.dataset.variant);
+    state.overlay = null;
+    if (state.route === 'reservas') state.tab = state.variant === 1 ? 1 : 0;
+    render();
+  });
+  document.querySelectorAll('[data-device]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.device = b.dataset.device;
+      try { localStorage.setItem('eduspace-proto-device', state.device); } catch (e) { /* sem storage */ }
+      render();
+    });
+  });
+  document.getElementById('flow-next').addEventListener('click', function () {
+    var i = FLOW.indexOf(state.route);
+    location.hash = FLOW[(i + 1) % FLOW.length];
+  });
+  window.addEventListener('hashchange', function () { enterRoute(location.hash.slice(1)); });
+  // Só a largura importa: reagir à altura que o próprio fit() define entraria em laço.
+  var lastWidth = 0;
+  function onResize() { if (wrap.clientWidth !== lastWidth) { lastWidth = wrap.clientWidth; fit(); } }
+  window.addEventListener('resize', onResize);
+  if (window.ResizeObserver) new ResizeObserver(onResize).observe(wrap);
+
+  buildIndex();
+  enterRoute(location.hash.slice(1) || 'landing');
+})();
+</script>
+</body>
+</html>

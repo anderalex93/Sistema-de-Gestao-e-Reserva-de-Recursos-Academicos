@@ -151,7 +151,7 @@ carregamento mostra indicador e fica desabilitado.
 - Ajuda abaixo do campo em `body-sm` `ink-muted`.
 
 ### Grade de horários (peça central)
-- Coluna de horários em fonte de dados (`07:00`, `07:30`…), blocos de 30 minutos, altura mínima
+- Coluna de horários em fonte de dados (`08:00`, `08:30`…), blocos de 30 minutos, altura mínima
   de 44px.
 - Estados:
 
