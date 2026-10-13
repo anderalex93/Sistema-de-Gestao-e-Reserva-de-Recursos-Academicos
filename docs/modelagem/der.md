@@ -204,7 +204,7 @@ Requer a extensão `btree_gist`, habilitada na primeira migração (#10).
 |---|---|
 | Enums como `VARCHAR` + `CHECK`, sem `ENUM` nativo do PostgreSQL | Alterar um `ENUM` nativo em migração é trabalhoso; `CHECK` muda com um `ALTER TABLE` simples. No código continuam tipados como `StrEnum` |
 | Equipamento é um `recurso` com tipo `EQUIPAMENTO` | A regra de reserva e a constraint de sobreposição são as mesmas para espaços e equipamentos |
-| Nada é apagado: usuário, bloco e recurso são desativados (`ativo = false`); reserva é cancelada | Preserva histórico, comprovantes e auditoria |
+| Nada com histórico é apagado: usuário, bloco e recurso são desativados (`ativo = false`); reserva é cancelada. Só bloco sem recursos e recurso nunca reservado são excluídos de vez (ADR 0002) | Preserva histórico, comprovantes e auditoria |
 | Status "concluída" não é gravado | É derivado: `status = 'CONFIRMADA' AND fim < now()`. Evita job agendado e estado inconsistente |
 | Código do comprovante separado do `id` | Não expõe a sequência interna e é fácil de ditar ou digitar na entrada da sala |
 | Chaves `BIGINT IDENTITY` em vez de UUID | Mais simples de ler, indexar e depurar no escopo do MVP; o que é público usa o `codigo` |

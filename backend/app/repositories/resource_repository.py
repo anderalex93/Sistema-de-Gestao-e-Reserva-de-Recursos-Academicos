@@ -37,6 +37,34 @@ class ResourceRepository(BaseRepository[Resource]):
             raise NotFoundError(self.not_found_message)
         return resource
 
+    def search_all(
+        self, filters: ResourceFilters, ativo: bool | None, page: int, per_page: int
+    ) -> PageResult[Resource]:
+        """Visão da administração: ativos e inativos, inclusive em bloco desativado."""
+        statement = (
+            select(Resource)
+            .join(Resource.bloco)
+            .options(contains_eager(Resource.bloco))
+            .order_by(Building.nome, TYPE_ORDER, Resource.nome, Resource.id)
+        )
+        if ativo is not None:
+            statement = statement.where(Resource.ativo.is_(ativo))
+        return self.paginate(_apply(statement, filters), page, per_page)
+
+    def name_taken(self, bloco_id: int, nome: str, *, except_id: int | None = None) -> bool:
+        """Nome único por bloco, sem diferenciar maiúsculas."""
+        statement = select(Resource.id).where(
+            Resource.bloco_id == bloco_id, func.lower(Resource.nome) == nome.lower()
+        )
+        if except_id is not None:
+            statement = statement.where(Resource.id != except_id)
+        return self._session.scalar(statement.limit(1)) is not None
+
+    def ids_in_building(self, building_id: int) -> Sequence[int]:
+        return self._session.scalars(
+            select(Resource.id).where(Resource.bloco_id == building_id)
+        ).all()
+
     def existing_keys(self) -> set[tuple[int, str]]:
         """Chaves naturais `(bloco_id, nome)` de todos os recursos, numa consulta."""
         rows = self._session.execute(select(Resource.bloco_id, Resource.nome)).all()

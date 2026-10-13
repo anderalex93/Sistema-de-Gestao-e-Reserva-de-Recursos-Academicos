@@ -34,3 +34,10 @@ class ReservationScope(StrEnum):
 
     PROXIMAS = "proximas"
     HISTORICO = "historico"
+
+
+class RemovalOutcome(StrEnum):
+    """O que aconteceu ao excluir um bloco ou recurso pela administração."""
+
+    EXCLUIDO = "EXCLUIDO"
+    DESATIVADO = "DESATIVADO"

@@ -50,6 +50,11 @@ class BaseRepository[ModelT: Base]:
         self._session.add_all(entities)
         self._session.flush()
 
+    def delete(self, entity: ModelT) -> None:
+        """Exclusão física, com flush para a FK `RESTRICT` falhar aqui e não no commit."""
+        self._session.delete(entity)
+        self._session.flush()
+
     def paginate(self, statement: Select[ModelT], page: int, per_page: int) -> PageResult[ModelT]:
         count_statement = select(func.count()).select_from(statement.order_by(None).subquery())
         total = self._session.scalar(count_statement) or 0

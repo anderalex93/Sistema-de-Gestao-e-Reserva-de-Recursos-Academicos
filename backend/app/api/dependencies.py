@@ -26,9 +26,13 @@ from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
 from app.services.availability_service import AvailabilityService
 from app.services.board_service import BoardService
+from app.services.building_admin_service import BuildingAdminService
 from app.services.catalog_service import CatalogService
+from app.services.feature_admin_service import FeatureAdminService
+from app.services.future_reservation_canceller import FutureReservationCanceller
 from app.services.health_service import HealthService
 from app.services.reservation_service import ReservationService
+from app.services.resource_admin_service import ResourceAdminService
 from app.services.rules_service import RulesService
 from app.services.user_service import UserService
 
@@ -166,6 +170,43 @@ def get_rules_service(schedule: CampusScheduleDep, rules: ReservationRulesDep) -
     return RulesService(schedule, rules)
 
 
+def get_future_reservation_canceller(
+    session: SessionDep, clock: ClockDep
+) -> FutureReservationCanceller:
+    return FutureReservationCanceller(ReservationRepository(session), clock)
+
+
+CancellerDep = Annotated[FutureReservationCanceller, Depends(get_future_reservation_canceller)]
+
+
+def get_building_admin_service(
+    session: SessionDep, canceller: CancellerDep
+) -> BuildingAdminService:
+    return BuildingAdminService(
+        buildings=BuildingRepository(session),
+        resources=ResourceRepository(session),
+        canceller=canceller,
+        uow=UnitOfWork(session),
+    )
+
+
+def get_feature_admin_service(session: SessionDep) -> FeatureAdminService:
+    return FeatureAdminService(FeatureRepository(session), UnitOfWork(session))
+
+
+def get_resource_admin_service(
+    session: SessionDep, canceller: CancellerDep
+) -> ResourceAdminService:
+    return ResourceAdminService(
+        resources=ResourceRepository(session),
+        buildings=BuildingRepository(session),
+        features=FeatureRepository(session),
+        reservations=ReservationRepository(session),
+        canceller=canceller,
+        uow=UnitOfWork(session),
+    )
+
+
 HealthServiceDep = Annotated[HealthService, Depends(get_health_service)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
@@ -174,6 +215,9 @@ AvailabilityServiceDep = Annotated[AvailabilityService, Depends(get_availability
 RulesServiceDep = Annotated[RulesService, Depends(get_rules_service)]
 ReservationServiceDep = Annotated[ReservationService, Depends(get_reservation_service)]
 BoardServiceDep = Annotated[BoardService, Depends(get_board_service)]
+BuildingAdminServiceDep = Annotated[BuildingAdminService, Depends(get_building_admin_service)]
+FeatureAdminServiceDep = Annotated[FeatureAdminService, Depends(get_feature_admin_service)]
+ResourceAdminServiceDep = Annotated[ResourceAdminService, Depends(get_resource_admin_service)]
 
 
 def get_current_user(

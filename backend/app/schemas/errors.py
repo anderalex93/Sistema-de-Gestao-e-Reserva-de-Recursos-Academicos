@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -6,3 +8,7 @@ class ErrorResponse(BaseModel):
 
     detail: str
     code: str
+
+
+# Tipo de `responses=` do FastAPI, para declarar respostas reaproveitadas entre endpoints.
+type ResponsesDoc = dict[int | str, dict[str, Any]]
