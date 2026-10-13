@@ -1,12 +1,19 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Request
+from fastapi import APIRouter, Path, Query, Request
 
 from app.api.dependencies import CurrentUserDep, ReservationServiceDep
 from app.core.rate_limit import RECEIPT_LIMIT, limiter
 from app.models.reservation import Reservation
 from app.schemas.errors import ErrorResponse
-from app.schemas.reservation import ReceiptRead, ReservationCreate, ReservationRead
+from app.schemas.pagination import Page
+from app.schemas.reservation import (
+    MyReservationRead,
+    MyReservationsParams,
+    ReceiptRead,
+    ReservationCreate,
+    ReservationRead,
+)
 
 router = APIRouter(
     prefix="/reservas",
@@ -30,6 +37,19 @@ def create_reservation(
     data: ReservationCreate, user: CurrentUserDep, service: ReservationServiceDep
 ) -> Reservation:
     return service.create(data, user)
+
+
+@router.get(
+    "/minhas",
+    summary="Minhas reservas: próximas ou histórico",
+    response_model=Page[MyReservationRead],
+)
+def list_my_reservations(
+    params: Annotated[MyReservationsParams, Query()],
+    user: CurrentUserDep,
+    service: ReservationServiceDep,
+) -> Page[MyReservationRead]:
+    return service.list_mine(user, params.escopo, params.page, params.per_page)
 
 
 # Antes de `/{reservation_id}`: as rotas são testadas na ordem em que foram declaradas.

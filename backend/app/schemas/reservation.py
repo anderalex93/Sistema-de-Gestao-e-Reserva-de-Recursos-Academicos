@@ -10,8 +10,9 @@ from pydantic import (
     model_validator,
 )
 
-from app.core.enums import ReservationStatus, ResourceType
+from app.core.enums import ReservationScope, ReservationStatus, ResourceType
 from app.schemas.catalog import ResourceRead
+from app.schemas.pagination import PageParams
 
 Purpose = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
 
@@ -47,6 +48,16 @@ class ReservationRead(BaseModel):
     usuario_id: int
     criado_em: datetime
     cancelada_em: datetime | None
+
+
+class MyReservationRead(ReservationRead):
+    pode_cancelar: bool = Field(
+        description="Confirmada e com pelo menos 30 minutos até o início (RF04)"
+    )
+
+
+class MyReservationsParams(PageParams):
+    escopo: ReservationScope = ReservationScope.PROXIMAS
 
 
 class ReceiptBuildingRead(BaseModel):

@@ -1,12 +1,12 @@
 from collections.abc import Sequence
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import joinedload
 
-from app.core.enums import ReservationStatus
+from app.core.enums import ReservationScope, ReservationStatus
 from app.models.reservation import Reservation
-from app.repositories.base import BaseRepository
+from app.repositories.base import BaseRepository, PageResult
 
 
 class ReservationRepository(BaseRepository[Reservation]):
@@ -53,3 +53,19 @@ class ReservationRepository(BaseRepository[Reservation]):
             .options(joinedload(Reservation.usuario))
             .where(Reservation.codigo == codigo.strip().upper())
         )
+
+    def list_for_user(
+        self, user_id: int, scope: ReservationScope, now: datetime, page: int, per_page: int
+    ) -> PageResult[Reservation]:
+        """Próximas: confirmadas que ainda não terminaram, da mais cedo para a mais tarde.
+        Histórico: canceladas ou já terminadas, da mais recente para a mais antiga."""
+        statement = select(Reservation).where(Reservation.usuario_id == user_id)
+        if scope is ReservationScope.PROXIMAS:
+            statement = statement.where(
+                Reservation.status == ReservationStatus.CONFIRMADA, Reservation.fim > now
+            ).order_by(Reservation.inicio, Reservation.id)
+        else:
+            statement = statement.where(
+                or_(Reservation.status == ReservationStatus.CANCELADA, Reservation.fim <= now)
+            ).order_by(Reservation.inicio.desc(), Reservation.id.desc())
+        return self.paginate(statement, page, per_page)

@@ -27,3 +27,10 @@ class SlotStatus(StrEnum):
     LIVRE = "LIVRE"
     OCUPADO = "OCUPADO"
     PASSADO = "PASSADO"
+
+
+class ReservationScope(StrEnum):
+    """Abas de Minhas Reservas."""
+
+    PROXIMAS = "proximas"
+    HISTORICO = "historico"

@@ -1,8 +1,10 @@
+from datetime import timedelta
+
 from sqlalchemy.exc import IntegrityError
 
 from app.core.campus_schedule import CampusSchedule
 from app.core.clock import Clock
-from app.core.enums import UserRole
+from app.core.enums import ReservationScope, ReservationStatus, UserRole
 from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
 from app.core.reservation_codes import CodeGenerator
 from app.db.unit_of_work import UnitOfWork
@@ -10,12 +12,21 @@ from app.models.reservation import Reservation
 from app.models.user import User
 from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.resource_repository import ResourceRepository
-from app.schemas.reservation import ReceiptRead, ReceiptResourceRead, ReservationCreate
+from app.schemas.pagination import Page
+from app.schemas.reservation import (
+    MyReservationRead,
+    ReceiptRead,
+    ReceiptResourceRead,
+    ReservationCreate,
+    ReservationRead,
+)
 from app.services.catalog_service import IntervalInThePastError
 
 OVERLAP_CONSTRAINT = "reserva_sem_sobreposicao"
 CODE_CONSTRAINT = "uq_reserva_codigo"
 CODE_ATTEMPTS = 5
+# RF04: o próprio usuário cancela até 30 minutos antes do início.
+CANCELLATION_NOTICE = timedelta(minutes=30)
 
 
 class ReservationConflictError(ConflictError):
@@ -114,6 +125,28 @@ class ReservationService:
         ):
             raise ReservationNotFoundError
         return reservation
+
+    def list_mine(
+        self, user: User, scope: ReservationScope, page: int, per_page: int
+    ) -> Page[MyReservationRead]:
+        result = self._reservations.list_for_user(user.id, scope, self._clock.now(), page, per_page)
+        return Page[MyReservationRead](
+            items=[self.with_permissions(reservation) for reservation in result.items],
+            total=result.total,
+            page=result.page,
+            per_page=result.per_page,
+            total_pages=result.total_pages,
+        )
+
+    def with_permissions(self, reservation: Reservation) -> MyReservationRead:
+        base = ReservationRead.model_validate(reservation)
+        return MyReservationRead(**dict(base), pode_cancelar=self.can_cancel(reservation))
+
+    def can_cancel(self, reservation: Reservation) -> bool:
+        return (
+            reservation.status is ReservationStatus.CONFIRMADA
+            and self._clock.now() <= reservation.inicio - CANCELLATION_NOTICE
+        )
 
     def receipt(self, codigo: str) -> ReceiptRead:
         """Comprovante público. Quem reservou aparece só pelo primeiro nome."""

@@ -169,3 +169,30 @@ def test_unknown_receipt_is_404(client: TestClient) -> None:
 
     assert response.status_code == 404
     assert response.json()["code"] == "COMPROVANTE_NAO_ENCONTRADO"
+
+
+def test_my_reservations_only_lists_my_own(
+    client: TestClient,
+    headers: dict[str, str],
+    room: Resource,
+    make_user: Callable[..., User],
+) -> None:
+    mine = client.post(RESERVATIONS, headers=headers, json=payload(room, 9, 10)).json()
+    make_user(email="ana@umj.edu.br")
+    ana = login(client, "ana@umj.edu.br")
+    client.post(RESERVATIONS, headers=ana, json=payload(room, 10, 11))
+
+    page = client.get(f"{RESERVATIONS}/minhas", headers=headers).json()
+    history = client.get(
+        f"{RESERVATIONS}/minhas", headers=headers, params={"escopo": "historico"}
+    ).json()
+
+    assert [item["codigo"] for item in page["items"]] == [mine["codigo"]]
+    assert page["items"][0]["pode_cancelar"] is True
+    assert history["total"] == 0
+
+
+def test_my_reservations_rejects_unknown_scope(client: TestClient, headers: dict[str, str]) -> None:
+    response = client.get(f"{RESERVATIONS}/minhas", headers=headers, params={"escopo": "todas"})
+
+    assert response.status_code == 422
