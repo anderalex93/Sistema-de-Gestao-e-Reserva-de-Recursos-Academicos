@@ -14,9 +14,13 @@ from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.core.security import PasswordHasher, TokenService
 from app.db.unit_of_work import UnitOfWork
 from app.models.user import User
+from app.repositories.building_repository import BuildingRepository
+from app.repositories.feature_repository import FeatureRepository
 from app.repositories.health_repository import HealthRepository
+from app.repositories.resource_repository import ResourceRepository
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
+from app.services.catalog_service import CatalogService
 from app.services.health_service import HealthService
 from app.services.user_service import UserService
 
@@ -90,9 +94,18 @@ def get_auth_service(
     return AuthService(users=UserRepository(session), hasher=hasher, tokens=tokens)
 
 
+def get_catalog_service(session: SessionDep) -> CatalogService:
+    return CatalogService(
+        buildings=BuildingRepository(session),
+        features=FeatureRepository(session),
+        resources=ResourceRepository(session),
+    )
+
+
 HealthServiceDep = Annotated[HealthService, Depends(get_health_service)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+CatalogServiceDep = Annotated[CatalogService, Depends(get_catalog_service)]
 
 
 def get_current_user(

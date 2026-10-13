@@ -18,7 +18,7 @@ dev:  ## API com hot reload em http://localhost:8000
 migrate:  ## Aplica as migrações pendentes
 	$(UV) run alembic upgrade head
 
-seed:  ## Cria o admin inicial (SEED_ADMIN_* no .env); pode rodar várias vezes
+seed:  ## Catálogo inicial do campus e admin (SEED_ADMIN_* no .env); pode rodar várias vezes
 	$(UV) run python -m app.seed
 
 revision:  ## Gera migração a partir dos models: make revision m="create reserva"
