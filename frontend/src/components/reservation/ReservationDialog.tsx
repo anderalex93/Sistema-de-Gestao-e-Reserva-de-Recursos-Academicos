@@ -56,6 +56,8 @@ export function ReservationDialog({
   const { notify } = useFeedback();
   const [formError, setFormError] = useState<string | null>(null);
   const backButton = useRef<HTMLButtonElement>(null);
+  // Trava síncrona: dois cliques no mesmo instante chegam antes de o botão ser desabilitado.
+  const submitting = useRef(false);
   const schema = useMemo(() => reservationSchema(resource.capacidade), [resource.capacidade]);
 
   const {
@@ -103,6 +105,17 @@ export function ReservationDialog({
     },
   });
 
+  const confirm = (values: ReservationFormOutput) => {
+    if (submitting.current) return;
+    submitting.current = true;
+    setFormError(null);
+    mutation.mutate(values, {
+      onSettled: () => {
+        submitting.current = false;
+      },
+    });
+  };
+
   const capacity = capacityLabel(resource);
   const summary = [
     { label: 'Recurso', value: `${resource.nome} (${resourceTypeLabels[resource.tipo]})` },
@@ -137,13 +150,7 @@ export function ReservationDialog({
       <DialogTitle id="resumo-reserva-titulo" sx={{ fontFamily: 'h2.fontFamily', fontWeight: 500 }}>
         Confirmar reserva?
       </DialogTitle>
-      <form
-        noValidate
-        onSubmit={handleSubmit((values) => {
-          setFormError(null);
-          mutation.mutate(values);
-        })}
-      >
+      <form noValidate onSubmit={(event) => void handleSubmit(confirm)(event)}>
         <DialogContent>
           <Stack spacing={2.5}>
             <FormError message={formError} />

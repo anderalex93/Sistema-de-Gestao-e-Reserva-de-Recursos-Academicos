@@ -28,10 +28,17 @@ export function CancelReservationDialog({ reservation, onClose }: CancelReservat
   const cancel = useCancelReservation();
   const [error, setError] = useState<string | null>(null);
   const keepButton = useRef<HTMLButtonElement>(null);
+  // Trava síncrona contra clique duplo antes de o botão ser desabilitado.
+  const submitting = useRef(false);
 
   const confirm = () => {
+    if (submitting.current) return;
+    submitting.current = true;
     setError(null);
     cancel.mutate(reservation.id, {
+      onSettled: () => {
+        submitting.current = false;
+      },
       onSuccess: () => {
         notify({
           message: 'Reserva cancelada. O horário ficou livre de novo.',
