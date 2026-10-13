@@ -93,11 +93,19 @@ export function createAppTheme() {
         defaultProps: { disableElevation: true },
         styleOverrides: {
           root: { minHeight: 44, paddingInline: 18, transition: 'none' },
-          outlined: {
-            borderColor: colors.lineStrong,
-            color: colors.ink,
-            '&:hover': { backgroundColor: colors.sunken, borderColor: colors.lineStrong },
-          },
+          // Secundário em tinta; "perigo" (color="error") com borda e texto de erro.
+          outlined: ({ ownerState }) =>
+            ownerState.color === 'error'
+              ? {
+                  borderColor: colors.error,
+                  color: colors.error,
+                  '&:hover': { backgroundColor: colors.sunken, borderColor: colors.error },
+                }
+              : {
+                  borderColor: colors.lineStrong,
+                  color: colors.ink,
+                  '&:hover': { backgroundColor: colors.sunken, borderColor: colors.lineStrong },
+                },
           text: { '&:hover': { backgroundColor: 'transparent', textDecoration: 'underline' } },
         },
       },

@@ -1,6 +1,7 @@
 import type { UserListParams } from '@/lib/api/admin-users.api';
 import type { BoardParams } from '@/lib/api/board.api';
 import type { ResourceListParams } from '@/lib/api/catalog.api';
+import type { MyReservationsParams } from '@/lib/api/reservations.api';
 
 /** Chaves do TanStack Query centralizadas, para invalidar sempre o domínio certo. */
 export const queryKeys = {
@@ -14,6 +15,7 @@ export const queryKeys = {
   features: ['caracteristicas'] as const,
   board: (params: BoardParams) => ['recursos', 'quadro', params] as const,
   reservations: ['reservas'] as const,
+  myReservations: (params: MyReservationsParams) => ['reservas', 'minhas', params] as const,
   receipt: (codigo: string) => ['reservas', 'comprovante', codigo.toUpperCase()] as const,
   rules: ['config', 'regras'] as const,
   availability: (resourceId: number, date: string) =>

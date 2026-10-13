@@ -191,6 +191,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/reservas/minhas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Minhas reservas: próximas ou histórico */
+    get: operations['list_my_reservations_api_v1_reservas_minhas_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/reservas/comprovante/{codigo}': {
     parameters: {
       query?: never;
@@ -219,6 +236,23 @@ export interface paths {
     get: operations['get_reservation_api_v1_reservas__reservation_id__get'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/reservas/{reservation_id}/cancelar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Cancela uma reserva (até 30 minutos antes do início) */
+    post: operations['cancel_reservation_api_v1_reservas__reservation_id__cancelar_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -385,6 +419,43 @@ export interface components {
       /** Senha */
       senha: string;
     };
+    /** MyReservationRead */
+    MyReservationRead: {
+      /** Id */
+      id: number;
+      /** Codigo */
+      codigo: string;
+      status: components['schemas']['ReservationStatus'];
+      /**
+       * Inicio
+       * Format: date-time
+       */
+      inicio: string;
+      /**
+       * Fim
+       * Format: date-time
+       */
+      fim: string;
+      /** Finalidade */
+      finalidade: string | null;
+      /** Qtd Participantes */
+      qtd_participantes: number | null;
+      recurso: components['schemas']['ResourceRead'];
+      /** Usuario Id */
+      usuario_id: number;
+      /**
+       * Criado Em
+       * Format: date-time
+       */
+      criado_em: string;
+      /** Cancelada Em */
+      cancelada_em: string | null;
+      /**
+       * Pode Cancelar
+       * @description Confirmada e com pelo menos 30 minutos até o início (RF04)
+       */
+      pode_cancelar: boolean;
+    };
     /** OccupationRead */
     OccupationRead: {
       /**
@@ -407,6 +478,19 @@ export interface components {
        * @description Só para administradores (LGPD)
        */
       reservado_por: string | null;
+    };
+    /** Page[MyReservationRead] */
+    Page_MyReservationRead_: {
+      /** Items */
+      items: components['schemas']['MyReservationRead'][];
+      /** Total */
+      total: number;
+      /** Page */
+      page: number;
+      /** Per Page */
+      per_page: number;
+      /** Total Pages */
+      total_pages: number;
     };
     /** Page[ResourceRead] */
     Page_ResourceRead_: {
@@ -526,6 +610,12 @@ export interface components {
       /** Cancelada Em */
       cancelada_em: string | null;
     };
+    /**
+     * ReservationScope
+     * @description Abas de Minhas Reservas.
+     * @enum {string}
+     */
+    ReservationScope: 'proximas' | 'historico';
     /**
      * ReservationStatus
      * @enum {string}
@@ -1156,6 +1246,48 @@ export interface operations {
       };
     };
   };
+  list_my_reservations_api_v1_reservas_minhas_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        per_page?: number;
+        escopo?: components['schemas']['ReservationScope'];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_MyReservationRead_'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   get_receipt_api_v1_reservas_comprovante__codigo__get: {
     parameters: {
       query?: never;
@@ -1259,6 +1391,73 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  cancel_reservation_api_v1_reservas__reservation_id__cancelar_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        reservation_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MyReservationRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description A reserva é de outra pessoa */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Reserva inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Reserva já cancelada */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Fora do prazo de cancelamento */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
         };
       };
     };

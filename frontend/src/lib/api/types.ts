@@ -23,6 +23,8 @@ export type ReservationCreate = Schemas['ReservationCreate'];
 export type ReservationRead = Schemas['ReservationRead'];
 export type BoardRead = Schemas['BoardRead'];
 export type ReceiptRead = Schemas['ReceiptRead'];
+export type MyReservationRead = Schemas['MyReservationRead'];
+export type ReservationScope = Schemas['ReservationScope'];
 export type ReservationStatus = Schemas['ReservationStatus'];
 
 export interface Page<Item> {
