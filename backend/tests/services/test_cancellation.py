@@ -73,14 +73,22 @@ def test_owner_cannot_cancel_with_29_minutes(
         cancel_at(db_session, START - timedelta(minutes=29), reservation_id, people["lucas"])
 
 
-def test_nobody_else_cancels_but_the_admin_can_anytime(
+def test_only_the_owner_cancels_here_and_admin_owns_no_deadline(
     db_session: Session, room: Resource, people: dict[str, User]
 ) -> None:
     reservation_id = reserve(db_session, room, people["lucas"])
+    other_room = Resource(
+        bloco=room.bloco, nome="Sala 2", tipo=ResourceType.SALA_ESTUDO, capacidade=4
+    )
+    db_session.add(other_room)
+    db_session.flush()
+    admin_reservation_id = reserve(db_session, other_room, people["admin"])
 
-    with pytest.raises(ForbiddenError):
-        cancel_at(db_session, NOW, reservation_id, people["ana"])
-    cancel_at(db_session, START - timedelta(minutes=5), reservation_id, people["admin"])
+    # Reserva de outra pessoa, nem o admin: ele usa a agenda, que exige motivo (#30).
+    for intruder in (people["ana"], people["admin"]):
+        with pytest.raises(ForbiddenError):
+            cancel_at(db_session, NOW, reservation_id, intruder)
+    cancel_at(db_session, START - timedelta(minutes=5), admin_reservation_id, people["admin"])
 
 
 def test_cancelling_twice_is_a_conflict(

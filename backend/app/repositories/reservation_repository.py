@@ -2,11 +2,15 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from sqlalchemy import exists, func, or_, select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager, joinedload
 
 from app.core.enums import ReservationScope, ReservationStatus
+from app.models.building import Building
 from app.models.reservation import Reservation
+from app.models.resource import Resource
+from app.repositories.agenda_filters import AgendaFilters
 from app.repositories.base import BaseRepository, PageResult
+from app.repositories.resource_filters import TimeRange
 
 
 class ReservationRepository(BaseRepository[Reservation]):
@@ -122,3 +126,26 @@ class ReservationRepository(BaseRepository[Reservation]):
             .order_by(Reservation.inicio)
             .with_for_update(of=Reservation)
         ).all()
+
+    def agenda(
+        self, window: TimeRange, filters: AgendaFilters, page: int, per_page: int
+    ) -> PageResult[Reservation]:
+        """Reservas que tocam a janela, agrupáveis por recurso: bloco, recurso e horário."""
+        statement = (
+            select(Reservation)
+            .join(Reservation.recurso)
+            .join(Resource.bloco)
+            .options(
+                contains_eager(Reservation.recurso).contains_eager(Resource.bloco),
+                joinedload(Reservation.usuario),
+            )
+            .where(Reservation.inicio < window.fim, Reservation.fim > window.inicio)
+            .order_by(Building.nome, Resource.nome, Reservation.inicio, Reservation.id)
+        )
+        if filters.bloco_id is not None:
+            statement = statement.where(Resource.bloco_id == filters.bloco_id)
+        if filters.recurso_id is not None:
+            statement = statement.where(Reservation.recurso_id == filters.recurso_id)
+        if filters.status is not None:
+            statement = statement.where(Reservation.status == filters.status)
+        return self.paginate(statement, page, per_page)

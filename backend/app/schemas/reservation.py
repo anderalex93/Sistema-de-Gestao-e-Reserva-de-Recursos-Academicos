@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Self
 
 from pydantic import (
@@ -48,6 +48,9 @@ class ReservationRead(BaseModel):
     usuario_id: int
     criado_em: datetime
     cancelada_em: datetime | None
+    motivo_cancelamento: str | None = Field(
+        description="Preenchido quando a administração cancela a reserva"
+    )
 
 
 class MyReservationRead(ReservationRead):
@@ -85,3 +88,33 @@ class ReceiptRead(BaseModel):
     recurso: ReceiptResourceRead
     responsavel: str = Field(description="Só o primeiro nome de quem reservou")
     cancelada_em: datetime | None
+
+
+Reason = Annotated[str, StringConstraints(strip_whitespace=True, min_length=5, max_length=300)]
+
+
+class AdminCancellation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    motivo: Reason = Field(description="Aparece para o dono da reserva no histórico")
+
+
+class ReservationHolderRead(BaseModel):
+    """Quem reservou, para a administração poder avisar a pessoa."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    email: str
+
+
+class AdminReservationRead(ReservationRead):
+    usuario: ReservationHolderRead
+
+
+class AdminAgendaParams(PageParams):
+    data: date | None = Field(default=None, description="Dia no fuso do campus; padrão: hoje")
+    bloco_id: int | None = Field(default=None, ge=1)
+    recurso_id: int | None = Field(default=None, ge=1)
+    status: ReservationStatus | None = None

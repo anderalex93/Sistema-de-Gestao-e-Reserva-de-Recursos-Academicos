@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import time, timedelta
 
 from sqlalchemy.exc import IntegrityError
 
@@ -11,10 +11,14 @@ from app.core.reservation_rules import ReservationRules, duration_label
 from app.db.unit_of_work import UnitOfWork
 from app.models.reservation import Reservation
 from app.models.user import User
+from app.repositories.agenda_filters import AgendaFilters
+from app.repositories.base import PageResult
 from app.repositories.reservation_repository import ReservationRepository
+from app.repositories.resource_filters import TimeRange
 from app.repositories.resource_repository import ResourceRepository
 from app.schemas.pagination import Page
 from app.schemas.reservation import (
+    AdminAgendaParams,
     MyReservationRead,
     ReceiptRead,
     ReceiptResourceRead,
@@ -63,7 +67,15 @@ class AlreadyCancelledError(ConflictError):
 
 
 class NotReservationOwnerError(ForbiddenError):
-    default_detail = "Só quem fez a reserva pode cancelá-la."
+    default_detail = (
+        "Só quem fez a reserva pode cancelá-la aqui. A administração cancela pela agenda, "
+        "informando o motivo."
+    )
+
+
+class ReservationAlreadyEndedError(BusinessRuleError):
+    code = "RESERVA_ENCERRADA"
+    default_detail = "Esta reserva já terminou e não pode mais ser cancelada."
 
 
 class DurationExceededError(BusinessRuleError):
@@ -175,13 +187,14 @@ class ReservationService:
     def cancel(self, reservation_id: int, user: User) -> Reservation:
         """RF04. Nada é apagado: a reserva fica CANCELADA e o horário volta a ficar livre.
 
-        O dono cancela até 30 minutos antes (relógio do servidor); o admin, a qualquer momento.
+        O dono cancela até 30 minutos antes (relógio do servidor); o admin, as próprias, a
+        qualquer momento. Reserva de outra pessoa só pela agenda (`cancel_by_admin`), com motivo.
         """
         reservation = self._reservations.get(reservation_id)
         if reservation is None:
             raise ReservationNotFoundError
         is_admin = user.perfil is UserRole.ADMIN
-        if reservation.usuario_id != user.id and not is_admin:
+        if reservation.usuario_id != user.id:
             raise NotReservationOwnerError
         if reservation.status is ReservationStatus.CANCELADA:
             raise AlreadyCancelledError
@@ -190,6 +203,35 @@ class ReservationService:
         reservation.status = ReservationStatus.CANCELADA
         reservation.cancelada_em = self._clock.now()
         reservation.cancelada_por_id = user.id
+        self._uow.commit()
+        return reservation
+
+    def agenda(self, params: AdminAgendaParams) -> PageResult[Reservation]:
+        """Todas as reservas que tocam o dia (fuso do campus), de qualquer pessoa."""
+        day = params.data or self._schedule.local_date(self._clock.now())
+        window = TimeRange(
+            self._schedule.at(day, time.min), self._schedule.at(day + timedelta(days=1), time.min)
+        )
+        filters = AgendaFilters(
+            bloco_id=params.bloco_id, recurso_id=params.recurso_id, status=params.status
+        )
+        return self._reservations.agenda(window, filters, params.page, params.per_page)
+
+    def cancel_by_admin(self, reservation_id: int, admin: User, motivo: str) -> Reservation:
+        """#30. Sem o prazo de 30 minutos (manutenção, evento institucional), mas só enquanto a
+        reserva não terminou. O motivo aparece para o dono no histórico."""
+        reservation = self._reservations.get(reservation_id)
+        if reservation is None:
+            raise ReservationNotFoundError
+        if reservation.status is ReservationStatus.CANCELADA:
+            raise AlreadyCancelledError
+        now = self._clock.now()
+        if reservation.fim <= now:
+            raise ReservationAlreadyEndedError
+        reservation.status = ReservationStatus.CANCELADA
+        reservation.cancelada_em = now
+        reservation.cancelada_por_id = admin.id
+        reservation.motivo_cancelamento = motivo
         self._uow.commit()
         return reservation
 
