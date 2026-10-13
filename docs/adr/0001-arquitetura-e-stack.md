@@ -201,8 +201,8 @@ de domínio sem conhecer HTTP, e os endpoints ficam sem `try/except`.
 - `# type: ignore` só com código de erro e comentário justificando.
 
 **Frontend**
-- `tsconfig` com `strict` e `noUncheckedIndexedAccess`; `any` proibido pelo ESLint
-  (`@typescript-eslint/no-explicit-any`).
+- `tsconfig` com `strict` e `noUncheckedIndexedAccess`; `any` proibido pelo linter
+  (oxlint, `typescript/no-explicit-any`).
 - **Contrato gerado, não escrito à mão:** `npm run gen:api` roda o `openapi-typescript` sobre
   o `/openapi.json` do backend e gera `src/lib/api/schema.d.ts`. Se o back mudar um campo, o
   front deixa de compilar no lugar exato que precisa ser ajustado.
