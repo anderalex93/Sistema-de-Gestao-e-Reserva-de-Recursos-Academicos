@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from sqlalchemy import Exists, Select, case, exists, func, select
 from sqlalchemy.orm import contains_eager
 
@@ -23,14 +25,11 @@ class ResourceRepository(BaseRepository[Resource]):
         Uma única consulta: características e horário livre entram como subconsultas,
         sem carregar reservas para a aplicação.
         """
-        statement = (
-            select(Resource)
-            .join(Resource.bloco)
-            .options(contains_eager(Resource.bloco))
-            .where(Resource.ativo, Building.ativo)
-            .order_by(Building.nome, TYPE_ORDER, Resource.nome, Resource.id)
-        )
-        return self.paginate(_apply(statement, filters), page, per_page)
+        return self.paginate(_apply(_active_resources(), filters), page, per_page)
+
+    def list_matching(self, filters: ResourceFilters) -> Sequence[Resource]:
+        """Todos os recursos reserváveis que atendem aos filtros, na ordem da busca."""
+        return self._session.scalars(_apply(_active_resources(), filters)).all()
 
     def get_active_or_raise(self, resource_id: int) -> Resource:
         resource = self.get(resource_id)
@@ -42,6 +41,16 @@ class ResourceRepository(BaseRepository[Resource]):
         return self._session.scalar(
             select(Resource).where(Resource.bloco_id == bloco_id, Resource.nome == nome)
         )
+
+
+def _active_resources() -> Select[Resource]:
+    return (
+        select(Resource)
+        .join(Resource.bloco)
+        .options(contains_eager(Resource.bloco))
+        .where(Resource.ativo, Building.ativo)
+        .order_by(Building.nome, TYPE_ORDER, Resource.nome, Resource.id)
+    )
 
 
 def _apply(statement: Select[Resource], filters: ResourceFilters) -> Select[Resource]:

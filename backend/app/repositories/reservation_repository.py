@@ -28,3 +28,21 @@ class ReservationRepository(BaseRepository[Reservation]):
             )
             .order_by(Reservation.inicio)
         ).all()
+
+    def confirmed_for_resources(
+        self, resource_ids: Sequence[int], inicio: datetime, fim: datetime
+    ) -> Sequence[Reservation]:
+        """Reservas confirmadas de vários recursos que tocam `[inicio, fim)`, numa consulta só."""
+        if not resource_ids:
+            return []
+        return self._session.scalars(
+            select(Reservation)
+            .options(joinedload(Reservation.usuario))
+            .where(
+                Reservation.recurso_id.in_(resource_ids),
+                Reservation.status == ReservationStatus.CONFIRMADA,
+                Reservation.inicio < fim,
+                Reservation.fim > inicio,
+            )
+            .order_by(Reservation.recurso_id, Reservation.inicio)
+        ).all()

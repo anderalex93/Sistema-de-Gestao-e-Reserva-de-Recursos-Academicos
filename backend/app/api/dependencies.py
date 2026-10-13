@@ -24,6 +24,7 @@ from app.repositories.resource_repository import ResourceRepository
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
 from app.services.availability_service import AvailabilityService
+from app.services.board_service import BoardService
 from app.services.catalog_service import CatalogService
 from app.services.health_service import HealthService
 from app.services.reservation_service import ReservationService
@@ -127,6 +128,10 @@ def get_availability_service(
     )
 
 
+def get_board_service(session: SessionDep, schedule: CampusScheduleDep) -> BoardService:
+    return BoardService(ResourceRepository(session), ReservationRepository(session), schedule)
+
+
 def get_code_generator() -> CodeGenerator:
     return RandomCodeGenerator()
 
@@ -158,6 +163,7 @@ CatalogServiceDep = Annotated[CatalogService, Depends(get_catalog_service)]
 AvailabilityServiceDep = Annotated[AvailabilityService, Depends(get_availability_service)]
 RulesServiceDep = Annotated[RulesService, Depends(get_rules_service)]
 ReservationServiceDep = Annotated[ReservationService, Depends(get_reservation_service)]
+BoardServiceDep = Annotated[BoardService, Depends(get_board_service)]
 
 
 def get_current_user(
