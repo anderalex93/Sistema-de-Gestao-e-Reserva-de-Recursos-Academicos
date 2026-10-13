@@ -10,7 +10,7 @@ from pydantic import (
     model_validator,
 )
 
-from app.core.enums import ReservationStatus
+from app.core.enums import ReservationStatus, ResourceType
 from app.schemas.catalog import ResourceRead
 
 Purpose = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
@@ -46,4 +46,31 @@ class ReservationRead(BaseModel):
     recurso: ResourceRead
     usuario_id: int
     criado_em: datetime
+    cancelada_em: datetime | None
+
+
+class ReceiptBuildingRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    nome: str
+
+
+class ReceiptResourceRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    nome: str
+    tipo: ResourceType
+    andar: str | None
+    bloco: ReceiptBuildingRead
+
+
+class ReceiptRead(BaseModel):
+    """Comprovante público: só o necessário para conferir na entrada (LGPD, minimização)."""
+
+    codigo: str
+    status: ReservationStatus
+    inicio: datetime
+    fim: datetime
+    recurso: ReceiptResourceRead
+    responsavel: str = Field(description="Só o primeiro nome de quem reservou")
     cancelada_em: datetime | None

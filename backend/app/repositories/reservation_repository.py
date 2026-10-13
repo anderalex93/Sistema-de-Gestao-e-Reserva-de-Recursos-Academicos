@@ -46,3 +46,10 @@ class ReservationRepository(BaseRepository[Reservation]):
             )
             .order_by(Reservation.recurso_id, Reservation.inicio)
         ).all()
+
+    def get_by_code(self, codigo: str) -> Reservation | None:
+        return self._session.scalar(
+            select(Reservation)
+            .options(joinedload(Reservation.usuario))
+            .where(Reservation.codigo == codigo.strip().upper())
+        )

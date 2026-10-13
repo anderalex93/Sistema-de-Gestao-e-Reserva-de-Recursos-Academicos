@@ -1,9 +1,12 @@
-from fastapi import APIRouter
+from typing import Annotated
+
+from fastapi import APIRouter, Path, Request
 
 from app.api.dependencies import CurrentUserDep, ReservationServiceDep
+from app.core.rate_limit import RECEIPT_LIMIT, limiter
 from app.models.reservation import Reservation
 from app.schemas.errors import ErrorResponse
-from app.schemas.reservation import ReservationCreate, ReservationRead
+from app.schemas.reservation import ReceiptRead, ReservationCreate, ReservationRead
 
 router = APIRouter(
     prefix="/reservas",
@@ -27,6 +30,25 @@ def create_reservation(
     data: ReservationCreate, user: CurrentUserDep, service: ReservationServiceDep
 ) -> Reservation:
     return service.create(data, user)
+
+
+# Antes de `/{reservation_id}`: as rotas são testadas na ordem em que foram declaradas.
+@router.get(
+    "/comprovante/{codigo}",
+    summary="Verificação pública de um comprovante (sem login)",
+    response_model=ReceiptRead,
+    responses={
+        404: {"model": ErrorResponse, "description": "Código inexistente"},
+        429: {"model": ErrorResponse, "description": "Muitas consultas seguidas"},
+    },
+)
+@limiter.limit(RECEIPT_LIMIT)
+def get_receipt(
+    request: Request,  # noqa: ARG001
+    codigo: Annotated[str, Path(max_length=20)],
+    service: ReservationServiceDep,
+) -> ReceiptRead:
+    return service.receipt(codigo)
 
 
 @router.get(

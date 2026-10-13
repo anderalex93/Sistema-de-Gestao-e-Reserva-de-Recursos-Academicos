@@ -6,8 +6,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.core.enums import ResourceType
+from app.core.enums import ReservationStatus, ResourceType
 from app.models.building import Building
+from app.models.reservation import Reservation
 from app.models.resource import Resource
 from app.models.user import User
 from tests.conftest import login
@@ -120,3 +121,51 @@ def test_inverted_interval_is_422(
 
 def test_requires_login(client: TestClient, room: Resource) -> None:
     assert client.post(RESERVATIONS, json=payload(room)).status_code == 401
+
+
+def test_public_receipt_shows_only_the_minimum(
+    client: TestClient, room: Resource, make_user: Callable[..., User]
+) -> None:
+    owner = make_user(email="maria.silva@umj.edu.br", nome="Maria Clara Silva")
+    owner.matricula = "2026001"
+    headers = login(client, owner.email)
+    codigo = client.post(RESERVATIONS, headers=headers, json=payload(room)).json()["codigo"]
+
+    response = client.get(f"{RESERVATIONS}/comprovante/{codigo.lower()}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["codigo"] == codigo
+    assert body["status"] == "CONFIRMADA"
+    assert body["responsavel"] == "Maria"
+    assert body["recurso"] == {
+        "nome": "Sala 1",
+        "tipo": "SALA_ESTUDO",
+        "andar": None,
+        "bloco": {"nome": "Bloco A"},
+    }
+    text = response.text
+    for private in ("maria.silva@umj.edu.br", "Clara", "Silva", "2026001", "Reunião"):
+        assert private not in text
+
+
+def test_receipt_of_a_cancelled_reservation_says_so(
+    client: TestClient, headers: dict[str, str], room: Resource, db_session: Session
+) -> None:
+    created = client.post(RESERVATIONS, headers=headers, json=payload(room)).json()
+    reservation = db_session.get_one(Reservation, created["id"])
+    reservation.status = ReservationStatus.CANCELADA
+    reservation.cancelada_em = datetime.now(UTC)
+    db_session.flush()
+
+    body = client.get(f"{RESERVATIONS}/comprovante/{created['codigo']}").json()
+
+    assert body["status"] == "CANCELADA"
+    assert body["cancelada_em"] is not None
+
+
+def test_unknown_receipt_is_404(client: TestClient) -> None:
+    response = client.get(f"{RESERVATIONS}/comprovante/EDU-ZZZZZZ")
+
+    assert response.status_code == 404
+    assert response.json()["code"] == "COMPROVANTE_NAO_ENCONTRADO"

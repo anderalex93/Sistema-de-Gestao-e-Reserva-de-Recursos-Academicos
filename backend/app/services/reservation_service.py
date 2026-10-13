@@ -10,7 +10,7 @@ from app.models.reservation import Reservation
 from app.models.user import User
 from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.resource_repository import ResourceRepository
-from app.schemas.reservation import ReservationCreate
+from app.schemas.reservation import ReceiptRead, ReceiptResourceRead, ReservationCreate
 from app.services.catalog_service import IntervalInThePastError
 
 OVERLAP_CONSTRAINT = "reserva_sem_sobreposicao"
@@ -42,6 +42,11 @@ class CapacityExceededError(BusinessRuleError):
 
 class ReservationNotFoundError(NotFoundError):
     default_detail = "Reserva não encontrada."
+
+
+class ReceiptNotFoundError(NotFoundError):
+    code = "COMPROVANTE_NAO_ENCONTRADO"
+    default_detail = "Não encontramos um comprovante com este código. Confira as letras e números."
 
 
 def _violated_constraint(error: IntegrityError) -> str | None:
@@ -109,6 +114,22 @@ class ReservationService:
         ):
             raise ReservationNotFoundError
         return reservation
+
+    def receipt(self, codigo: str) -> ReceiptRead:
+        """Comprovante público. Quem reservou aparece só pelo primeiro nome."""
+        reservation = self._reservations.get_by_code(codigo)
+        if reservation is None:
+            raise ReceiptNotFoundError
+        first_name = reservation.usuario.nome.split(maxsplit=1)[0]
+        return ReceiptRead(
+            codigo=reservation.codigo,
+            status=reservation.status,
+            inicio=reservation.inicio,
+            fim=reservation.fim,
+            recurso=ReceiptResourceRead.model_validate(reservation.recurso),
+            responsavel=first_name,
+            cancelada_em=reservation.cancelada_em,
+        )
 
     def _validate(self, data: ReservationCreate, capacity: int | None) -> None:
         if data.inicio < self._clock.now():
