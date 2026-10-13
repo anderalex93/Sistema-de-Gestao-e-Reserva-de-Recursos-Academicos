@@ -3,12 +3,13 @@ from collections.abc import Sequence
 from sqlalchemy import Exists, Select, case, exists, func, select
 from sqlalchemy.orm import contains_eager
 
-from app.core.enums import ReservationStatus, ResourceType
+from app.core.enums import ResourceType
 from app.core.exceptions import NotFoundError
 from app.models.building import Building
 from app.models.reservation import Reservation
 from app.models.resource import Resource, resource_feature
 from app.repositories.base import BaseRepository, PageResult
+from app.repositories.overlap import overlaps_confirmed
 from app.repositories.resource_filters import ResourceFilters, TimeRange
 
 # Espaços primeiro, equipamentos por último: a ordem de declaração do enum.
@@ -109,10 +110,7 @@ def _having_all_features(feature_ids: frozenset[int]) -> Select[int]:
 
 
 def _overlapping_reservation(window: TimeRange) -> Exists:
-    # Mesmo critério da constraint `[)`: encostar no início ou no fim não é sobreposição.
     return exists().where(
         Reservation.recurso_id == Resource.id,
-        Reservation.status == ReservationStatus.CONFIRMADA,
-        Reservation.inicio < window.fim,
-        Reservation.fim > window.inicio,
+        overlaps_confirmed(window.inicio, window.fim),
     )

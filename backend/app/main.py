@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.error_handlers import register_error_handlers
+from app.api.process_time import ProcessTimeMiddleware
 from app.api.v1.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
@@ -42,7 +43,10 @@ def create_app(
         allow_origins=settings.cors_origins,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Process-Time"],
     )
+    # Adicionado por último: fica por fora e mede também o CORS e os handlers de erro.
+    app.add_middleware(ProcessTimeMiddleware, slow_ms=settings.slow_request_ms)
     register_error_handlers(app)
     app.include_router(api_router)
     return app

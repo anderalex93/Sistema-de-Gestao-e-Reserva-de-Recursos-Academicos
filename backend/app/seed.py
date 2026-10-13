@@ -2,13 +2,16 @@
 
 O admin vem de SEED_ADMIN_NOME, SEED_ADMIN_EMAIL e SEED_ADMIN_SENHA.
 Uso: `make seed` (ou `uv run python -m app.seed`). Pode rodar quantas vezes quiser.
+Com `--volume` (`make seed-volume`), cria só a massa do teste de carga (#33).
 """
 
 import logging
 import sys
+from random import Random
 
 from pydantic import ValidationError
 
+from app.core.campus_schedule import CampusSchedule
 from app.core.clock import SystemClock
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
@@ -18,11 +21,13 @@ from app.db.session import build_engine, build_session_factory
 from app.db.unit_of_work import UnitOfWork
 from app.repositories.building_repository import BuildingRepository
 from app.repositories.feature_repository import FeatureRepository
+from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.resource_repository import ResourceRepository
 from app.repositories.user_repository import UserRepository
 from app.services.admin_seeder import AdminSeeder
 from app.services.catalog_seeder import CatalogSeeder
 from app.services.user_service import UserService
+from app.services.volume_seeder import VolumePlan, VolumeSeeder
 
 logger = logging.getLogger("app.seed")
 
@@ -95,7 +100,41 @@ def seed_admin(settings: Settings) -> int:
     return 0
 
 
+def seed_volume(settings: Settings) -> int:
+    """Massa para o teste de carga (#33). Nunca rode no banco de demonstração."""
+    if settings.seed_volume_password is None:
+        logger.error("Defina SEED_VOLUME_SENHA no backend/.env para criar as contas sintéticas.")
+        return 1
+    engine = build_engine(settings.database_url)
+    try:
+        with build_session_factory(engine)() as session:
+            result = VolumeSeeder(
+                buildings=BuildingRepository(session),
+                resources=ResourceRepository(session),
+                users=UserRepository(session),
+                reservations=ReservationRepository(session),
+                uow=UnitOfWork(session),
+                schedule=CampusSchedule.from_settings(settings),
+                clock=SystemClock(),
+                rng=Random(33),  # noqa: S311 - massa de teste reprodutível, não criptografia
+            ).run(
+                VolumePlan(),
+                PasswordHasher().hash(settings.seed_volume_password.get_secret_value()),
+            )
+    finally:
+        engine.dispose()
+    logger.info(
+        "Volume: %s recursos, %s contas e %s reservas novas.",
+        result.recursos,
+        result.usuarios,
+        result.reservas,
+    )
+    return 0
+
+
 if __name__ == "__main__":
     settings = get_settings()
     configure_logging(settings.log_level)
+    if "--volume" in sys.argv[1:]:
+        sys.exit(seed_volume(settings))
     sys.exit(max(seed_catalog(settings), seed_admin(settings)))

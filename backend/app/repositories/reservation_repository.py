@@ -10,6 +10,7 @@ from app.models.reservation import Reservation
 from app.models.resource import Resource
 from app.repositories.agenda_filters import AgendaFilters
 from app.repositories.base import BaseRepository, PageResult
+from app.repositories.overlap import overlaps_confirmed
 from app.repositories.resource_filters import TimeRange
 
 
@@ -26,9 +27,7 @@ class ReservationRepository(BaseRepository[Reservation]):
             .options(joinedload(Reservation.usuario))
             .where(
                 Reservation.recurso_id == resource_id,
-                Reservation.status == ReservationStatus.CONFIRMADA,
-                Reservation.inicio < fim,
-                Reservation.fim > inicio,
+                overlaps_confirmed(inicio, fim),
             )
             .order_by(Reservation.inicio)
         ).all()
@@ -44,9 +43,7 @@ class ReservationRepository(BaseRepository[Reservation]):
             .options(joinedload(Reservation.usuario))
             .where(
                 Reservation.recurso_id.in_(resource_ids),
-                Reservation.status == ReservationStatus.CONFIRMADA,
-                Reservation.inicio < fim,
-                Reservation.fim > inicio,
+                overlaps_confirmed(inicio, fim),
             )
             .order_by(Reservation.recurso_id, Reservation.inicio)
         ).all()

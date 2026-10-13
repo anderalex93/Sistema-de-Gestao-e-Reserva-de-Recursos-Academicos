@@ -33,6 +33,8 @@ class Reservation(IdMixin, TimestampMixin, Base):
             where="status = 'CONFIRMADA'",
         ),
         Index("ix_reserva_usuario_id_inicio", "usuario_id", "inicio"),
+        # Disponibilidade, quadro e agenda filtram por recurso e janela de horário.
+        Index("ix_reserva_recurso_id_inicio", "recurso_id", "inicio"),
         Index("ix_reserva_inicio", "inicio"),
     )
 

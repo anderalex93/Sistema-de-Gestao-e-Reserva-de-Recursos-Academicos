@@ -23,6 +23,8 @@ class Settings(BaseSettings):
 
     app_env: Literal["local", "test", "production"] = "local"
     log_level: str = "INFO"
+    # Requisições acima disso vão para o log como lentas (RNF02: consultas em até 2 s).
+    slow_request_ms: float = Field(default=500, gt=0, validation_alias="REQUISICAO_LENTA_MS")
 
     database_url: str
     test_database_url: str | None = None
@@ -40,6 +42,10 @@ class Settings(BaseSettings):
     )
     seed_admin_email: str | None = Field(default=None, validation_alias="SEED_ADMIN_EMAIL")
     seed_admin_password: SecretStr | None = Field(default=None, validation_alias="SEED_ADMIN_SENHA")
+    # Senha das contas sintéticas do seed de volume (#33). Sem ela, o seed de volume não roda.
+    seed_volume_password: SecretStr | None = Field(
+        default=None, validation_alias="SEED_VOLUME_SENHA"
+    )
 
     display_timezone: str = Field(default="America/Maceio", validation_alias="TZ_EXIBICAO")
     # Formato em app/core/opening_hours.py. Dia ausente = fechado (padrão: domingo).
