@@ -15,6 +15,10 @@ export type BuildingRead = Schemas['BuildingRead'];
 export type FeatureRead = Schemas['FeatureRead'];
 export type ResourceType = Schemas['ResourceType'];
 export type ResourceRead = Schemas['ResourceRead'];
+export type SlotStatus = Schemas['SlotStatus'];
+export type SlotRead = Schemas['SlotRead'];
+export type AvailabilityRead = Schemas['AvailabilityRead'];
+export type RulesRead = Schemas['RulesRead'];
 
 export interface Page<Item> {
   items: Item[];

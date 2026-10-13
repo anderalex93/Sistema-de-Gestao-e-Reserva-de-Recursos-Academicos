@@ -5,11 +5,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Link as RouterLink, useParams } from 'react-router';
 
+import { AvailabilitySection } from '@/components/availability/AvailabilitySection';
 import { FeatureChips } from '@/components/catalog/FeatureChips';
 import { DetailList, type DetailItem } from '@/components/DetailList';
 import { LoadError } from '@/components/LoadError';
 import { PageHeader } from '@/components/PageHeader';
-import { UpcomingSection } from '@/components/UpcomingSection';
 import { capacityLabel, resourceTypeLabels } from '@/domain/resource-types';
 import { useResource } from '@/hooks/useCatalog';
 import { ApiError } from '@/lib/api/api-error';
@@ -115,7 +115,7 @@ export default function ResourcePage() {
             <Typography sx={{ mt: 2.5, maxWidth: '65ch' }}>{resource.descricao}</Typography>
           )}
         </Box>
-        <UpcomingSection issue={22}>A grade de horários do dia aparece aqui.</UpcomingSection>
+        <AvailabilitySection resourceId={resource.id} resourceName={resource.nome} />
       </Stack>
     </>
   );

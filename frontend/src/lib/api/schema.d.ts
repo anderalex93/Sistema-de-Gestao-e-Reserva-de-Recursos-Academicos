@@ -69,6 +69,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/config/regras': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Horário de funcionamento e regras de reserva (público) */
+    get: operations['get_rules_api_v1_config_regras_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/blocos': {
     parameters: {
       query?: never;
@@ -137,6 +154,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/recursos/{resource_id}/disponibilidade': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Grade de horários de 30 minutos de um recurso num dia
+     * @description Dia no fuso do campus (America/Maceio). Dia em que o campus não abre volta sem horários. Quem reservou só é identificado para administradores.
+     */
+    get: operations['get_availability_api_v1_recursos__resource_id__disponibilidade_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/admin/usuarios': {
     parameters: {
       query?: never;
@@ -159,6 +196,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AvailabilityRead */
+    AvailabilityRead: {
+      /** Recurso Id */
+      recurso_id: number;
+      /**
+       * Data
+       * Format: date
+       */
+      data: string;
+      /** Slots */
+      slots: components['schemas']['SlotRead'][];
+    };
     /** BuildingRead */
     BuildingRead: {
       /** Id */
@@ -167,6 +216,24 @@ export interface components {
       nome: string;
       /** Descricao */
       descricao: string | null;
+    };
+    /** DayHoursRead */
+    DayHoursRead: {
+      /**
+       * Dia Semana
+       * @description ISO 8601: 1 = segunda, 7 = domingo
+       */
+      dia_semana: number;
+      /**
+       * Abertura
+       * Format: time
+       */
+      abertura: string;
+      /**
+       * Fechamento
+       * Format: time
+       */
+      fechamento: string;
     };
     /**
      * ErrorResponse
@@ -261,6 +328,51 @@ export interface components {
      * @enum {string}
      */
     ResourceType: 'SALA_ESTUDO' | 'LABORATORIO' | 'AUDITORIO' | 'EQUIPAMENTO';
+    /**
+     * RulesRead
+     * @description Regras que o front precisa conhecer antes de chamar a API.
+     */
+    RulesRead: {
+      /** Fuso */
+      fuso: string;
+      /** Intervalo Minutos */
+      intervalo_minutos: number;
+      /**
+       * Horarios
+       * @description Dias ausentes: campus fechado
+       */
+      horarios: components['schemas']['DayHoursRead'][];
+    };
+    /** SlotRead */
+    SlotRead: {
+      /**
+       * Inicio
+       * Format: date-time
+       */
+      inicio: string;
+      /**
+       * Fim
+       * Format: date-time
+       */
+      fim: string;
+      status: components['schemas']['SlotStatus'];
+      /**
+       * Propria
+       * @description O horário está reservado por quem consulta
+       */
+      propria: boolean;
+      /**
+       * Reservado Por
+       * @description Nome de quem reservou. Só aparece para administradores (LGPD)
+       */
+      reservado_por: string | null;
+    };
+    /**
+     * SlotStatus
+     * @description Situação de um intervalo de 30 minutos na grade de disponibilidade.
+     * @enum {string}
+     */
+    SlotStatus: 'LIVRE' | 'OCUPADO' | 'PASSADO';
     /** TokenRead */
     TokenRead: {
       /** Access Token */
@@ -529,6 +641,26 @@ export interface operations {
       };
     };
   };
+  get_rules_api_v1_config_regras_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RulesRead'];
+        };
+      };
+    };
+  };
   list_buildings_api_v1_blocos_get: {
     parameters: {
       query?: never;
@@ -656,6 +788,58 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ResourceRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Recurso inexistente ou inativo */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_availability_api_v1_recursos__resource_id__disponibilidade_get: {
+    parameters: {
+      query: {
+        /** @description Dia, AAAA-MM-DD */
+        data: string;
+      };
+      header?: never;
+      path: {
+        resource_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AvailabilityRead'];
         };
       };
       /** @description Sem sessão válida */

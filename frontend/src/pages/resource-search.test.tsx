@@ -2,8 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { campusToday } from '@/domain/schedule';
-import { buildResource, resourcePage, serveCatalog } from '@/test/catalog';
+import { buildResource, nextWeekday, resourcePage, serveCatalog } from '@/test/catalog';
 import { api, renderRoute } from '@/test/render';
 import { server } from '@/test/server';
 
@@ -21,17 +20,12 @@ function captureSearches(respond = () => resourcePage([sala])): URLSearchParams[
   return searches;
 }
 
-function tomorrow(): string {
-  const [year = 0, month = 1, day = 1] = campusToday().split('-').map(Number);
-  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
-}
-
 beforeEach(() => serveCatalog([sala]));
 
 describe('resource search filters', () => {
   it('applies the filters from the URL, converting the time window to UTC', async () => {
     const searches = captureSearches();
-    const day = tomorrow();
+    const day = nextWeekday();
     renderRoute(`/reservar?bloco_id=1&caracteristicas=1&data=${day}&inicio=19:00&fim=21:00`);
 
     await screen.findByRole('link', { name: /Sala de estudo 204/ });
@@ -74,7 +68,7 @@ describe('resource search filters', () => {
   });
 
   it('drops an end time that would come before the new start', async () => {
-    const day = tomorrow();
+    const day = nextWeekday();
     const { user, router } = renderRoute(`/reservar?data=${day}&inicio=08:00&fim=09:00`);
     await screen.findByRole('link', { name: /Sala de estudo 204/ });
 

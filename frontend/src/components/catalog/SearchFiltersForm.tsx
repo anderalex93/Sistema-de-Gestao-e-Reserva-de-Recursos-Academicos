@@ -14,7 +14,14 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 import type { ResourceSearch } from '@/domain/resource-search';
 import { resourceTypeLabels } from '@/domain/resource-types';
-import { campusToday, endOptions, isBefore, startOptions } from '@/domain/schedule';
+import {
+  campusToday,
+  endOptions,
+  hoursOn,
+  isBefore,
+  startOptions,
+  type WeeklyHours,
+} from '@/domain/schedule';
 import type { BuildingRead, FeatureRead, ResourceType } from '@/lib/api/types';
 import { colors } from '@/theme/tokens';
 
@@ -27,6 +34,7 @@ interface SearchFiltersFormProps {
   onChange: (patch: Partial<ResourceSearch>) => void;
   buildings: readonly BuildingRead[];
   features: readonly FeatureRead[];
+  weeklyHours: WeeklyHours;
 }
 
 function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
@@ -46,11 +54,13 @@ export function SearchFiltersForm({
   onChange,
   buildings,
   features,
+  weeklyHours,
 }: SearchFiltersFormProps) {
   const id = useId();
   const today = campusToday();
-  const starts = startOptions(search.data);
-  const ends = endOptions(search.inicio);
+  const starts = startOptions(search.data, weeklyHours);
+  const ends = endOptions(search.data, search.inicio, weeklyHours);
+  const closedDay = search.data !== null && hoursOn(search.data, weeklyHours) === null;
 
   // O texto digitado vai para a URL depois de uma pausa. Quando a URL muda por fora
   // ("Limpar filtros"), o campo acompanha, sem apagar o espaço que a pessoa acabou de digitar.
@@ -167,6 +177,11 @@ export function SearchFiltersForm({
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
           Escolha data, início e fim para ver só o que está livre nesse horário.
         </Typography>
+        {closedDay && (
+          <Typography component="output" sx={{ display: 'block', mb: 1.25, fontWeight: 500 }}>
+            O campus não abre neste dia. Escolha outra data.
+          </Typography>
+        )}
         <Box
           sx={{
             display: 'grid',
@@ -183,7 +198,9 @@ export function SearchFiltersForm({
                 // `AAAA-MM-DD` compara em ordem de calendário.
                 const data = event.target.value >= today ? event.target.value : null;
                 const keepTimes =
-                  !data || (search.inicio !== null && startOptions(data).includes(search.inicio));
+                  !data ||
+                  (search.inicio !== null &&
+                    startOptions(data, weeklyHours).includes(search.inicio));
                 onChange({ data, ...(keepTimes ? {} : { inicio: null, fim: null }) });
               }}
               slotProps={{ input: { min: today } }}

@@ -38,3 +38,13 @@ export function useFeatures() {
     staleTime: REFERENCE_STALE_MS,
   });
 }
+
+/** Grade do dia. Muda a cada reserva: sem cache longo. */
+export function useAvailability(resourceId: number, date: string) {
+  return useQuery({
+    queryKey: queryKeys.availability(resourceId, date),
+    queryFn: () => catalogApi.getAvailability(resourceId, date),
+    staleTime: 0,
+    placeholderData: keepPreviousData,
+  });
+}

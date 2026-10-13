@@ -1,5 +1,12 @@
 import type { HttpClient } from '@/lib/api/http-client';
-import type { BuildingRead, FeatureRead, Page, ResourceRead, ResourceType } from '@/lib/api/types';
+import type {
+  AvailabilityRead,
+  BuildingRead,
+  FeatureRead,
+  Page,
+  ResourceRead,
+  ResourceType,
+} from '@/lib/api/types';
 
 /** Parâmetros de `GET /recursos`. `inicio` e `fim` em ISO UTC, sempre juntos. */
 export interface ResourceListParams {
@@ -35,5 +42,12 @@ export class CatalogApi {
 
   getResource(id: number): Promise<ResourceRead> {
     return this.#http.get<ResourceRead>(`/recursos/${id}`);
+  }
+
+  /** Grade do dia `data` (AAAA-MM-DD, fuso do campus). */
+  getAvailability(id: number, data: string): Promise<AvailabilityRead> {
+    return this.#http.get<AvailabilityRead>(`/recursos/${id}/disponibilidade`, {
+      params: { data },
+    });
   }
 }

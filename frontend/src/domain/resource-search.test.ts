@@ -7,7 +7,15 @@ import {
   toApiParams,
   toUrlParams,
 } from '@/domain/resource-search';
-import { campusToday, campusToUtcIso, endOptions, startOptions } from '@/domain/schedule';
+import {
+  campusToday,
+  campusToUtcIso,
+  DEFAULT_WEEKLY_HOURS,
+  endOptions,
+  hoursOn,
+  startOptions,
+  weeklyHoursFrom,
+} from '@/domain/schedule';
 
 describe('resource search', () => {
   it('reads every filter from the URL and writes it back unchanged', () => {
@@ -36,7 +44,7 @@ describe('resource search', () => {
     const search = parseSearch(
       new URLSearchParams(
         'bloco_id=-1&tipo=PISCINA&caracteristicas=x&caracteristicas=3&caracteristicas=3' +
-          '&capacidade_min=0&data=amanha&inicio=19:10&fim=23:00&page=0',
+          '&capacidade_min=0&data=amanha&inicio=19:10&fim=24:00&page=0',
       ),
     );
 
@@ -58,22 +66,52 @@ describe('resource search', () => {
 });
 
 describe('schedule', () => {
-  // 13/10/2026, 15:10 em Maceió.
+  // Terça, 13/10/2026, 15:10 em Maceió.
   const now = new Date('2026-10-13T18:10:00Z');
+  const weekly = DEFAULT_WEEKLY_HOURS;
 
   it('uses the campus timezone', () => {
     expect(campusToday(new Date('2026-10-14T02:00:00Z'))).toBe('2026-10-13');
     expect(campusToUtcIso('2026-10-13', '07:00')).toBe('2026-10-13T10:00:00.000Z');
   });
 
-  it('offers only future starts today and every start on other days', () => {
-    expect(startOptions('2026-10-13', now)[0]).toBe('15:30');
-    expect(startOptions('2026-10-14', now)).toHaveLength(30);
-    expect(startOptions('2026-10-14', now).at(-1)).toBe('21:30');
+  it('follows the opening hours of each weekday', () => {
+    expect(startOptions('2026-10-14', weekly, now)).toHaveLength(26);
+    expect(startOptions('2026-10-14', weekly, now).at(-1)).toBe('20:30');
+    expect(startOptions('2026-10-17', weekly, now)).toEqual([
+      '08:00',
+      '08:30',
+      '09:00',
+      '09:30',
+      '10:00',
+      '10:30',
+      '11:00',
+      '11:30',
+    ]);
+    expect(startOptions('2026-10-18', weekly, now)).toEqual([]);
+    expect(hoursOn('2026-10-18', weekly)).toBeNull();
   });
 
-  it('offers ends after the start, up to closing time', () => {
-    expect(endOptions('21:00')).toEqual(['21:30', '22:00']);
-    expect(endOptions(null)[0]).toBe('07:30');
+  it('offers only future starts today', () => {
+    expect(startOptions('2026-10-13', weekly, now)[0]).toBe('15:30');
+  });
+
+  it('uses the widest weekly range when there is no date', () => {
+    expect(startOptions(null, weekly, now)[0]).toBe('08:00');
+    expect(endOptions(null, null, weekly).at(-1)).toBe('21:00');
+  });
+
+  it('offers ends after the start, up to closing time of that day', () => {
+    expect(endOptions('2026-10-14', '20:00', weekly)).toEqual(['20:30', '21:00']);
+    expect(endOptions('2026-10-17', '11:00', weekly)).toEqual(['11:30', '12:00']);
+  });
+
+  it('builds the weekly hours from the API rules', () => {
+    const hours = weeklyHoursFrom({
+      fuso: 'America/Maceio',
+      intervalo_minutos: 30,
+      horarios: [{ dia_semana: 6, abertura: '08:00:00', fechamento: '12:00:00' }],
+    });
+    expect([...hours]).toEqual([[6, { opening: '08:00', closing: '12:00' }]]);
   });
 });

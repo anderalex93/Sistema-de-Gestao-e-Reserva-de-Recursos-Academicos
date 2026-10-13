@@ -26,15 +26,21 @@ const tileSx = {
   backgroundColor: 'background.paper',
 } as const;
 
+interface ResourceCardProps {
+  resource: ResourceRead;
+  /** Query string repassada ao detalhe, ex.: `?data=2026-10-21`. */
+  linkSearch?: string;
+}
+
 /** Recurso na lista de reserva. O bloco inteiro é o link para o detalhe. */
-export function ResourceCard({ resource }: { resource: ResourceRead }) {
+export function ResourceCard({ resource, linkSearch = '' }: ResourceCardProps) {
   const Icon = resourceTypeIcons[resource.tipo];
   const capacity = capacityLabel(resource);
 
   return (
     <Box
       component={RouterLink}
-      to={paths.resource(resource.id)}
+      to={`${paths.resource(resource.id)}${linkSearch}`}
       sx={{
         ...tileSx,
         color: 'inherit',

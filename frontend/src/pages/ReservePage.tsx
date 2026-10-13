@@ -9,7 +9,6 @@ import Stack from '@mui/material/Stack';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import dayjs from 'dayjs';
 import { useState } from 'react';
 
 import { ResourceCard, ResourceCardSkeleton } from '@/components/catalog/ResourceCard';
@@ -22,8 +21,10 @@ import {
   toApiParams,
   type ResourceSearch,
 } from '@/domain/resource-search';
+import { dayLabel } from '@/domain/schedule';
 import { useBuildings, useFeatures, useResourceList } from '@/hooks/useCatalog';
 import { useResourceSearch } from '@/hooks/useResourceSearch';
+import { useWeeklyHours } from '@/hooks/useWeeklyHours';
 import { colors, zIndex } from '@/theme/tokens';
 
 const PER_PAGE = 24;
@@ -42,9 +43,20 @@ const panelSx = { border: 1, borderColor: 'divider', backgroundColor: 'backgroun
 function resultSummary(total: number, search: ResourceSearch): string {
   const count = `${total} ${total === 1 ? 'recurso' : 'recursos'}`;
   if (!hasTimeWindow(search)) return count;
-  const day = dayjs(search.data).locale('pt-br').format('ddd, D [de] MMM');
+  const day = dayLabel(search.data);
   const free = total === 1 ? 'livre' : 'livres';
   return `${count} ${free} em ${day}, ${search.inicio} às ${search.fim}`;
+}
+
+/** O detalhe abre no dia (e horário) da busca. */
+function resourceLinkSearch(search: ResourceSearch): string {
+  if (!search.data) return '';
+  const params = new URLSearchParams({ data: search.data });
+  if (hasTimeWindow(search)) {
+    params.set('inicio', search.inicio);
+    params.set('fim', search.fim);
+  }
+  return `?${params.toString()}`;
 }
 
 export default function ReservePage() {
@@ -56,6 +68,7 @@ export default function ReservePage() {
   const query = useResourceList(toApiParams(search, PER_PAGE));
   const buildings = useBuildings();
   const features = useFeatures();
+  const weeklyHours = useWeeklyHours();
   const data = query.data;
   const filters = activeFilterCount(search);
 
@@ -65,6 +78,7 @@ export default function ReservePage() {
       onChange={update}
       buildings={buildings.data ?? []}
       features={features.data ?? []}
+      weeklyHours={weeklyHours}
     />
   );
   const clearButton = filters > 0 && (
@@ -184,7 +198,7 @@ export default function ReservePage() {
               {data
                 ? data.items.map((resource) => (
                     <li key={resource.id}>
-                      <ResourceCard resource={resource} />
+                      <ResourceCard resource={resource} linkSearch={resourceLinkSearch(search)} />
                     </li>
                   ))
                 : Array.from({ length: 6 }, (_, index) => (
