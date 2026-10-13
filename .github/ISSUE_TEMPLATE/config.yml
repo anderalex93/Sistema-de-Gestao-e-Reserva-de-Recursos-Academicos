@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Decisões de arquitetura (ADR)
+    url: https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos/blob/main/docs/adr/0001-arquitetura-e-stack.md
+    about: Consulte antes de propor mudanças de stack ou de estrutura.
+  - name: Design system
+    url: https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos/blob/main/docs/design/design-system.md
+    about: Regras visuais e de texto das telas.

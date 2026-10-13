@@ -1,0 +1,64 @@
+name: Bug
+description: Algo não funciona como deveria
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Descreva o problema com detalhes suficientes para outra pessoa reproduzir.
+        Não inclua senhas, tokens ou dados pessoais reais.
+  - type: textarea
+    id: comportamento
+    attributes:
+      label: O que aconteceu
+      description: Comportamento observado. Inclua a mensagem de erro, se houver.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que deveria acontecer
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Entrar como aluno
+        2. Abrir a Sala 204 em 13/10
+        3. Selecionar 20:00 às 21:00 e confirmar
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Parte do sistema
+      options:
+        - Backend (API)
+        - Frontend (tela)
+        - Banco de dados
+        - Deploy / infraestrutura
+        - Não sei
+    validations:
+      required: true
+  - type: dropdown
+    id: ambiente
+    attributes:
+      label: Onde aconteceu
+      options:
+        - Local
+        - Produção
+    validations:
+      required: true
+  - type: input
+    id: navegador
+    attributes:
+      label: Navegador e dispositivo
+      placeholder: Chrome 140, Android
+  - type: textarea
+    id: evidencias
+    attributes:
+      label: Prints, logs ou trechos de resposta da API
+      render: text

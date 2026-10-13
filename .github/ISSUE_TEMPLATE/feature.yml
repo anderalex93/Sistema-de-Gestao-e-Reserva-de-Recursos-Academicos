@@ -1,0 +1,48 @@
+name: Funcionalidade
+description: Algo novo que o usuário vai perceber
+title: "feat: "
+labels: ["tipo:feature"]
+body:
+  - type: textarea
+    id: historia
+    attributes:
+      label: História de usuário
+      placeholder: Como aluno, quero ... para ...
+    validations:
+      required: true
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto
+      description: Por que isso importa? Cite o requisito (RF/RNF) ou a história do relatório, se houver.
+  - type: textarea
+    id: construir
+    attributes:
+      label: O que construir
+      description: Comportamento de ponta a ponta. Separe backend e frontend se ajudar.
+    validations:
+      required: true
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Critérios de aceite
+      value: |
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+  - type: dropdown
+    id: prioridade
+    attributes:
+      label: Prioridade sugerida
+      options:
+        - P0 (obrigatório para o MVP)
+        - P1 (desejável)
+        - P2 (pós-MVP)
+    validations:
+      required: true
+  - type: textarea
+    id: bloqueios
+    attributes:
+      label: Bloqueado por
+      placeholder: "#22, #16 ou: nada, pode começar"
