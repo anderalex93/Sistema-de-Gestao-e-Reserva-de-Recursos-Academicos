@@ -107,3 +107,18 @@ class ReservationRepository(BaseRepository[Reservation]):
             .order_by(Reservation.inicio)
             .with_for_update(of=Reservation)
         ).all()
+
+    def confirmed_starting_after_for_user(
+        self, user_id: int, moment: datetime
+    ) -> Sequence[Reservation]:
+        """Reservas confirmadas de uma pessoa que ainda não começaram, travadas na transação."""
+        return self._session.scalars(
+            select(Reservation)
+            .where(
+                Reservation.usuario_id == user_id,
+                Reservation.status == ReservationStatus.CONFIRMADA,
+                Reservation.inicio > moment,
+            )
+            .order_by(Reservation.inicio)
+            .with_for_update(of=Reservation)
+        ).all()

@@ -34,6 +34,7 @@ from app.services.health_service import HealthService
 from app.services.reservation_service import ReservationService
 from app.services.resource_admin_service import ResourceAdminService
 from app.services.rules_service import RulesService
+from app.services.user_admin_service import UserAdminService
 from app.services.user_service import UserService
 
 bearer_scheme = HTTPBearer(
@@ -109,6 +110,15 @@ def get_user_service(
         hasher=hasher,
         uow=UnitOfWork(session),
         allowed_email_domains=settings.allowed_email_domains,
+    )
+
+
+def get_user_admin_service(session: SessionDep, clock: ClockDep) -> UserAdminService:
+    return UserAdminService(
+        users=UserRepository(session),
+        reservations=ReservationRepository(session),
+        clock=clock,
+        uow=UnitOfWork(session),
     )
 
 
@@ -209,6 +219,7 @@ def get_resource_admin_service(
 
 HealthServiceDep = Annotated[HealthService, Depends(get_health_service)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
+UserAdminServiceDep = Annotated[UserAdminService, Depends(get_user_admin_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 CatalogServiceDep = Annotated[CatalogService, Depends(get_catalog_service)]
 AvailabilityServiceDep = Annotated[AvailabilityService, Depends(get_availability_service)]

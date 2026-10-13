@@ -1,8 +1,16 @@
 import re
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Self
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, StringConstraints
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    StringConstraints,
+    model_validator,
+)
 
 from app.core.enums import UserRole
 from app.schemas.pagination import PageParams
@@ -66,3 +74,19 @@ class UserSearchParams(PageParams):
     busca: str | None = Field(
         default=None, max_length=100, description="Trecho do nome, e-mail ou matrícula"
     )
+
+
+class UserAdminUpdate(BaseModel):
+    """Mudança parcial feita pelo admin: perfil, situação ou os dois."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    perfil: UserRole | None = None
+    ativo: bool | None = None
+
+    @model_validator(mode="after")
+    def _require_change(self) -> Self:
+        if self.perfil is None and self.ativo is None:
+            msg = "Informe o perfil ou a situação da conta."
+            raise ValueError(msg)
+        return self
