@@ -7,6 +7,7 @@ from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.core.campus_schedule import CampusSchedule
 from app.core.clock import Clock, SystemClock
 from app.core.config import Settings
 from app.core.enums import UserRole
@@ -17,11 +18,14 @@ from app.models.user import User
 from app.repositories.building_repository import BuildingRepository
 from app.repositories.feature_repository import FeatureRepository
 from app.repositories.health_repository import HealthRepository
+from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.resource_repository import ResourceRepository
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
+from app.services.availability_service import AvailabilityService
 from app.services.catalog_service import CatalogService
 from app.services.health_service import HealthService
+from app.services.rules_service import RulesService
 from app.services.user_service import UserService
 
 bearer_scheme = HTTPBearer(
@@ -61,6 +65,13 @@ SettingsDep = Annotated[Settings, Depends(get_settings_from_app)]
 SessionDep = Annotated[Session, Depends(get_db)]
 ClockDep = Annotated[Clock, Depends(get_clock)]
 PasswordHasherDep = Annotated[PasswordHasher, Depends(get_password_hasher)]
+
+
+def get_campus_schedule(settings: SettingsDep) -> CampusSchedule:
+    return CampusSchedule.from_settings(settings)
+
+
+CampusScheduleDep = Annotated[CampusSchedule, Depends(get_campus_schedule)]
 
 
 def get_token_service(settings: SettingsDep, clock: ClockDep) -> TokenService:
@@ -103,10 +114,27 @@ def get_catalog_service(session: SessionDep, clock: ClockDep) -> CatalogService:
     )
 
 
+def get_availability_service(
+    session: SessionDep, schedule: CampusScheduleDep, clock: ClockDep
+) -> AvailabilityService:
+    return AvailabilityService(
+        resources=ResourceRepository(session),
+        reservations=ReservationRepository(session),
+        schedule=schedule,
+        clock=clock,
+    )
+
+
+def get_rules_service(schedule: CampusScheduleDep) -> RulesService:
+    return RulesService(schedule)
+
+
 HealthServiceDep = Annotated[HealthService, Depends(get_health_service)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 CatalogServiceDep = Annotated[CatalogService, Depends(get_catalog_service)]
+AvailabilityServiceDep = Annotated[AvailabilityService, Depends(get_availability_service)]
+RulesServiceDep = Annotated[RulesService, Depends(get_rules_service)]
 
 
 def get_current_user(

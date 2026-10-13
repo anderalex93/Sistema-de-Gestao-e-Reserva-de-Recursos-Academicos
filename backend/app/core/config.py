@@ -1,12 +1,13 @@
 """Configuração da aplicação lida de variáveis de ambiente e do arquivo `.env`."""
 
-from datetime import time
 from functools import lru_cache
 from typing import Annotated, Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+from app.core.opening_hours import DEFAULT_OPENING_HOURS, WeeklyHours, parse_weekly_hours
 
 CommaSeparated = Annotated[list[str], NoDecode]
 
@@ -41,8 +42,10 @@ class Settings(BaseSettings):
     seed_admin_password: SecretStr | None = Field(default=None, validation_alias="SEED_ADMIN_SENHA")
 
     display_timezone: str = Field(default="America/Maceio", validation_alias="TZ_EXIBICAO")
-    opening_time: time = Field(default=time(7, 0), validation_alias="HORARIO_ABERTURA")
-    closing_time: time = Field(default=time(22, 0), validation_alias="HORARIO_FECHAMENTO")
+    # Formato em app/core/opening_hours.py. Dia ausente = fechado (padrão: domingo).
+    opening_hours: str = Field(
+        default=DEFAULT_OPENING_HOURS, validation_alias="HORARIO_FUNCIONAMENTO"
+    )
 
     @field_validator("allowed_email_domains", "cors_origins", mode="before")
     @classmethod
@@ -66,16 +69,23 @@ class Settings(BaseSettings):
             raise ValueError(msg) from exc
         return value
 
-    @model_validator(mode="after")
-    def _validate_opening_hours(self) -> "Settings":
-        if self.closing_time <= self.opening_time:
-            msg = "HORARIO_FECHAMENTO deve ser depois de HORARIO_ABERTURA"
-            raise ValueError(msg)
-        return self
+    @field_validator("opening_hours")
+    @classmethod
+    def _validate_opening_hours(cls, value: str) -> str:
+        try:
+            parse_weekly_hours(value)
+        except ValueError as exc:
+            msg = f"HORARIO_FUNCIONAMENTO inválido: {exc}"
+            raise ValueError(msg) from exc
+        return value
 
     @property
     def timezone(self) -> ZoneInfo:
         return ZoneInfo(self.display_timezone)
+
+    @property
+    def weekly_hours(self) -> WeeklyHours:
+        return parse_weekly_hours(self.opening_hours)
 
 
 @lru_cache

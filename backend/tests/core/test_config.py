@@ -5,6 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.core.config import Settings, get_settings
+from app.core.opening_hours import DayHours
 
 REQUIRED: dict[str, Any] = {
     "database_url": "postgresql+psycopg://user:pass@localhost:5433/eduspace",
@@ -32,18 +33,23 @@ def test_defaults_match_campus_rules() -> None:
 
     assert settings.display_timezone == "America/Maceio"
     assert settings.timezone.key == "America/Maceio"
-    assert (settings.opening_time, settings.closing_time) == (time(7, 0), time(22, 0))
+    weekday = DayHours(time(8, 0), time(21, 0))
+    assert dict(settings.weekly_hours) == {
+        **dict.fromkeys(range(5), weekday),
+        5: DayHours(time(8, 0), time(12, 0)),
+    }
     assert settings.jwt_expires_minutes == 480
 
 
 def test_reads_portuguese_environment_names(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TZ_EXIBICAO", "America/Recife")
-    monkeypatch.setenv("HORARIO_ABERTURA", "08:00")
+    monkeypatch.setenv("HORARIO_FUNCIONAMENTO", "seg-sex 07:30-22:00")
 
     settings = build()
 
     assert settings.display_timezone == "America/Recife"
-    assert settings.opening_time == time(8, 0)
+    assert settings.weekly_hours[0] == DayHours(time(7, 30), time(22, 0))
+    assert 5 not in settings.weekly_hours
 
 
 def test_rejects_unknown_timezone() -> None:
@@ -51,9 +57,28 @@ def test_rejects_unknown_timezone() -> None:
         build(display_timezone="Marte/Base")
 
 
-def test_rejects_closing_before_opening() -> None:
-    with pytest.raises(ValidationError, match="HORARIO_FECHAMENTO"):
-        build(opening_time=time(22, 0), closing_time=time(7, 0))
+@pytest.mark.parametrize(
+    ("value", "reason"),
+    [
+        ("seg-sex 21:00-08:00", "fechamento precisa ser depois"),
+        ("seg-sex 08:15-21:00", ":00 ou :30"),
+        ("seg-sex 8h-21h", "Grupo inválido"),
+        ("seg-xyz 08:00-21:00", "Dia desconhecido"),
+        ("sex-seg 08:00-21:00", "invertido"),
+        ("seg-sex 08:00-21:00; sex 08:00-12:00", "mais de uma vez"),
+        ("seg 25:00-26:00", "Horário inválido"),
+        (" ; ", "ao menos um dia"),
+    ],
+)
+def test_rejects_invalid_opening_hours(value: str, reason: str) -> None:
+    with pytest.raises(ValidationError, match=reason):
+        build(opening_hours=value)
+
+
+def test_opening_hours_accept_day_lists() -> None:
+    hours = build(opening_hours="SEG,qua  09:00-12:00").weekly_hours
+
+    assert sorted(hours) == [0, 2]
 
 
 def test_empty_domain_list_means_open_signup() -> None:

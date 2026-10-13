@@ -19,3 +19,11 @@ class ResourceType(StrEnum):
 class ReservationStatus(StrEnum):
     CONFIRMADA = "CONFIRMADA"
     CANCELADA = "CANCELADA"
+
+
+class SlotStatus(StrEnum):
+    """Situação de um intervalo de 30 minutos na grade de disponibilidade."""
+
+    LIVRE = "LIVRE"
+    OCUPADO = "OCUPADO"
+    PASSADO = "PASSADO"

@@ -1,12 +1,19 @@
 from collections.abc import Sequence
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from app.api.dependencies import CatalogServiceDep, get_current_user
+from app.api.dependencies import (
+    AvailabilityServiceDep,
+    CatalogServiceDep,
+    CurrentUserDep,
+    get_current_user,
+)
 from app.models.building import Building
 from app.models.feature import Feature
 from app.models.resource import Resource
+from app.schemas.availability import AvailabilityRead
 from app.schemas.catalog import BuildingRead, FeatureRead, ResourceRead, ResourceSearchParams
 from app.schemas.errors import ErrorResponse
 from app.schemas.pagination import Page
@@ -52,3 +59,22 @@ def search_resources(
 )
 def get_resource(resource_id: int, service: CatalogServiceDep) -> Resource:
     return service.get_resource(resource_id)
+
+
+@router.get(
+    "/recursos/{resource_id}/disponibilidade",
+    summary="Grade de horários de 30 minutos de um recurso num dia",
+    description=(
+        "Dia no fuso do campus (America/Maceio). Dia em que o campus não abre volta sem horários. "
+        "Quem reservou só é identificado para administradores."
+    ),
+    response_model=AvailabilityRead,
+    responses={404: {"model": ErrorResponse, "description": "Recurso inexistente ou inativo"}},
+)
+def get_availability(
+    resource_id: int,
+    data: Annotated[date, Query(description="Dia, AAAA-MM-DD")],
+    user: CurrentUserDep,
+    service: AvailabilityServiceDep,
+) -> AvailabilityRead:
+    return service.for_day(resource_id, data, user)
