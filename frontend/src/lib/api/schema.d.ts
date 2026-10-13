@@ -297,6 +297,155 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/blocos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lista todos os blocos, ativos e desativados */
+    get: operations['list_buildings_api_v1_admin_blocos_get'];
+    put?: never;
+    /** Cria um bloco */
+    post: operations['create_building_api_v1_admin_blocos_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/blocos/{building_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Altera nome e descrição de um bloco */
+    put: operations['update_building_api_v1_admin_blocos__building_id__put'];
+    post?: never;
+    /**
+     * Exclui um bloco vazio ou desativa um bloco com recursos
+     * @description Bloco sem recursos é apagado. Com recursos, é desativado: todos somem da busca e o histórico continua. Se houver reservas que ainda não começaram, responde `409 RESERVAS_FUTURAS` com a quantidade; repita com `forcar=true` para cancelá-las.
+     */
+    delete: operations['remove_building_api_v1_admin_blocos__building_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/blocos/{building_id}/reativar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reativa um bloco desativado */
+    post: operations['reactivate_building_api_v1_admin_blocos__building_id__reativar_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/recursos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lista recursos ativos e desativados, com busca e filtros */
+    get: operations['list_resources_api_v1_admin_recursos_get'];
+    put?: never;
+    /** Cria um recurso, que aparece na busca na hora */
+    post: operations['create_resource_api_v1_admin_recursos_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/recursos/{resource_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Detalhe de um recurso, mesmo desativado */
+    get: operations['get_resource_api_v1_admin_recursos__resource_id__get'];
+    /** Altera todos os dados de um recurso */
+    put: operations['update_resource_api_v1_admin_recursos__resource_id__put'];
+    post?: never;
+    /**
+     * Exclui um recurso sem histórico ou desativa um recurso já reservado
+     * @description Sem nenhuma reserva, o recurso é apagado. Com reservas, é desativado: some da busca e o histórico continua. Se houver reservas que ainda não começaram, responde `409 RESERVAS_FUTURAS` com a quantidade; repita com `forcar=true` para cancelá-las.
+     */
+    delete: operations['remove_resource_api_v1_admin_recursos__resource_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/recursos/{resource_id}/reativar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reativa um recurso desativado */
+    post: operations['reactivate_resource_api_v1_admin_recursos__resource_id__reativar_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/caracteristicas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lista as características com quantos recursos usam cada uma */
+    get: operations['list_features_api_v1_admin_caracteristicas_get'];
+    put?: never;
+    /** Cria uma característica */
+    post: operations['create_feature_api_v1_admin_caracteristicas_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/caracteristicas/{feature_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Renomeia uma característica */
+    put: operations['update_feature_api_v1_admin_caracteristicas__feature_id__put'];
+    post?: never;
+    /** Exclui uma característica e a retira dos recursos que a usam */
+    delete: operations['remove_feature_api_v1_admin_caracteristicas__feature_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -347,6 +496,29 @@ export interface components {
       /** Ocupacoes */
       ocupacoes: components['schemas']['OccupationRead'][];
     };
+    /** BuildingAdminRead */
+    BuildingAdminRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      /** Descricao */
+      descricao: string | null;
+      /** Ativo */
+      ativo: boolean;
+      /**
+       * Total Recursos
+       * @description Recursos cadastrados no bloco, ativos ou não
+       */
+      total_recursos: number;
+    };
+    /** BuildingCreate */
+    BuildingCreate: {
+      /** Nome */
+      nome: string;
+      /** Descricao */
+      descricao?: string | null;
+    };
     /** BuildingRead */
     BuildingRead: {
       /** Id */
@@ -355,6 +527,27 @@ export interface components {
       nome: string;
       /** Descricao */
       descricao: string | null;
+    };
+    /** BuildingStatusRead */
+    BuildingStatusRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      /** Descricao */
+      descricao: string | null;
+      /** Ativo */
+      ativo: boolean;
+    };
+    /**
+     * BuildingUpdate
+     * @description PUT substitui todos os campos editáveis. Ativar e desativar têm endpoints próprios.
+     */
+    BuildingUpdate: {
+      /** Nome */
+      nome: string;
+      /** Descricao */
+      descricao?: string | null;
     };
     /** DayHoursRead */
     DayHoursRead: {
@@ -384,10 +577,32 @@ export interface components {
       /** Code */
       code: string;
     };
+    /** FeatureAdminRead */
+    FeatureAdminRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      /**
+       * Total Recursos
+       * @description Recursos que têm esta característica
+       */
+      total_recursos: number;
+    };
+    /** FeatureCreate */
+    FeatureCreate: {
+      /** Nome */
+      nome: string;
+    };
     /** FeatureRead */
     FeatureRead: {
       /** Id */
       id: number;
+      /** Nome */
+      nome: string;
+    };
+    /** FeatureUpdate */
+    FeatureUpdate: {
       /** Nome */
       nome: string;
     };
@@ -492,6 +707,19 @@ export interface components {
       /** Total Pages */
       total_pages: number;
     };
+    /** Page[ResourceAdminRead] */
+    Page_ResourceAdminRead_: {
+      /** Items */
+      items: components['schemas']['ResourceAdminRead'][];
+      /** Total */
+      total: number;
+      /** Page */
+      page: number;
+      /** Per Page */
+      per_page: number;
+      /** Total Pages */
+      total_pages: number;
+    };
     /** Page[ResourceRead] */
     Page_ResourceRead_: {
       /** Items */
@@ -559,6 +787,24 @@ export interface components {
       andar: string | null;
       bloco: components['schemas']['ReceiptBuildingRead'];
     };
+    /**
+     * RemovalOutcome
+     * @description O que aconteceu ao excluir um bloco ou recurso pela administração.
+     * @enum {string}
+     */
+    RemovalOutcome: 'EXCLUIDO' | 'DESATIVADO';
+    /**
+     * RemovalRead
+     * @description Resultado de `DELETE`: exclusão física só acontece quando não há histórico.
+     */
+    RemovalRead: {
+      resultado: components['schemas']['RemovalOutcome'];
+      /**
+       * Reservas Canceladas
+       * @description Reservas futuras canceladas com `forcar=true`
+       */
+      reservas_canceladas: number;
+    };
     /** ReservationCreate */
     ReservationCreate: {
       /** Recurso Id */
@@ -621,6 +867,41 @@ export interface components {
      * @enum {string}
      */
     ReservationStatus: 'CONFIRMADA' | 'CANCELADA';
+    /** ResourceAdminRead */
+    ResourceAdminRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      tipo: components['schemas']['ResourceType'];
+      /** Capacidade */
+      capacidade: number | null;
+      /** Andar */
+      andar: string | null;
+      /** Descricao */
+      descricao: string | null;
+      bloco: components['schemas']['BuildingStatusRead'];
+      /** Caracteristicas */
+      caracteristicas: components['schemas']['FeatureRead'][];
+      /** Ativo */
+      ativo: boolean;
+    };
+    /** ResourceCreate */
+    ResourceCreate: {
+      /** Bloco Id */
+      bloco_id: number;
+      tipo: components['schemas']['ResourceType'];
+      /** Nome */
+      nome: string;
+      /** Capacidade */
+      capacidade?: number | null;
+      /** Andar */
+      andar?: string | null;
+      /** Descricao */
+      descricao?: string | null;
+      /** Caracteristica Ids */
+      caracteristica_ids?: number[];
+    };
     /** ResourceRead */
     ResourceRead: {
       /** Id */
@@ -643,6 +924,25 @@ export interface components {
      * @enum {string}
      */
     ResourceType: 'SALA_ESTUDO' | 'LABORATORIO' | 'AUDITORIO' | 'EQUIPAMENTO';
+    /**
+     * ResourceUpdate
+     * @description PUT substitui todos os campos editáveis, inclusive a lista de características.
+     */
+    ResourceUpdate: {
+      /** Bloco Id */
+      bloco_id: number;
+      tipo: components['schemas']['ResourceType'];
+      /** Nome */
+      nome: string;
+      /** Capacidade */
+      capacidade?: number | null;
+      /** Andar */
+      andar?: string | null;
+      /** Descricao */
+      descricao?: string | null;
+      /** Caracteristica Ids */
+      caracteristica_ids?: number[];
+    };
     /**
      * RulesRead
      * @description Regras que o front precisa conhecer antes de chamar a API.
@@ -1610,6 +1910,901 @@ export interface operations {
       };
       /** @description E-mail ou matrícula já cadastrados */
       409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_buildings_api_v1_admin_blocos_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BuildingAdminRead'][];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  create_building_api_v1_admin_blocos_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BuildingCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BuildingAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Já existe um bloco com este nome */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_building_api_v1_admin_blocos__building_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        building_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BuildingUpdate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BuildingAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Bloco inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Já existe um bloco com este nome */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  remove_building_api_v1_admin_blocos__building_id__delete: {
+    parameters: {
+      query?: {
+        /** @description Cancela as reservas futuras */
+        forcar?: boolean;
+      };
+      header?: never;
+      path: {
+        building_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RemovalRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Bloco inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Há reservas futuras e `forcar` é falso */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  reactivate_building_api_v1_admin_blocos__building_id__reativar_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        building_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BuildingAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Bloco inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_resources_api_v1_admin_recursos_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        per_page?: number;
+        /** @description Trecho do nome */
+        busca?: string | null;
+        bloco_id?: number | null;
+        tipo?: components['schemas']['ResourceType'] | null;
+        /** @description Sem o filtro, lista ativos e inativos */
+        ativo?: boolean | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_ResourceAdminRead_'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_resource_api_v1_admin_recursos_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResourceCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ResourceAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Já existe um recurso com este nome no bloco */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Bloco desativado ou característica inexistente */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  get_resource_api_v1_admin_recursos__resource_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        resource_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ResourceAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Recurso inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_resource_api_v1_admin_recursos__resource_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        resource_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResourceUpdate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ResourceAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Recurso inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Já existe um recurso com este nome no bloco */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Bloco desativado ou característica inexistente */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  remove_resource_api_v1_admin_recursos__resource_id__delete: {
+    parameters: {
+      query?: {
+        /** @description Cancela as reservas futuras */
+        forcar?: boolean;
+      };
+      header?: never;
+      path: {
+        resource_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RemovalRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Recurso inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Há reservas futuras e `forcar` é falso */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  reactivate_resource_api_v1_admin_recursos__resource_id__reativar_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        resource_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ResourceAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Recurso inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_features_api_v1_admin_caracteristicas_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeatureAdminRead'][];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  create_feature_api_v1_admin_caracteristicas_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FeatureCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeatureAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Já existe uma característica com este nome */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_feature_api_v1_admin_caracteristicas__feature_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        feature_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FeatureUpdate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FeatureAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Característica inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Já existe uma característica com este nome */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  remove_feature_api_v1_admin_caracteristicas__feature_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        feature_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Característica inexistente */
+      404: {
         headers: {
           [name: string]: unknown;
         };

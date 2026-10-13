@@ -10,4 +10,6 @@ export const paths = {
   account: '/conta',
   admin: '/admin',
   adminUsers: '/admin/usuarios',
+  adminResources: '/admin/recursos',
+  adminBuildings: '/admin/blocos',
 } as const;

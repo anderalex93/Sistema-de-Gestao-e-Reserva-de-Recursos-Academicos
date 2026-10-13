@@ -13,6 +13,16 @@ const sections = [
     description: 'Crie contas de alunos, professores e administradores e consulte quem tem acesso.',
     to: paths.adminUsers,
   },
+  {
+    title: 'Recursos',
+    description: 'Cadastre, edite e desative salas, laboratórios, auditórios e equipamentos.',
+    to: paths.adminResources,
+  },
+  {
+    title: 'Blocos e características',
+    description: 'Prédios do campus e os atributos usados nos filtros da busca.',
+    to: paths.adminBuildings,
+  },
 ] as const;
 
 export default function AdminPage() {
@@ -53,9 +63,6 @@ export default function AdminPage() {
           </Box>
         ))}
       </Box>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-        Blocos e recursos chegam na issue #27.
-      </Typography>
     </>
   );
 }

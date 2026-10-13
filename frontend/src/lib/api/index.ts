@@ -1,4 +1,5 @@
 import { config } from '@/config';
+import { AdminCatalogApi } from '@/lib/api/admin-catalog.api';
 import { AdminUsersApi } from '@/lib/api/admin-users.api';
 import { AuthApi } from '@/lib/api/auth.api';
 import { BoardApi } from '@/lib/api/board.api';
@@ -15,6 +16,7 @@ export const httpClient = new HttpClient({ baseURL: config.apiUrl, tokenStore })
 export const healthApi = new HealthApi(httpClient);
 export const authApi = new AuthApi(httpClient);
 export const adminUsersApi = new AdminUsersApi(httpClient);
+export const adminCatalogApi = new AdminCatalogApi(httpClient);
 export const catalogApi = new CatalogApi(httpClient);
 export const configApi = new ConfigApi(httpClient);
 export const reservationsApi = new ReservationsApi(httpClient);

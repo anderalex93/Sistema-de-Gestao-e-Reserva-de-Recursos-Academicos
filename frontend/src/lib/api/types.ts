@@ -26,6 +26,13 @@ export type ReceiptRead = Schemas['ReceiptRead'];
 export type MyReservationRead = Schemas['MyReservationRead'];
 export type ReservationScope = Schemas['ReservationScope'];
 export type ReservationStatus = Schemas['ReservationStatus'];
+export type BuildingAdminRead = Schemas['BuildingAdminRead'];
+export type BuildingCreate = Schemas['BuildingCreate'];
+export type FeatureAdminRead = Schemas['FeatureAdminRead'];
+export type FeatureCreate = Schemas['FeatureCreate'];
+export type ResourceAdminRead = Schemas['ResourceAdminRead'];
+export type ResourceCreate = Schemas['ResourceCreate'];
+export type RemovalRead = Schemas['RemovalRead'];
 
 export interface Page<Item> {
   items: Item[];
