@@ -21,7 +21,13 @@ ME = "/api/v1/auth/me"
 
 
 def signup_payload(**overrides: Any) -> dict[str, Any]:
-    return {"nome": "Lucas Andrade", "email": "lucas@gmail.com", "senha": "Senha123", **overrides}
+    return {
+        "nome": "Lucas Andrade",
+        "email": "lucas@gmail.com",
+        "senha": "Senha123",
+        "aceite_termos": True,
+        **overrides,
+    }
 
 
 class TestSignup:

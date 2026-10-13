@@ -149,3 +149,11 @@ class ReservationRepository(BaseRepository[Reservation]):
         if filters.status is not None:
             statement = statement.where(Reservation.status == filters.status)
         return self.paginate(statement, page, per_page)
+
+    def all_for_user(self, user_id: int) -> Sequence[Reservation]:
+        """Histórico completo de uma pessoa, da mais recente para a mais antiga (exportação)."""
+        return self._session.scalars(
+            select(Reservation)
+            .where(Reservation.usuario_id == user_id)
+            .order_by(Reservation.inicio.desc(), Reservation.id.desc())
+        ).all()

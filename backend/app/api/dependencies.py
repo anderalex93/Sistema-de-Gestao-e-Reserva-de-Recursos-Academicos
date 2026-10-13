@@ -23,6 +23,7 @@ from app.repositories.health_repository import HealthRepository
 from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.resource_repository import ResourceRepository
 from app.repositories.user_repository import UserRepository
+from app.services.account_service import AccountService
 from app.services.auth_service import AuthService
 from app.services.availability_service import AvailabilityService
 from app.services.board_service import BoardService
@@ -103,20 +104,33 @@ def get_health_service(session: SessionDep) -> HealthService:
 
 
 def get_user_service(
-    session: SessionDep, hasher: PasswordHasherDep, settings: SettingsDep
+    session: SessionDep, hasher: PasswordHasherDep, settings: SettingsDep, clock: ClockDep
 ) -> UserService:
     return UserService(
         users=UserRepository(session),
         hasher=hasher,
         uow=UnitOfWork(session),
         allowed_email_domains=settings.allowed_email_domains,
+        clock=clock,
     )
 
 
 def get_user_admin_service(session: SessionDep, clock: ClockDep) -> UserAdminService:
     return UserAdminService(
         users=UserRepository(session),
-        reservations=ReservationRepository(session),
+        canceller=FutureReservationCanceller(ReservationRepository(session), clock),
+        uow=UnitOfWork(session),
+    )
+
+
+def get_account_service(
+    session: SessionDep, hasher: PasswordHasherDep, clock: ClockDep
+) -> AccountService:
+    reservations = ReservationRepository(session)
+    return AccountService(
+        reservations=reservations,
+        canceller=FutureReservationCanceller(reservations, clock),
+        hasher=hasher,
         clock=clock,
         uow=UnitOfWork(session),
     )
@@ -220,6 +234,7 @@ def get_resource_admin_service(
 HealthServiceDep = Annotated[HealthService, Depends(get_health_service)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 UserAdminServiceDep = Annotated[UserAdminService, Depends(get_user_admin_service)]
+AccountServiceDep = Annotated[AccountService, Depends(get_account_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 CatalogServiceDep = Annotated[CatalogService, Depends(get_catalog_service)]
 AvailabilityServiceDep = Annotated[AvailabilityService, Depends(get_availability_service)]

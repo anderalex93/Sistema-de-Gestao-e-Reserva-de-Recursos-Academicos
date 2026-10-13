@@ -41,8 +41,8 @@ Registration = Annotated[
 ]
 
 
-class UserSignup(BaseModel):
-    """Autocadastro: o perfil é sempre ALUNO."""
+class AccountData(BaseModel):
+    """Dados de uma conta nova, venha do autocadastro ou do administrador."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -52,8 +52,24 @@ class UserSignup(BaseModel):
     matricula: Registration | None = None
 
 
-class UserAdminCreate(UserSignup):
-    """Conta criada pelo administrador, que escolhe o perfil."""
+def _require_acceptance(value: bool) -> bool:
+    if not value:
+        msg = "Para criar a conta, leia e aceite o Aviso de Privacidade e os Termos de Uso."
+        raise ValueError(msg)
+    return value
+
+
+class UserSignup(AccountData):
+    """Autocadastro: o perfil é sempre ALUNO e o aceite é obrigatório (LGPD, Art. 8º e 9º)."""
+
+    aceite_termos: Annotated[bool, AfterValidator(_require_acceptance)] = Field(
+        description="Li e concordo com o Aviso de Privacidade e os Termos de Uso"
+    )
+
+
+class UserAdminCreate(AccountData):
+    """Conta criada pelo administrador, que escolhe o perfil. A pessoa aceita os termos no
+    primeiro acesso: o admin não pode consentir por ela."""
 
     perfil: UserRole = UserRole.ALUNO
 
@@ -68,6 +84,9 @@ class UserRead(BaseModel):
     matricula: str | None
     ativo: bool
     criado_em: datetime
+    aceite_termos_em: datetime | None = Field(
+        description="Quando a pessoa aceitou os termos; vazio obriga o aceite no próximo acesso"
+    )
 
 
 class UserSearchParams(PageParams):

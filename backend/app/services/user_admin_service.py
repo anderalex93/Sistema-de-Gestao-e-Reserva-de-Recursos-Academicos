@@ -1,11 +1,10 @@
-from app.core.clock import Clock
-from app.core.enums import ReservationStatus, UserRole
+from app.core.enums import UserRole
 from app.core.exceptions import BusinessRuleError, NotFoundError
 from app.db.unit_of_work import UnitOfWork
 from app.models.user import User
-from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserAdminUpdate
+from app.services.future_reservation_canceller import FutureReservationCanceller
 
 DEACTIVATION_REASON = "Conta desativada pela administração."
 
@@ -29,13 +28,11 @@ class UserAdminService:
         self,
         *,
         users: UserRepository,
-        reservations: ReservationRepository,
-        clock: Clock,
+        canceller: FutureReservationCanceller,
         uow: UnitOfWork,
     ) -> None:
         self._users = users
-        self._reservations = reservations
-        self._clock = clock
+        self._canceller = canceller
         self._uow = uow
 
     def update(self, user_id: int, data: UserAdminUpdate, admin: User) -> User:
@@ -53,15 +50,7 @@ class UserAdminService:
             user.perfil = data.perfil
         if data.ativo is not None:
             if user.ativo and not data.ativo:
-                self._cancel_future_reservations(user, admin)
+                self._canceller.release_user(user, by=admin, reason=DEACTIVATION_REASON)
             user.ativo = data.ativo
         self._uow.commit()
         return user
-
-    def _cancel_future_reservations(self, user: User, admin: User) -> None:
-        now = self._clock.now()
-        for reservation in self._reservations.confirmed_starting_after_for_user(user.id, now):
-            reservation.status = ReservationStatus.CANCELADA
-            reservation.cancelada_em = now
-            reservation.cancelada_por_id = admin.id
-            reservation.motivo_cancelamento = DEACTIVATION_REASON

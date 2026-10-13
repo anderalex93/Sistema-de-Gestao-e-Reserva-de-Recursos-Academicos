@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    account,
     admin_buildings,
     admin_features,
     admin_reservations,
@@ -17,6 +18,7 @@ from app.api.v1.endpoints import (
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(health.router)
 api_router.include_router(auth.router)
+api_router.include_router(account.router)
 api_router.include_router(config.router)
 api_router.include_router(catalog.router)
 api_router.include_router(reservations.router)

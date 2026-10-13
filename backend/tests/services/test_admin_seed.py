@@ -5,6 +5,7 @@ import pytest
 from pydantic import SecretStr
 from sqlalchemy.orm import Session
 
+from app.core.clock import SystemClock
 from app.core.config import Settings
 from app.core.enums import UserRole
 from app.core.security import PasswordHasher
@@ -20,7 +21,7 @@ from app.services.user_service import UserService
 def seeder(db_session: Session, hasher: PasswordHasher) -> AdminSeeder:
     users = UserRepository(db_session)
     uow = UnitOfWork(db_session)
-    return AdminSeeder(users, UserService(users, hasher, uow, []), uow)
+    return AdminSeeder(users, UserService(users, hasher, uow, [], SystemClock()), uow)
 
 
 def test_creates_admin(seeder: AdminSeeder, hasher: PasswordHasher) -> None:

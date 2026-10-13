@@ -9,6 +9,7 @@ import sys
 
 from pydantic import ValidationError
 
+from app.core.clock import SystemClock
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
 from app.core.security import PasswordHasher
@@ -70,7 +71,9 @@ def seed_admin(settings: Settings) -> int:
         with build_session_factory(engine)() as session:
             users = UserRepository(session)
             uow = UnitOfWork(session)
-            service = UserService(users, PasswordHasher(), uow, settings.allowed_email_domains)
+            service = UserService(
+                users, PasswordHasher(), uow, settings.allowed_email_domains, SystemClock()
+            )
             result = AdminSeeder(users, service, uow).run(
                 nome=settings.seed_admin_name,
                 email=settings.seed_admin_email,
