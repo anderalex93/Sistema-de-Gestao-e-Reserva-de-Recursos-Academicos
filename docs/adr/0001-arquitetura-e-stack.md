@@ -42,7 +42,7 @@ hospedagem gratuita.
 | Tipagem do back | **mypy `--strict`** com plugin do Pydantic |
 | Autenticação | JWT (PyJWT, HS256) + hash de senha argon2 (`pwdlib[argon2]`) |
 | Rate limit | `slowapi` em login e cadastro |
-| Testes do back | pytest + httpx (`TestClient`) contra **PostgreSQL real** |
+| Testes do back | pytest + `TestClient` (httpx2) contra **PostgreSQL real** |
 | Lint/format do back | ruff |
 | Front | React 19 + TypeScript (`strict` + `noUncheckedIndexedAccess`) + Vite |
 | Tipos da API no front | **`openapi-typescript`**, gerados a partir do OpenAPI do backend |

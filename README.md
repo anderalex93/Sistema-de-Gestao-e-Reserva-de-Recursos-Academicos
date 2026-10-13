@@ -73,22 +73,22 @@ docs/
 
 ## Como rodar localmente
 
-> O código do backend e do frontend chega nas issues #10 e #11. Esta seção será completada junto
-> com elas.
-
 Pré-requisitos:
 
-- [Git](https://git-scm.com/)
+- [Git](https://git-scm.com/) e `make` (no Windows, use o Git Bash)
 - [Docker](https://www.docker.com/) com Docker Compose
 - [Python 3.13](https://www.python.org/) e [uv](https://docs.astral.sh/uv/)
-- [Node.js 24 LTS](https://nodejs.org/)
+- [Node.js 24 LTS](https://nodejs.org/) (frontend, a partir da issue #11)
 
 ```bash
 git clone https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos.git
-cd Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos
-cp .env.example .env          # ajuste os valores se precisar
-docker compose up -d db       # PostgreSQL local
+cd Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos/backend
+cp .env.example .env
+make install && make db-up && make migrate && make dev
 ```
+
+A API sobe em <http://localhost:8000> e o PostgreSQL na porta **5433** (para não conflitar com
+outra instalação local). Detalhes no [README do backend](backend/README.md).
 
 ## Documentação
 

@@ -1,0 +1,38 @@
+UV ?= uv
+COMPOSE ?= docker compose -f ../docker-compose.yml
+
+.PHONY: install db-up db-down dev migrate revision lint format typecheck test ci
+
+install:  ## Instala dependências (inclui as de desenvolvimento)
+	$(UV) sync
+
+db-up:  ## Sobe o PostgreSQL local (porta 5433)
+	$(COMPOSE) up -d --wait db
+
+db-down:  ## Para o PostgreSQL local (mantém os dados)
+	$(COMPOSE) stop db
+
+dev:  ## API com hot reload em http://localhost:8000
+	$(UV) run uvicorn app.main:create_app --factory --reload --port 8000
+
+migrate:  ## Aplica as migrações pendentes
+	$(UV) run alembic upgrade head
+
+revision:  ## Gera migração a partir dos models: make revision m="create reserva"
+	$(UV) run alembic revision --autogenerate -m "$(m)"
+
+lint:
+	$(UV) run ruff check .
+	$(UV) run ruff format --check .
+
+format:
+	$(UV) run ruff check --fix .
+	$(UV) run ruff format .
+
+typecheck:
+	$(UV) run mypy
+
+test:
+	$(UV) run pytest --cov --cov-report=term-missing
+
+ci: lint typecheck test  ## Gate completo: ruff, mypy --strict e pytest
