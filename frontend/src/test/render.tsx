@@ -22,6 +22,7 @@ export function buildUser(overrides: Partial<UserRead> = {}): UserRead {
     matricula: null,
     ativo: true,
     criado_em: '2026-10-13T12:00:00Z',
+    aceite_termos_em: '2026-10-13T12:00:00Z',
     ...overrides,
   };
 }

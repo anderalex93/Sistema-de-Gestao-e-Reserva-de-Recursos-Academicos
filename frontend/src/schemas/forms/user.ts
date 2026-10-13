@@ -39,6 +39,12 @@ export const signupSchema = z
     senha: passwordField,
     confirmacao: z.string().min(1, 'Repita a senha.'),
     matricula: registrationField,
+    aceite_termos: z
+      .boolean()
+      .refine(
+        Boolean,
+        'Para criar a conta, leia e aceite o Aviso de Privacidade e os Termos de Uso.',
+      ),
   })
   .refine((data) => data.senha === data.confirmacao, {
     path: ['confirmacao'],
@@ -58,3 +64,9 @@ export type SignupFormInput = z.input<typeof signupSchema>;
 export type SignupFormOutput = z.output<typeof signupSchema>;
 export type AdminUserFormInput = z.input<typeof adminUserSchema>;
 export type AdminUserFormOutput = z.output<typeof adminUserSchema>;
+
+export const accountDeletionSchema = z.object({
+  senha: z.string().min(1, 'Informe a sua senha atual.'),
+});
+
+export type AccountDeletionForm = z.output<typeof accountDeletionSchema>;

@@ -16,10 +16,12 @@ import {
   LoginPage,
   MyReservationsPage,
   NotFoundPage,
+  PrivacyPage,
   ReceiptPage,
   ReservePage,
   ResourcePage,
   SignupPage,
+  TermsPage,
 } from '@/router/lazy-pages';
 
 export const routes: RouteObject[] = [
@@ -38,6 +40,8 @@ export const routes: RouteObject[] = [
             ],
           },
           { path: 'comprovantes/:codigo', element: <ReceiptPage /> },
+          { path: 'privacidade', element: <PrivacyPage /> },
+          { path: 'termos', element: <TermsPage /> },
         ],
       },
       {

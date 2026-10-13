@@ -8,6 +8,8 @@ export const paths = {
   myReservations: '/minhas-reservas',
   receipt: (code: string) => `/comprovantes/${code}`,
   account: '/conta',
+  privacy: '/privacidade',
+  terms: '/termos',
   admin: '/admin',
   adminUsers: '/admin/usuarios',
   adminResources: '/admin/recursos',

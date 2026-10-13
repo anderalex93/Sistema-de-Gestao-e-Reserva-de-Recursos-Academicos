@@ -16,3 +16,5 @@ export const AdminUsersPage = lazy(() => import('@/pages/AdminUsersPage'));
 export const AdminResourcesPage = lazy(() => import('@/pages/AdminResourcesPage'));
 export const AdminBuildingsPage = lazy(() => import('@/pages/AdminBuildingsPage'));
 export const AdminAgendaPage = lazy(() => import('@/pages/AdminAgendaPage'));
+export const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'));
+export const TermsPage = lazy(() => import('@/pages/TermsPage'));

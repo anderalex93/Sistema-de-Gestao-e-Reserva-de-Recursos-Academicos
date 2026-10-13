@@ -3,6 +3,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import { Navigate, Outlet, Link as RouterLink, useLocation } from 'react-router';
 
+import { AcceptTermsGate } from '@/components/legal/AcceptTermsGate';
 import { PageHeader } from '@/components/PageHeader';
 import { PageSkeleton } from '@/components/PageSkeleton';
 import { AuthProvider } from '@/contexts/AuthProvider';
@@ -25,7 +26,7 @@ export function AuthRoot() {
 
 /** Rotas que exigem login. Sem sessão, vai para o login e volta para onde estava. */
 export function RequireAuth() {
-  const { status, retry } = useAuth();
+  const { status, user, retry } = useAuth();
   const location = useLocation();
 
   if (status === 'loading') {
@@ -53,6 +54,9 @@ export function RequireAuth() {
       from: { pathname: location.pathname, search: location.search },
     };
     return <Navigate to={paths.login} replace state={state} />;
+  }
+  if (user?.aceite_termos_em === null) {
+    return <AcceptTermsGate />;
   }
   return <Outlet />;
 }

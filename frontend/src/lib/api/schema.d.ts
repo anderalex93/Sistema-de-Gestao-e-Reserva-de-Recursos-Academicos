@@ -69,6 +69,63 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/auth/me/aceite-termos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Registra o aceite do Aviso de Privacidade e dos Termos de Uso
+     * @description Para contas criadas pelo administrador, no primeiro acesso.
+     */
+    post: operations['accept_terms_api_v1_auth_me_aceite_termos_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/auth/me/dados': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Exporta todos os meus dados em JSON (LGPD, Art. 18) */
+    get: operations['export_my_data_api_v1_auth_me_dados_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/auth/me/exclusao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Exclui a minha conta (LGPD, Art. 18, VI)
+     * @description Pede a senha atual. A conta é anonimizada e desativada: nome, e-mail e matrícula somem, as reservas antigas ficam no histórico do espaço sem identificar ninguém e as futuras são canceladas. Administradores não podem se excluir por aqui.
+     */
+    post: operations['delete_my_account_api_v1_auth_me_exclusao_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/config/regras': {
     parameters: {
       query?: never;
@@ -510,6 +567,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AccountDeletion */
+    AccountDeletion: {
+      /**
+       * Senha
+       * @description Senha atual, para confirmar
+       */
+      senha: string;
+    };
     /** AdminCancellation */
     AdminCancellation: {
       /**
@@ -740,6 +805,20 @@ export interface components {
       /** Senha */
       senha: string;
     };
+    /**
+     * MyDataExport
+     * @description Tudo o que o EduSpace guarda sobre a pessoa, num arquivo só (Art. 18, II e V).
+     */
+    MyDataExport: {
+      /**
+       * Gerado Em
+       * Format: date-time
+       */
+      gerado_em: string;
+      conta: components['schemas']['UserRead'];
+      /** Reservas */
+      reservas: components['schemas']['ReservationExportRead'][];
+    };
     /** MyReservationRead */
     MyReservationRead: {
       /** Id */
@@ -947,6 +1026,39 @@ export interface components {
       finalidade?: string | null;
       /** Qtd Participantes */
       qtd_participantes?: number | null;
+    };
+    /** ReservationExportRead */
+    ReservationExportRead: {
+      /** Codigo */
+      codigo: string;
+      status: components['schemas']['ReservationStatus'];
+      /** Recurso */
+      recurso: string;
+      /** Bloco */
+      bloco: string;
+      /**
+       * Inicio
+       * Format: date-time
+       */
+      inicio: string;
+      /**
+       * Fim
+       * Format: date-time
+       */
+      fim: string;
+      /** Finalidade */
+      finalidade: string | null;
+      /** Qtd Participantes */
+      qtd_participantes: number | null;
+      /**
+       * Criado Em
+       * Format: date-time
+       */
+      criado_em: string;
+      /** Cancelada Em */
+      cancelada_em: string | null;
+      /** Motivo Cancelamento */
+      motivo_cancelamento: string | null;
     };
     /**
      * ReservationHolderRead
@@ -1159,7 +1271,8 @@ export interface components {
     };
     /**
      * UserAdminCreate
-     * @description Conta criada pelo administrador, que escolhe o perfil.
+     * @description Conta criada pelo administrador, que escolhe o perfil. A pessoa aceita os termos no
+     *     primeiro acesso: o admin não pode consentir por ela.
      */
     UserAdminCreate: {
       /** Nome */
@@ -1203,6 +1316,11 @@ export interface components {
        * Format: date-time
        */
       criado_em: string;
+      /**
+       * Aceite Termos Em
+       * @description Quando a pessoa aceitou os termos; vazio obriga o aceite no próximo acesso
+       */
+      aceite_termos_em: string | null;
     };
     /**
      * UserRole
@@ -1211,7 +1329,7 @@ export interface components {
     UserRole: 'ALUNO' | 'PROFESSOR' | 'ADMIN';
     /**
      * UserSignup
-     * @description Autocadastro: o perfil é sempre ALUNO.
+     * @description Autocadastro: o perfil é sempre ALUNO e o aceite é obrigatório (LGPD, Art. 8º e 9º).
      */
     UserSignup: {
       /** Nome */
@@ -1225,6 +1343,11 @@ export interface components {
       senha: string;
       /** Matricula */
       matricula?: string | null;
+      /**
+       * Aceite Termos
+       * @description Li e concordo com o Aviso de Privacidade e os Termos de Uso
+       */
+      aceite_termos: boolean;
     };
     /** ValidationError */
     ValidationError: {
@@ -1408,6 +1531,113 @@ export interface operations {
       };
       /** @description Sem sessão válida */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  accept_terms_api_v1_auth_me_aceite_termos_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  export_my_data_api_v1_auth_me_dados_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MyDataExport'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  delete_my_account_api_v1_auth_me_exclusao_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AccountDeletion'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Senha incorreta ou conta de administrador */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Muitas tentativas seguidas */
+      429: {
         headers: {
           [name: string]: unknown;
         };

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link as RouterLink } from 'react-router';
 
+import { ConsentCheckbox } from '@/components/form/ConsentCheckbox';
 import { FormError } from '@/components/form/FormError';
 import { FormTextField } from '@/components/form/FormTextField';
 import { PasswordField } from '@/components/form/PasswordField';
@@ -37,7 +38,14 @@ export default function SignupPage() {
     formState: { errors },
   } = useForm<SignupFormInput, unknown, SignupFormOutput>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { nome: '', email: '', senha: '', confirmacao: '', matricula: '' },
+    defaultValues: {
+      nome: '',
+      email: '',
+      senha: '',
+      confirmacao: '',
+      matricula: '',
+      aceite_termos: false,
+    },
   });
 
   const mutation = useMutation({
@@ -112,6 +120,21 @@ export default function SignupPage() {
           registration={register('matricula')}
           error={errors.matricula?.message}
         />
+        <ConsentCheckbox
+          id="cadastro-aceite"
+          registration={register('aceite_termos')}
+          error={errors.aceite_termos?.message}
+        >
+          Li e concordo com o{' '}
+          <Link component={RouterLink} to={paths.privacy} target="_blank" rel="noopener">
+            Aviso de Privacidade
+          </Link>{' '}
+          e os{' '}
+          <Link component={RouterLink} to={paths.terms} target="_blank" rel="noopener">
+            Termos de Uso
+          </Link>
+          .
+        </ConsentCheckbox>
         <Button type="submit" variant="contained" disabled={mutation.isPending}>
           {mutation.isPending ? 'Criando conta…' : 'Criar conta'}
         </Button>

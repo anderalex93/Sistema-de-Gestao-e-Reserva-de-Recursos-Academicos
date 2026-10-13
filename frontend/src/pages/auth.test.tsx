@@ -87,6 +87,7 @@ describe('signup', () => {
     await user.type(screen.getByLabelText(/E-mail/), 'lucas@gmail.com');
     await user.type(screen.getByLabelText(/^Senha/), 'Senha123');
     await user.type(screen.getByLabelText(/Repita a senha/), 'Senha123');
+    await user.click(screen.getByRole('checkbox', { name: /Li e concordo/ }));
     await user.click(screen.getByRole('button', { name: 'Criar conta' }));
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Início' })).toBeInTheDocument();
@@ -94,6 +95,7 @@ describe('signup', () => {
       nome: 'Lucas Andrade',
       email: 'lucas@gmail.com',
       senha: 'Senha123',
+      aceite_termos: true,
     });
     expect(await screen.findByRole('status')).toHaveTextContent('Conta criada');
   });
@@ -113,10 +115,44 @@ describe('signup', () => {
     await user.type(screen.getByLabelText(/E-mail/), 'lucas@gmail.com');
     await user.type(screen.getByLabelText(/^Senha/), 'Senha123');
     await user.type(screen.getByLabelText(/Repita a senha/), 'Senha123');
+    await user.click(screen.getByRole('checkbox', { name: /Li e concordo/ }));
     await user.click(screen.getByRole('button', { name: 'Criar conta' }));
 
     expect(await screen.findByText('Este e-mail já possui conta.')).toBeInTheDocument();
     expect(screen.getByLabelText(/E-mail/)).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('does not create the account without accepting the privacy notice', async () => {
+    let called = false;
+    server.use(
+      http.post(api('/auth/cadastro'), () => {
+        called = true;
+        return HttpResponse.json(lucas, { status: 201 });
+      }),
+    );
+    const { user } = renderRoute('/cadastro', { user: null });
+
+    await user.type(await screen.findByLabelText(/Nome completo/), 'Lucas Andrade');
+    await user.type(screen.getByLabelText(/E-mail/), 'lucas@gmail.com');
+    await user.type(screen.getByLabelText(/^Senha/), 'Senha123');
+    await user.type(screen.getByLabelText(/Repita a senha/), 'Senha123');
+    await user.click(screen.getByRole('button', { name: 'Criar conta' }));
+
+    const consent = screen.getByRole('checkbox', { name: /Li e concordo/ });
+    expect(consent).not.toBeChecked();
+    expect(
+      await screen.findByText(
+        'Para criar a conta, leia e aceite o Aviso de Privacidade e os Termos de Uso.',
+      ),
+    ).toBeInTheDocument();
+    expect(consent).toHaveAttribute('aria-invalid', 'true');
+    // O link do formulário abre em outra aba, para não perder o que foi digitado.
+    const formLink = within(screen.getByRole('main')).getByRole('link', {
+      name: 'Aviso de Privacidade',
+    });
+    expect(formLink).toHaveAttribute('href', '/privacidade');
+    expect(formLink).toHaveAttribute('target', '_blank');
+    expect(called).toBe(false);
   });
 
   it('checks password rules and confirmation', async () => {
