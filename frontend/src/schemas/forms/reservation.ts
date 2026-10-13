@@ -24,3 +24,14 @@ export function reservationSchema(capacity: number | null) {
 
 export type ReservationFormInput = z.input<ReturnType<typeof reservationSchema>>;
 export type ReservationFormOutput = z.output<ReturnType<typeof reservationSchema>>;
+
+/** Mesmas regras de `AdminCancellation` no backend. */
+export const adminCancellationSchema = z.object({
+  motivo: z
+    .string()
+    .trim()
+    .min(5, 'Explique o motivo em pelo menos 5 caracteres.')
+    .max(300, 'Use no máximo 300 caracteres.'),
+});
+
+export type AdminCancellationForm = z.output<typeof adminCancellationSchema>;

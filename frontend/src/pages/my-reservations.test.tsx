@@ -23,6 +23,7 @@ function mine(overrides: Partial<MyReservationRead> = {}): MyReservationRead {
     usuario_id: 1,
     criado_em: '2026-10-13T12:00:00Z',
     cancelada_em: null,
+    motivo_cancelamento: null,
     pode_cancelar: true,
     ...overrides,
   };
@@ -84,6 +85,24 @@ describe('my reservations', () => {
     expect(within(list).queryByRole('button', { name: 'Cancelar' })).toBeNull();
     expect(router.state.location.search).toBe('?aba=historico');
     expect(scopes).toContain('historico');
+  });
+
+  it('shows the reason when the administration cancelled the reservation', async () => {
+    serveMine({
+      historico: [
+        mine({
+          status: 'CANCELADA',
+          pode_cancelar: false,
+          motivo_cancelamento: 'Manutenção do ar-condicionado',
+        }),
+      ],
+    });
+    renderRoute('/minhas-reservas?aba=historico');
+
+    const list = await screen.findByRole('list', { name: 'Histórico de reservas' });
+    expect(
+      await within(list).findByText('Manutenção do ar-condicionado', { exact: false }),
+    ).toHaveTextContent('Cancelada pela administração: Manutenção do ar-condicionado');
   });
 
   it('explains why a reservation can no longer be cancelled', async () => {

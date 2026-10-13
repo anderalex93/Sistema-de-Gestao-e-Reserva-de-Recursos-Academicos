@@ -34,6 +34,7 @@ export type FeatureCreate = Schemas['FeatureCreate'];
 export type ResourceAdminRead = Schemas['ResourceAdminRead'];
 export type ResourceCreate = Schemas['ResourceCreate'];
 export type RemovalRead = Schemas['RemovalRead'];
+export type AdminReservationRead = Schemas['AdminReservationRead'];
 
 export interface Page<Item> {
   items: Item[];

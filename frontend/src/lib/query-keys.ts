@@ -1,4 +1,5 @@
 import type { AdminResourceListParams } from '@/lib/api/admin-catalog.api';
+import type { AgendaParams } from '@/lib/api/admin-reservations.api';
 import type { UserListParams } from '@/lib/api/admin-users.api';
 import type { BoardParams } from '@/lib/api/board.api';
 import type { ResourceListParams } from '@/lib/api/catalog.api';
@@ -21,6 +22,7 @@ export const queryKeys = {
   features: ['caracteristicas'] as const,
   board: (params: BoardParams) => ['recursos', 'quadro', params] as const,
   reservations: ['reservas'] as const,
+  adminAgenda: (params: AgendaParams) => ['reservas', 'agenda', params] as const,
   myReservations: (params: MyReservationsParams) => ['reservas', 'minhas', params] as const,
   receipt: (codigo: string) => ['reservas', 'comprovante', codigo.toUpperCase()] as const,
   rules: ['config', 'regras'] as const,

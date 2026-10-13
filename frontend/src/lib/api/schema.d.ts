@@ -466,10 +466,96 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/reservas': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Agenda do dia: todas as reservas, com quem reservou
+     * @description Reservas que tocam o dia no fuso do campus, de qualquer status, ordenadas por bloco, recurso e horário. Sem `data`, usa o dia de hoje.
+     */
+    get: operations['list_agenda_api_v1_admin_reservas_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/reservas/{reservation_id}/cancelar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Cancela qualquer reserva que ainda não terminou, com motivo
+     * @description Sem o prazo de 30 minutos. O motivo aparece no histórico de quem reservou.
+     */
+    post: operations['cancel_reservation_api_v1_admin_reservas__reservation_id__cancelar_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AdminCancellation */
+    AdminCancellation: {
+      /**
+       * Motivo
+       * @description Aparece para o dono da reserva no histórico
+       */
+      motivo: string;
+    };
+    /** AdminReservationRead */
+    AdminReservationRead: {
+      /** Id */
+      id: number;
+      /** Codigo */
+      codigo: string;
+      status: components['schemas']['ReservationStatus'];
+      /**
+       * Inicio
+       * Format: date-time
+       */
+      inicio: string;
+      /**
+       * Fim
+       * Format: date-time
+       */
+      fim: string;
+      /** Finalidade */
+      finalidade: string | null;
+      /** Qtd Participantes */
+      qtd_participantes: number | null;
+      recurso: components['schemas']['ResourceRead'];
+      /** Usuario Id */
+      usuario_id: number;
+      /**
+       * Criado Em
+       * Format: date-time
+       */
+      criado_em: string;
+      /** Cancelada Em */
+      cancelada_em: string | null;
+      /**
+       * Motivo Cancelamento
+       * @description Preenchido quando a administração cancela a reserva
+       */
+      motivo_cancelamento: string | null;
+      usuario: components['schemas']['ReservationHolderRead'];
+    };
     /** AvailabilityRead */
     AvailabilityRead: {
       /** Recurso Id */
@@ -686,6 +772,11 @@ export interface components {
       /** Cancelada Em */
       cancelada_em: string | null;
       /**
+       * Motivo Cancelamento
+       * @description Preenchido quando a administração cancela a reserva
+       */
+      motivo_cancelamento: string | null;
+      /**
        * Pode Cancelar
        * @description Confirmada e com pelo menos 30 minutos até o início (RF04)
        */
@@ -713,6 +804,19 @@ export interface components {
        * @description Só para administradores (LGPD)
        */
       reservado_por: string | null;
+    };
+    /** Page[AdminReservationRead] */
+    Page_AdminReservationRead_: {
+      /** Items */
+      items: components['schemas']['AdminReservationRead'][];
+      /** Total */
+      total: number;
+      /** Page */
+      page: number;
+      /** Per Page */
+      per_page: number;
+      /** Total Pages */
+      total_pages: number;
     };
     /** Page[MyReservationRead] */
     Page_MyReservationRead_: {
@@ -844,6 +948,18 @@ export interface components {
       /** Qtd Participantes */
       qtd_participantes?: number | null;
     };
+    /**
+     * ReservationHolderRead
+     * @description Quem reservou, para a administração poder avisar a pessoa.
+     */
+    ReservationHolderRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      /** Email */
+      email: string;
+    };
     /** ReservationRead */
     ReservationRead: {
       /** Id */
@@ -875,6 +991,11 @@ export interface components {
       criado_em: string;
       /** Cancelada Em */
       cancelada_em: string | null;
+      /**
+       * Motivo Cancelamento
+       * @description Preenchido quando a administração cancela a reserva
+       */
+      motivo_cancelamento: string | null;
     };
     /**
      * ReservationScope
@@ -2910,6 +3031,132 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_agenda_api_v1_admin_reservas_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        per_page?: number;
+        /** @description Dia no fuso do campus; padrão: hoje */
+        data?: string | null;
+        bloco_id?: number | null;
+        recurso_id?: number | null;
+        status?: components['schemas']['ReservationStatus'] | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Page_AdminReservationRead_'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  cancel_reservation_api_v1_admin_reservas__reservation_id__cancelar_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        reservation_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AdminCancellation'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminReservationRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Reserva inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Reserva já cancelada */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Reserva já terminou ou motivo inválido */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
         };
       };
     };

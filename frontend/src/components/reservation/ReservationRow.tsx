@@ -57,6 +57,14 @@ export function ReservationRow({ reservation, onCancel }: ReservationRowProps) {
             {reservation.finalidade}
           </Typography>
         )}
+        {reservation.motivo_cancelamento && (
+          <Typography variant="body2" sx={{ mt: 0.25, overflowWrap: 'anywhere' }}>
+            <Box component="span" sx={{ fontWeight: 700 }}>
+              Cancelada pela administração:
+            </Box>{' '}
+            {reservation.motivo_cancelamento}
+          </Typography>
+        )}
       </Box>
       <Stack
         direction="row"

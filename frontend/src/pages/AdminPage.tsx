@@ -9,6 +9,11 @@ import { colors } from '@/theme/tokens';
 
 const sections = [
   {
+    title: 'Agenda do dia',
+    description: 'Todas as reservas do dia por recurso, com cancelamento administrativo.',
+    to: paths.adminAgenda,
+  },
+  {
     title: 'Usuários',
     description: 'Crie contas de alunos, professores e administradores e consulte quem tem acesso.',
     to: paths.adminUsers,

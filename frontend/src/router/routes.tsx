@@ -6,6 +6,7 @@ import ErrorPage from '@/pages/ErrorPage';
 import { AuthRoot, PublicOnly, RequireAuth, RequireRole } from '@/router/guards';
 import {
   AccountPage,
+  AdminAgendaPage,
   AdminBuildingsPage,
   AdminPage,
   AdminResourcesPage,
@@ -59,6 +60,7 @@ export const routes: RouteObject[] = [
                   { path: 'usuarios', element: <AdminUsersPage /> },
                   { path: 'recursos', element: <AdminResourcesPage /> },
                   { path: 'blocos', element: <AdminBuildingsPage /> },
+                  { path: 'agenda', element: <AdminAgendaPage /> },
                 ],
               },
               { path: '*', element: <NotFoundPage /> },
