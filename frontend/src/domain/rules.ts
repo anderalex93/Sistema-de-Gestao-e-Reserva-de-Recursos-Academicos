@@ -25,12 +25,16 @@ export const DEFAULT_RULES: CampusRules = {
   activeLimits: { ALUNO: 3, PROFESSOR: 10, ADMIN: null },
 };
 
-export function rulesFrom(rules: RulesRead): CampusRules {
+/**
+ * Campo ausente cai no padrão: durante um deploy o front novo pode falar com uma API anterior
+ * à #28, e isso não deve derrubar a tela.
+ */
+export function rulesFrom(rules: Partial<RulesRead> & Pick<RulesRead, 'horarios'>): CampusRules {
   return {
     weeklyHours: weeklyHoursFrom(rules),
-    maxMinutes: rules.duracao_max_minutos,
-    maxDaysAhead: rules.antecedencia_max_dias,
-    activeLimits: rules.limite_reservas_ativas,
+    maxMinutes: rules.duracao_max_minutos ?? DEFAULT_RULES.maxMinutes,
+    maxDaysAhead: rules.antecedencia_max_dias ?? DEFAULT_RULES.maxDaysAhead,
+    activeLimits: rules.limite_reservas_ativas ?? DEFAULT_RULES.activeLimits,
   };
 }
 

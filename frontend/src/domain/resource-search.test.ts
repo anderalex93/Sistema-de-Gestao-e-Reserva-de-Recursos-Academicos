@@ -7,6 +7,7 @@ import {
   toApiParams,
   toUrlParams,
 } from '@/domain/resource-search';
+import { DEFAULT_RULES, rulesFrom } from '@/domain/rules';
 import {
   campusToday,
   campusToUtcIso,
@@ -108,13 +109,22 @@ describe('schedule', () => {
 
   it('builds the weekly hours from the API rules', () => {
     const hours = weeklyHoursFrom({
-      fuso: 'America/Maceio',
-      intervalo_minutos: 30,
       horarios: [{ dia_semana: 6, abertura: '08:00:00', fechamento: '12:00:00' }],
-      duracao_max_minutos: 240,
-      antecedencia_max_dias: 14,
-      limite_reservas_ativas: { ALUNO: 3, PROFESSOR: 10, ADMIN: null },
     });
     expect([...hours]).toEqual([[6, { opening: '08:00', closing: '12:00' }]]);
+  });
+});
+
+describe('rules from an older API', () => {
+  it('falls back to the defaults for missing fields', () => {
+    const rules = rulesFrom({
+      horarios: [{ dia_semana: 1, abertura: '08:00:00', fechamento: '21:00:00' }],
+    });
+
+    expect([rules.maxMinutes, rules.maxDaysAhead, rules.activeLimits]).toEqual([
+      DEFAULT_RULES.maxMinutes,
+      DEFAULT_RULES.maxDaysAhead,
+      DEFAULT_RULES.activeLimits,
+    ]);
   });
 });

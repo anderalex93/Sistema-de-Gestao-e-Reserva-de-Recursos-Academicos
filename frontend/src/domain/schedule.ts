@@ -29,7 +29,7 @@ export const DEFAULT_WEEKLY_HOURS: WeeklyHours = new Map([
   [6, { opening: '08:00', closing: '12:00' }],
 ]);
 
-export function weeklyHoursFrom(rules: RulesRead): WeeklyHours {
+export function weeklyHoursFrom(rules: Pick<RulesRead, 'horarios'>): WeeklyHours {
   return new Map(
     rules.horarios.map((day) => [
       day.dia_semana,

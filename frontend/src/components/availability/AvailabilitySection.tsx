@@ -133,11 +133,14 @@ function DayAvailability({
   };
 
   const summary = interval && (
-    <Stack spacing={1.5}>
+    // No celular a barra fixa fica compacta: sem rótulo e com as ações lado a lado.
+    <Stack spacing={compact ? 1 : 1.5}>
       <Box>
-        <Typography variant="overline" component="p">
-          Horário escolhido
-        </Typography>
+        {!compact && (
+          <Typography variant="overline" component="p">
+            Horário escolhido
+          </Typography>
+        )}
         <Typography sx={{ fontWeight: 700 }}>
           {campusTime(interval.inicio)} às {campusTime(interval.fim)} ·{' '}
           {durationLabel(interval.minutes)}
@@ -146,10 +149,15 @@ function DayAvailability({
           {dayLabel(date)} · {resourceName}
         </Typography>
       </Box>
-      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }} useFlexGap>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}
+        useFlexGap
+      >
         {renderActions?.(interval, date, () => setPicked(null))}
-        <Button variant="text" onClick={() => setPicked(null)}>
-          Limpar seleção
+        <Button variant="text" onClick={() => setPicked(null)} aria-label="Limpar seleção">
+          {compact ? 'Limpar' : 'Limpar seleção'}
         </Button>
       </Stack>
     </Stack>
@@ -241,7 +249,7 @@ function DayAvailability({
         </Box>
       )}
       {/* Espaço para a barra fixa não cobrir o fim da grade no celular. */}
-      {compact && summary && <Box sx={{ height: 160 }} />}
+      {compact && summary && <Box sx={{ height: 120 }} />}
     </Box>
   );
 }
