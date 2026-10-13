@@ -1,7 +1,7 @@
 UV ?= uv
 COMPOSE ?= docker compose -f ../docker-compose.yml
 
-.PHONY: install db-up db-down dev migrate revision lint format typecheck test ci
+.PHONY: install db-up db-down dev migrate revision lint format typecheck test ci openapi
 
 install:  ## Instala dependências (inclui as de desenvolvimento)
 	$(UV) sync
@@ -36,3 +36,6 @@ test:
 	$(UV) run pytest --cov --cov-report=term-missing
 
 ci: lint typecheck test  ## Gate completo: ruff, mypy --strict e pytest
+
+openapi:  ## Exporta o OpenAPI para ../frontend/openapi.json (usado por npm run gen:api)
+	$(UV) run python -m scripts.export_openapi ../frontend/openapi.json

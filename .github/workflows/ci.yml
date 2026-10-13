@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Detectar mudanças
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'docker-compose.yml'
+              - '.github/workflows/ci.yml'
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/ci.yml'
+
+  backend:
+    name: Backend (ruff, mypy, pytest)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: eduspace
+          POSTGRES_PASSWORD: eduspace_ci
+          POSTGRES_DB: eduspace_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U eduspace -d eduspace_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://eduspace:eduspace_ci@localhost:5432/eduspace_test
+      TEST_DATABASE_URL: postgresql+psycopg://eduspace:eduspace_ci@localhost:5432/eduspace_test
+      JWT_SECRET: ci-only-secret-not-used-outside-tests
+      ALLOWED_EMAIL_DOMAINS: umj.edu.br
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+      - run: make ci
+
+  frontend:
+    name: Frontend (oxlint, prettier, tsc, vitest, build)
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      VITE_API_URL: https://api.exemplo.invalid/api/v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run ci
+
+  contract:
+    name: Contrato da API (tipos do front em dia)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: postgresql+psycopg://unused:unused@localhost:5432/unused
+      JWT_SECRET: ci-only-secret-not-used-outside-tests
+      ALLOWED_EMAIL_DOMAINS: umj.edu.br
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Exportar OpenAPI do backend
+        working-directory: backend
+        run: uv sync --locked && make openapi
+      - name: Regerar tipos do frontend
+        working-directory: frontend
+        run: npm ci && OPENAPI_URL="file://$GITHUB_WORKSPACE/frontend/openapi.json" npm run gen:api
+      - name: Falhar se schema.d.ts estiver desatualizado
+        run: |
+          if ! git diff --exit-code -- frontend/src/lib/api/schema.d.ts; then
+            echo "::error::Os tipos do frontend não batem com a API. Rode 'make openapi' no backend e 'npm run gen:api' no frontend e commite o schema.d.ts."
+            exit 1
+          fi

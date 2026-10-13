@@ -49,7 +49,7 @@ ban-relative-imports = "all"
 python_version = "3.13"
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["app", "tests", "alembic/env.py"]
+files = ["app", "tests", "scripts", "alembic/env.py"]
 warn_unreachable = true
 
 [tool.pydantic-mypy]

@@ -1,5 +1,7 @@
 # EduSpace
 
+[![CI](https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos/actions/workflows/ci.yml/badge.svg)](https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos/actions/workflows/ci.yml)
+
 Sistema de gestão e reserva de recursos acadêmicos do Centro Universitário Mário Pontes Jucá (UMJ).
 Alunos, professores e a equipe administrativa reservam salas de estudo, laboratórios e
 equipamentos em tempo real, sem planilha, sem fila e sem conflito de horário.
