@@ -1,11 +1,19 @@
 import { screen, waitFor, within } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { buildResource, serveCatalog } from '@/test/catalog';
-import { adminUser, renderRoute } from '@/test/render';
+import { adminUser, api, renderRoute } from '@/test/render';
+import { buildReceipt } from '@/test/reservations';
+import { server } from '@/test/server';
 
 describe('routes', () => {
-  beforeEach(() => serveCatalog([buildResource()]));
+  beforeEach(() => {
+    serveCatalog([buildResource()]);
+    server.use(
+      http.get(api('/reservas/comprovante/:codigo'), () => HttpResponse.json(buildReceipt())),
+    );
+  });
 
   it.each([
     ['/', 'Início'],

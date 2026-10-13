@@ -14,6 +14,7 @@ export const queryKeys = {
   features: ['caracteristicas'] as const,
   board: (params: BoardParams) => ['recursos', 'quadro', params] as const,
   reservations: ['reservas'] as const,
+  receipt: (codigo: string) => ['reservas', 'comprovante', codigo.toUpperCase()] as const,
   rules: ['config', 'regras'] as const,
   availability: (resourceId: number, date: string) =>
     ['recursos', 'disponibilidade', resourceId, date] as const,

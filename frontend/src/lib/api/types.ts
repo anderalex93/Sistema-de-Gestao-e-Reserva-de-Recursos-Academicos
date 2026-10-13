@@ -22,6 +22,8 @@ export type RulesRead = Schemas['RulesRead'];
 export type ReservationCreate = Schemas['ReservationCreate'];
 export type ReservationRead = Schemas['ReservationRead'];
 export type BoardRead = Schemas['BoardRead'];
+export type ReceiptRead = Schemas['ReceiptRead'];
+export type ReservationStatus = Schemas['ReservationStatus'];
 
 export interface Page<Item> {
   items: Item[];

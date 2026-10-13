@@ -191,6 +191,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/reservas/comprovante/{codigo}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Verificação pública de um comprovante (sem login) */
+    get: operations['get_receipt_api_v1_reservas_comprovante__codigo__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/reservas/{reservation_id}': {
     parameters: {
       query?: never;
@@ -416,6 +433,47 @@ export interface components {
       per_page: number;
       /** Total Pages */
       total_pages: number;
+    };
+    /** ReceiptBuildingRead */
+    ReceiptBuildingRead: {
+      /** Nome */
+      nome: string;
+    };
+    /**
+     * ReceiptRead
+     * @description Comprovante público: só o necessário para conferir na entrada (LGPD, minimização).
+     */
+    ReceiptRead: {
+      /** Codigo */
+      codigo: string;
+      status: components['schemas']['ReservationStatus'];
+      /**
+       * Inicio
+       * Format: date-time
+       */
+      inicio: string;
+      /**
+       * Fim
+       * Format: date-time
+       */
+      fim: string;
+      recurso: components['schemas']['ReceiptResourceRead'];
+      /**
+       * Responsavel
+       * @description Só o primeiro nome de quem reservou
+       */
+      responsavel: string;
+      /** Cancelada Em */
+      cancelada_em: string | null;
+    };
+    /** ReceiptResourceRead */
+    ReceiptResourceRead: {
+      /** Nome */
+      nome: string;
+      tipo: components['schemas']['ResourceType'];
+      /** Andar */
+      andar: string | null;
+      bloco: components['schemas']['ReceiptBuildingRead'];
     };
     /** ReservationCreate */
     ReservationCreate: {
@@ -1089,6 +1147,64 @@ export interface operations {
       };
       /** @description Horário ou participantes fora das regras */
       422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  get_receipt_api_v1_reservas_comprovante__codigo__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        codigo: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReceiptRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Código inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Muitas consultas seguidas */
+      429: {
         headers: {
           [name: string]: unknown;
         };
