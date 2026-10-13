@@ -7,9 +7,9 @@ from app.api.dependencies import CatalogServiceDep, get_current_user
 from app.models.building import Building
 from app.models.feature import Feature
 from app.models.resource import Resource
-from app.schemas.catalog import BuildingRead, FeatureRead, ResourceRead
+from app.schemas.catalog import BuildingRead, FeatureRead, ResourceRead, ResourceSearchParams
 from app.schemas.errors import ErrorResponse
-from app.schemas.pagination import Page, PageParams
+from app.schemas.pagination import Page
 
 router = APIRouter(
     tags=["Catálogo"],
@@ -34,13 +34,14 @@ def list_features(service: CatalogServiceDep) -> Sequence[Feature]:
 
 @router.get(
     "/recursos",
-    summary="Lista os recursos disponíveis para reserva",
+    summary="Busca recursos para reservar, com filtros e horário livre",
     response_model=Page[ResourceRead],
+    responses={422: {"model": ErrorResponse, "description": "Intervalo inválido ou no passado"}},
 )
-def list_resources(
-    service: CatalogServiceDep, params: Annotated[PageParams, Query()]
+def search_resources(
+    service: CatalogServiceDep, params: Annotated[ResourceSearchParams, Query()]
 ) -> Page[ResourceRead]:
-    return Page[ResourceRead].model_validate(service.list_resources(params.page, params.per_page))
+    return Page[ResourceRead].model_validate(service.search_resources(params))
 
 
 @router.get(

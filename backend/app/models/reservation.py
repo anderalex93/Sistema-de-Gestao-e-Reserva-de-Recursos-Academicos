@@ -1,0 +1,62 @@
+from datetime import datetime
+
+from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, SmallInteger, String, text
+from sqlalchemy.dialects.postgresql import ExcludeConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.core.enums import ReservationStatus
+from app.db.base import Base, IdMixin, TimestampMixin
+from app.db.types import str_enum
+from app.models.resource import Resource
+from app.models.user import User
+
+
+class Reservation(IdMixin, TimestampMixin, Base):
+    """Ocupação de um recurso por um usuário num intervalo `[inicio, fim)`.
+
+    O banco garante o RNF03: duas reservas confirmadas do mesmo recurso nunca se sobrepõem.
+    Regras que dependem de configuração (múltiplo de 30 min, funcionamento) ficam no service.
+    """
+
+    __tablename__ = "reserva"
+    __table_args__ = (
+        CheckConstraint("fim > inicio", name="fim_depois_do_inicio"),
+        CheckConstraint(
+            "(status = 'CANCELADA') = (cancelada_em IS NOT NULL)", name="cancelamento_coerente"
+        ),
+        CheckConstraint("qtd_participantes > 0", name="participantes_positivo"),
+        ExcludeConstraint(
+            ("recurso_id", "="),
+            (text("tstzrange(inicio, fim, '[)')"), "&&"),
+            name="reserva_sem_sobreposicao",
+            using="gist",
+            where="status = 'CONFIRMADA'",
+        ),
+        Index("ix_reserva_usuario_id_inicio", "usuario_id", "inicio"),
+        Index("ix_reserva_inicio", "inicio"),
+    )
+
+    codigo: Mapped[str] = mapped_column(String(10), unique=True)
+    recurso_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("recurso.id", ondelete="RESTRICT")
+    )
+    usuario_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("usuario.id", ondelete="RESTRICT")
+    )
+    inicio: Mapped[datetime]
+    fim: Mapped[datetime]
+    status: Mapped[ReservationStatus] = mapped_column(
+        str_enum(ReservationStatus, name="status"),
+        default=ReservationStatus.CONFIRMADA,
+        server_default=ReservationStatus.CONFIRMADA,
+    )
+    finalidade: Mapped[str | None] = mapped_column(String(200))
+    qtd_participantes: Mapped[int | None] = mapped_column(SmallInteger)
+    cancelada_em: Mapped[datetime | None]
+    cancelada_por_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("usuario.id", ondelete="RESTRICT")
+    )
+    motivo_cancelamento: Mapped[str | None] = mapped_column(String(300))
+
+    recurso: Mapped[Resource] = relationship(lazy="joined", innerjoin=True)
+    usuario: Mapped[User] = relationship(foreign_keys=[usuario_id])

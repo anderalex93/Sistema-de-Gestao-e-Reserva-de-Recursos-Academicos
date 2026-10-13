@@ -94,11 +94,12 @@ def get_auth_service(
     return AuthService(users=UserRepository(session), hasher=hasher, tokens=tokens)
 
 
-def get_catalog_service(session: SessionDep) -> CatalogService:
+def get_catalog_service(session: SessionDep, clock: ClockDep) -> CatalogService:
     return CatalogService(
         buildings=BuildingRepository(session),
         features=FeatureRepository(session),
         resources=ResourceRepository(session),
+        clock=clock,
     )
 
 
