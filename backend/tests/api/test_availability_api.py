@@ -83,3 +83,5 @@ def test_rules_are_public_and_list_the_opening_hours(client: TestClient) -> None
     }
     assert [day["dia_semana"] for day in body["horarios"]] == [1, 2, 3, 4, 5, 6]
     assert body["horarios"][-1]["fechamento"] == "12:00:00"
+    assert (body["duracao_max_minutos"], body["antecedencia_max_dias"]) == (240, 14)
+    assert body["limite_reservas_ativas"] == {"ALUNO": 3, "PROFESSOR": 10, "ADMIN": None}

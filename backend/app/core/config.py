@@ -47,6 +47,20 @@ class Settings(BaseSettings):
         default=DEFAULT_OPENING_HOURS, validation_alias="HORARIO_FUNCIONAMENTO"
     )
 
+    # Regras de uso (#28). Duração em múltiplos de 30 minutos.
+    reservation_max_minutes: int = Field(
+        default=240, ge=30, le=900, multiple_of=30, validation_alias="RESERVA_DURACAO_MAX_MIN"
+    )
+    reservation_max_days_ahead: int = Field(
+        default=14, ge=1, le=365, validation_alias="RESERVA_ANTECEDENCIA_MAX_DIAS"
+    )
+    active_limit_student: int = Field(
+        default=3, ge=1, le=100, validation_alias="RESERVAS_ATIVAS_MAX_ALUNO"
+    )
+    active_limit_teacher: int = Field(
+        default=10, ge=1, le=100, validation_alias="RESERVAS_ATIVAS_MAX_PROFESSOR"
+    )
+
     @field_validator("allowed_email_domains", "cors_origins", mode="before")
     @classmethod
     def _split_comma_separated(cls, value: object) -> object:

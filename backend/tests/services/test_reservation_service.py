@@ -1,6 +1,6 @@
 import re
 from collections.abc import Callable, Iterator, Sequence
-from datetime import UTC, date, datetime, time
+from datetime import UTC, date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -11,6 +11,7 @@ from app.core.enums import ReservationStatus, ResourceType, UserRole
 from app.core.exceptions import DomainError, NotFoundError
 from app.core.opening_hours import DEFAULT_OPENING_HOURS, parse_weekly_hours
 from app.core.reservation_codes import ALPHABET, CodeGenerator, RandomCodeGenerator
+from app.core.reservation_rules import ReservationRules
 from app.db.unit_of_work import UnitOfWork
 from app.models.building import Building
 from app.models.resource import Resource
@@ -25,6 +26,11 @@ MACEIO = ZoneInfo("America/Maceio")
 SCHEDULE = CampusSchedule(MACEIO, parse_weekly_hours(DEFAULT_OPENING_HOURS))
 WEDNESDAY = date(2030, 10, 23)
 NOW = datetime(2030, 10, 22, 12, 0, tzinfo=UTC)
+RULES = ReservationRules(
+    max_duration=timedelta(hours=4),
+    max_days_ahead=14,
+    active_limits={UserRole.ALUNO: 3, UserRole.PROFESSOR: 10, UserRole.ADMIN: None},
+)
 
 
 def at(hour: int, minute: int = 0, day: date = WEDNESDAY) -> datetime:
@@ -68,6 +74,7 @@ def build_service(
         schedule=SCHEDULE,
         clock=FixedClock(now),
         codes=codes or RandomCodeGenerator(),
+        rules=RULES,
     )
 
 

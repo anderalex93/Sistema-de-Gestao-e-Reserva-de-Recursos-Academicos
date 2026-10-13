@@ -16,7 +16,7 @@ from app.repositories.reservation_repository import ReservationRepository
 from app.repositories.resource_repository import ResourceRepository
 from app.services.reservation_service import ReservationService
 from tests.conftest import FixedClock
-from tests.services.test_reservation_service import SCHEDULE, at
+from tests.services.test_reservation_service import RULES, SCHEDULE, at
 
 NOW = at(12)
 
@@ -71,6 +71,7 @@ def service(db_session: Session, now: datetime = NOW) -> ReservationService:
         schedule=SCHEDULE,
         clock=FixedClock(now),
         codes=RandomCodeGenerator(),
+        rules=RULES,
     )
 
 

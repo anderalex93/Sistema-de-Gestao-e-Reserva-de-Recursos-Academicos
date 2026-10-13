@@ -24,7 +24,7 @@ from app.repositories.resource_repository import ResourceRepository
 from app.schemas.reservation import ReservationCreate
 from app.services.reservation_service import ReservationConflictError, ReservationService
 from tests.conftest import FixedClock
-from tests.services.test_reservation_service import NOW, SCHEDULE, at
+from tests.services.test_reservation_service import NOW, RULES, SCHEDULE, at
 
 
 @dataclass(frozen=True)
@@ -75,6 +75,7 @@ def test_two_simultaneous_requests_give_one_reservation_and_one_conflict(
                 schedule=SCHEDULE,
                 clock=FixedClock(NOW),
                 codes=RandomCodeGenerator(),
+                rules=RULES,
             )
             user = session.get_one(User, user_id)
             data = ReservationCreate(recurso_id=committed.resource_id, inicio=at(19), fim=at(20))

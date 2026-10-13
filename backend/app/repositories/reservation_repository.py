@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from datetime import datetime
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import joinedload
 
 from app.core.enums import ReservationScope, ReservationStatus
@@ -69,3 +69,16 @@ class ReservationRepository(BaseRepository[Reservation]):
                 or_(Reservation.status == ReservationStatus.CANCELADA, Reservation.fim <= now)
             ).order_by(Reservation.inicio.desc(), Reservation.id.desc())
         return self.paginate(statement, page, per_page)
+
+    def count_active_for_user(self, user_id: int, now: datetime) -> int:
+        """Reservas que ainda contam no limite: confirmadas e não terminadas."""
+        return (
+            self._session.scalar(
+                select(func.count()).where(
+                    Reservation.usuario_id == user_id,
+                    Reservation.status == ReservationStatus.CONFIRMADA,
+                    Reservation.fim > now,
+                )
+            )
+            or 0
+        )

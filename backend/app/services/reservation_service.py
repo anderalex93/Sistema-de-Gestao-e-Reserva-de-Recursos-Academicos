@@ -7,6 +7,7 @@ from app.core.clock import Clock
 from app.core.enums import ReservationScope, ReservationStatus, UserRole
 from app.core.exceptions import BusinessRuleError, ConflictError, ForbiddenError, NotFoundError
 from app.core.reservation_codes import CodeGenerator
+from app.core.reservation_rules import ReservationRules, duration_label
 from app.db.unit_of_work import UnitOfWork
 from app.models.reservation import Reservation
 from app.models.user import User
@@ -65,6 +66,18 @@ class NotReservationOwnerError(ForbiddenError):
     default_detail = "Só quem fez a reserva pode cancelá-la."
 
 
+class DurationExceededError(BusinessRuleError):
+    code = "DURACAO_EXCEDIDA"
+
+
+class TooFarAheadError(BusinessRuleError):
+    code = "ANTECEDENCIA_EXCEDIDA"
+
+
+class ActiveLimitReachedError(BusinessRuleError):
+    code = "LIMITE_RESERVAS_ATIVAS"
+
+
 class ReservationNotFoundError(NotFoundError):
     default_detail = "Reserva não encontrada."
 
@@ -90,6 +103,7 @@ class ReservationService:
         schedule: CampusSchedule,
         clock: Clock,
         codes: CodeGenerator,
+        rules: ReservationRules,
     ) -> None:
         self._resources = resources
         self._reservations = reservations
@@ -97,12 +111,14 @@ class ReservationService:
         self._schedule = schedule
         self._clock = clock
         self._codes = codes
+        self._rules = rules
 
     def create(self, data: ReservationCreate, user: User) -> Reservation:
         """RF03. A exclusion constraint é a garantia real contra duas reservas simultâneas;
         a consulta prévia só dá a resposta rápida no caso comum."""
         resource = self._resources.get_active_or_raise(data.recurso_id)
         self._validate(data, resource.capacidade)
+        self._enforce_usage_rules(data, user)
         if self._reservations.confirmed_overlapping(resource.id, data.inicio, data.fim):
             raise ReservationConflictError
 
@@ -198,6 +214,26 @@ class ReservationService:
             responsavel=first_name,
             cancelada_em=reservation.cancelada_em,
         )
+
+    def _enforce_usage_rules(self, data: ReservationCreate, user: User) -> None:
+        """#28: duração máxima, antecedência máxima e limite de reservas ativas por perfil."""
+        rules = self._rules
+        if data.fim - data.inicio > rules.max_duration:
+            msg = f"Cada reserva pode ter no máximo {duration_label(rules.max_duration)}."
+            raise DurationExceededError(msg)
+        today = self._schedule.local_date(self._clock.now())
+        if (self._schedule.local_date(data.inicio) - today).days > rules.max_days_ahead:
+            msg = f"Reservas podem ser feitas com até {rules.max_days_ahead} dias de antecedência."
+            raise TooFarAheadError(msg)
+        limit = rules.active_limit_for(user.perfil)
+        if limit is not None:
+            active = self._reservations.count_active_for_user(user.id, self._clock.now())
+            if active >= limit:
+                msg = (
+                    f"Você já tem {active} reservas ativas, o limite do seu perfil. "
+                    "Cancele uma ou espere uma delas acontecer para reservar de novo."
+                )
+                raise ActiveLimitReachedError(msg)
 
     def _validate(self, data: ReservationCreate, capacity: int | None) -> None:
         if data.inicio < self._clock.now():

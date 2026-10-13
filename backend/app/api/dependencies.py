@@ -13,6 +13,7 @@ from app.core.config import Settings
 from app.core.enums import UserRole
 from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.core.reservation_codes import CodeGenerator, RandomCodeGenerator
+from app.core.reservation_rules import ReservationRules
 from app.core.security import PasswordHasher, TokenService
 from app.db.unit_of_work import UnitOfWork
 from app.models.user import User
@@ -75,6 +76,13 @@ def get_campus_schedule(settings: SettingsDep) -> CampusSchedule:
 
 
 CampusScheduleDep = Annotated[CampusSchedule, Depends(get_campus_schedule)]
+
+
+def get_reservation_rules(settings: SettingsDep) -> ReservationRules:
+    return ReservationRules.from_settings(settings)
+
+
+ReservationRulesDep = Annotated[ReservationRules, Depends(get_reservation_rules)]
 
 
 def get_token_service(settings: SettingsDep, clock: ClockDep) -> TokenService:
@@ -141,6 +149,7 @@ def get_reservation_service(
     schedule: CampusScheduleDep,
     clock: ClockDep,
     codes: Annotated[CodeGenerator, Depends(get_code_generator)],
+    rules: ReservationRulesDep,
 ) -> ReservationService:
     return ReservationService(
         resources=ResourceRepository(session),
@@ -149,11 +158,12 @@ def get_reservation_service(
         schedule=schedule,
         clock=clock,
         codes=codes,
+        rules=rules,
     )
 
 
-def get_rules_service(schedule: CampusScheduleDep) -> RulesService:
-    return RulesService(schedule)
+def get_rules_service(schedule: CampusScheduleDep, rules: ReservationRulesDep) -> RulesService:
+    return RulesService(schedule, rules)
 
 
 HealthServiceDep = Annotated[HealthService, Depends(get_health_service)]
