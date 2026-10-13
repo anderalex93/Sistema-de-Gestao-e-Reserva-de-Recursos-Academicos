@@ -113,6 +113,84 @@ describe('admin users', () => {
     expect(await screen.findByText('Nenhuma conta cadastrada ainda.')).toBeInTheDocument();
   });
 
+  it('changes the role of an existing account', async () => {
+    let sent: unknown = null;
+    server.use(
+      http.get(api('/admin/usuarios'), () => HttpResponse.json(page([adminUser, maria]))),
+      http.patch(api('/admin/usuarios/2'), async ({ request }) => {
+        sent = await request.json();
+        return HttpResponse.json({ ...maria, perfil: 'ADMIN' });
+      }),
+    );
+    const { user } = renderRoute('/admin/usuarios', { user: adminUser });
+
+    await user.click(await screen.findByRole('button', { name: 'Editar Maria Souza' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Editar Maria Souza' });
+    await user.click(within(dialog).getByRole('combobox', { name: 'Perfil' }));
+    await user.click(await screen.findByRole('option', { name: 'Administrador' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(sent).toEqual({ perfil: 'ADMIN' });
+    expect(await screen.findByRole('status')).toHaveTextContent('Conta de Maria Souza atualizada.');
+  });
+
+  it('asks for confirmation before deactivating an account', async () => {
+    let sent: unknown = null;
+    server.use(
+      http.get(api('/admin/usuarios'), () => HttpResponse.json(page([adminUser, maria]))),
+      http.patch(api('/admin/usuarios/2'), async ({ request }) => {
+        sent = await request.json();
+        return HttpResponse.json({ ...maria, ativo: false });
+      }),
+    );
+    const { user } = renderRoute('/admin/usuarios', { user: adminUser });
+
+    await user.click(await screen.findByRole('button', { name: 'Editar Maria Souza' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Editar Maria Souza' });
+    await user.click(within(dialog).getByRole('radio', { name: 'Desativada' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Desativar a conta de Maria Souza?' }),
+    ).toHaveTextContent('perde o acesso na hora');
+    expect(sent).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Sim, desativar conta' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(sent).toEqual({ ativo: false });
+    expect(await screen.findByRole('status')).toHaveTextContent('Conta de Maria Souza desativada.');
+  });
+
+  it('shows the API refusal inside the dialog', async () => {
+    server.use(
+      http.get(api('/admin/usuarios'), () => HttpResponse.json(page([adminUser, maria]))),
+      http.patch(api('/admin/usuarios/2'), () =>
+        HttpResponse.json(
+          { detail: 'Usuário não encontrado.', code: 'NAO_ENCONTRADO' },
+          { status: 404 },
+        ),
+      ),
+    );
+    const { user } = renderRoute('/admin/usuarios', { user: adminUser });
+
+    await user.click(await screen.findByRole('button', { name: 'Editar Maria Souza' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Editar Maria Souza' });
+    await user.click(within(dialog).getByRole('combobox', { name: 'Perfil' }));
+    await user.click(await screen.findByRole('option', { name: 'Aluno' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+
+    expect(await within(dialog).findByText('Usuário não encontrado.')).toBeInTheDocument();
+  });
+
+  it('does not offer editing the signed-in admin account', async () => {
+    server.use(http.get(api('/admin/usuarios'), () => HttpResponse.json(page([adminUser, maria]))));
+    renderRoute('/admin/usuarios', { user: adminUser });
+
+    expect(await screen.findByText('Sua conta')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Editar Admin EduSpace' })).toBeNull();
+  });
+
   it('blocks non-admin users', async () => {
     renderRoute('/admin/usuarios');
 

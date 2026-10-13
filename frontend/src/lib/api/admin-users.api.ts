@@ -1,5 +1,5 @@
 import type { HttpClient } from '@/lib/api/http-client';
-import type { Page, UserAdminCreate, UserRead } from '@/lib/api/types';
+import type { Page, UserAdminCreate, UserAdminUpdate, UserRead } from '@/lib/api/types';
 
 export interface UserListParams {
   page: number;
@@ -20,5 +20,10 @@ export class AdminUsersApi {
 
   create(data: UserAdminCreate): Promise<UserRead> {
     return this.#http.post<UserRead>('/admin/usuarios', data);
+  }
+
+  /** Perfil e/ou situação. Desativar derruba a sessão e cancela as reservas futuras. */
+  update(id: number, data: UserAdminUpdate): Promise<UserRead> {
+    return this.#http.patch<UserRead>(`/admin/usuarios/${id}`, data);
   }
 }

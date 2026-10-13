@@ -16,22 +16,27 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { CreateUserDialog } from '@/components/admin/CreateUserDialog';
+import { EditUserDialog } from '@/components/admin/EditUserDialog';
 import { PageHeader } from '@/components/PageHeader';
 import { roleLabels } from '@/domain/roles';
+import { useAuth } from '@/hooks/useAuth';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { adminUsersApi } from '@/lib/api';
 import { ApiError } from '@/lib/api/api-error';
+import type { UserRead } from '@/lib/api/types';
 import { queryKeys } from '@/lib/query-keys';
 import { paths } from '@/router/paths';
 import { colors } from '@/theme/tokens';
 
-const COLUMNS = ['Nome', 'E-mail', 'Perfil', 'Matrícula', 'Situação'] as const;
+const COLUMNS = ['Nome', 'E-mail', 'Perfil', 'Matrícula', 'Situação', 'Ações'] as const;
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(20);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<UserRead | null>(null);
+  const { user: me } = useAuth();
   const busca = useDebouncedValue(search.trim());
 
   const params = { page: page + 1, per_page: perPage, ...(busca ? { busca } : {}) };
@@ -122,6 +127,22 @@ export default function AdminUsersPage() {
                       )}
                     </TableCell>
                     <TableCell>{user.ativo ? 'Ativa' : 'Desativada'}</TableCell>
+                    <TableCell>
+                      {/* A própria conta não é editável aqui: a API recusa rebaixar ou desativar a si mesmo. */}
+                      {user.id === me?.id ? (
+                        <Typography variant="body2" color="text.secondary">
+                          Sua conta
+                        </Typography>
+                      ) : (
+                        <Button
+                          variant="outlined"
+                          onClick={() => setEditing(user)}
+                          aria-label={`Editar ${user.nome}`}
+                        >
+                          Editar
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {query.data?.items.length === 0 && (
@@ -157,6 +178,7 @@ export default function AdminUsersPage() {
       )}
 
       <CreateUserDialog open={creating} onClose={() => setCreating(false)} />
+      {editing && <EditUserDialog user={editing} onClose={() => setEditing(null)} />}
     </>
   );
 }

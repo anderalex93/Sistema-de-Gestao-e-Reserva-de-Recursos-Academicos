@@ -9,6 +9,7 @@ export type UserRole = Schemas['UserRole'];
 export type UserRead = Schemas['UserRead'];
 export type UserSignup = Schemas['UserSignup'];
 export type UserAdminCreate = Schemas['UserAdminCreate'];
+export type UserAdminUpdate = Schemas['UserAdminUpdate'];
 export type LoginRequest = Schemas['LoginRequest'];
 export type TokenRead = Schemas['TokenRead'];
 export type BuildingRead = Schemas['BuildingRead'];

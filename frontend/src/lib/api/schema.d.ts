@@ -297,6 +297,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/usuarios/{user_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Altera o perfil ou ativa e desativa uma conta
+     * @description O novo perfil vale a partir do próximo acesso. Conta desativada perde a sessão na hora e as reservas dela que ainda não começaram são canceladas; o histórico continua. O admin não pode tirar o próprio acesso de administrador nem se desativar.
+     */
+    patch: operations['update_user_api_v1_admin_usuarios__user_id__patch'];
+    trace?: never;
+  };
   '/api/v1/admin/blocos': {
     parameters: {
       query?: never;
@@ -1034,6 +1054,15 @@ export interface components {
       matricula?: string | null;
       /** @default ALUNO */
       perfil: components['schemas']['UserRole'];
+    };
+    /**
+     * UserAdminUpdate
+     * @description Mudança parcial feita pelo admin: perfil, situação ou os dois.
+     */
+    UserAdminUpdate: {
+      perfil?: components['schemas']['UserRole'] | null;
+      /** Ativo */
+      ativo?: boolean | null;
     };
     /** UserRead */
     UserRead: {
@@ -1924,6 +1953,68 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_user_api_v1_admin_usuarios__user_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UserAdminUpdate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Usuário inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Admin tentando se rebaixar ou se desativar */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
         };
       };
     };
