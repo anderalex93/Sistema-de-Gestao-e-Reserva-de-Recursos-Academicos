@@ -16,10 +16,13 @@ import {
   rangeFromTimes,
   selectedInterval,
   selectSlot,
+  wouldExceed,
   type SelectedInterval,
   type SlotRange,
 } from '@/domain/slot-selection';
+import { lastBookableDate, maxSlots } from '@/domain/rules';
 import { useAvailability } from '@/hooks/useCatalog';
+import { useRules } from '@/hooks/useRules';
 import { colors, layout, zIndex } from '@/theme/tokens';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -36,11 +39,15 @@ interface AvailabilitySectionProps {
 }
 
 /** Dia na URL (`?data=`), para o link do resultado da busca já abrir no dia certo. */
-function useSelectedDate(): [string, string | null, string | null, (date: string) => void] {
+function useSelectedDate(
+  maxDate: string,
+): [string, string | null, string | null, (date: string) => void] {
   const [params, setParams] = useSearchParams();
   const today = campusToday();
   const raw = params.get('data');
-  const date = raw && DATE_PATTERN.test(raw) && raw >= today ? raw : today;
+  const valid = raw && DATE_PATTERN.test(raw) && raw >= today ? raw : today;
+  // Além da antecedência máxima não dá para reservar: mostra o último dia permitido.
+  const date = valid > maxDate ? maxDate : valid;
   const inicio = params.get('inicio');
   const fim = params.get('fim');
   const setDate = (next: string) =>
@@ -63,7 +70,9 @@ function useSelectedDate(): [string, string | null, string | null, (date: string
 }
 
 export function AvailabilitySection(props: AvailabilitySectionProps) {
-  const [date, inicio, fim, setDate] = useSelectedDate();
+  const rules = useRules();
+  const maxDate = lastBookableDate(rules);
+  const [date, inicio, fim, setDate] = useSelectedDate(maxDate);
   return (
     <DayAvailability
       key={date}
@@ -72,6 +81,9 @@ export function AvailabilitySection(props: AvailabilitySectionProps) {
       inicio={inicio}
       fim={fim}
       setDate={setDate}
+      maxDate={maxDate}
+      slotLimit={maxSlots(rules)}
+      maxMinutes={rules.maxMinutes}
     />
   );
 }
@@ -81,6 +93,10 @@ interface DayAvailabilityProps extends AvailabilitySectionProps {
   inicio: string | null;
   fim: string | null;
   setDate: (date: string) => void;
+  maxDate: string;
+  /** Duração máxima em blocos de 30 minutos (#28). */
+  slotLimit: number;
+  maxMinutes: number;
 }
 
 function DayAvailability({
@@ -91,17 +107,30 @@ function DayAvailability({
   inicio,
   fim,
   setDate,
+  maxDate,
+  slotLimit,
+  maxMinutes,
 }: DayAvailabilityProps) {
   const theme = useTheme();
   const compact = useMediaQuery(theme.breakpoints.down('md'));
   const query = useAvailability(resourceId, date);
   // `undefined` até a pessoa clicar: enquanto isso vale o intervalo que veio da busca.
   const [picked, setPicked] = useState<SlotRange | null | undefined>(undefined);
+  const [hint, setHint] = useState<string | null>(null);
 
   const slots = query.data?.data === date ? query.data.slots : [];
   const selection = picked === undefined ? rangeFromTimes(slots, inicio, fim) : picked;
   const interval = selectedInterval(slots, selection);
   const loading = query.isPending || (query.isPlaceholderData && query.data?.data !== date);
+
+  const select = (index: number) => {
+    if (wouldExceed(selection, index, slotLimit)) {
+      setHint(`Cada reserva pode ter no máximo ${durationLabel(maxMinutes)}.`);
+      return;
+    }
+    setHint(null);
+    setPicked(selectSlot(slots, selection, index));
+  };
 
   const summary = interval && (
     <Stack spacing={1.5}>
@@ -135,7 +164,7 @@ function DayAvailability({
         Toque no horário de início e depois no de fim. Cada bloco tem 30 minutos.
       </Typography>
       <Box sx={{ mb: 2 }}>
-        <DayPicker value={date} onChange={setDate} />
+        <DayPicker value={date} onChange={setDate} max={maxDate} />
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }} aria-live="polite">
           {dayLabel(date)}
         </Typography>
@@ -150,6 +179,13 @@ function DayAvailability({
         }}
       >
         <Box aria-busy={loading}>
+          {/* Sempre no DOM, para leitores de tela anunciarem o aviso quando ele aparece. */}
+          <Typography
+            component="output"
+            sx={{ display: 'block', mb: hint ? 1.5 : 0, fontWeight: 500 }}
+          >
+            {hint}
+          </Typography>
           {query.isError && !query.data ? (
             <LoadError error={query.error} onRetry={() => void query.refetch()} />
           ) : loading ? (
@@ -161,11 +197,7 @@ function DayAvailability({
               <Typography>O campus não abre neste dia. Escolha outra data.</Typography>
             </Box>
           ) : (
-            <SlotGrid
-              slots={slots}
-              selection={selection}
-              onSelect={(index) => setPicked(selectSlot(slots, selection, index))}
-            />
+            <SlotGrid slots={slots} selection={selection} onSelect={select} />
           )}
         </Box>
 

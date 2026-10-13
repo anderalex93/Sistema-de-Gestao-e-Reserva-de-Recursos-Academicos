@@ -35,6 +35,8 @@ interface SearchFiltersFormProps {
   buildings: readonly BuildingRead[];
   features: readonly FeatureRead[];
   weeklyHours: WeeklyHours;
+  /** Última data reservável (`AAAA-MM-DD`). */
+  maxDate: string;
 }
 
 function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
@@ -55,6 +57,7 @@ export function SearchFiltersForm({
   buildings,
   features,
   weeklyHours,
+  maxDate,
 }: SearchFiltersFormProps) {
   const id = useId();
   const today = campusToday();
@@ -196,14 +199,15 @@ export function SearchFiltersForm({
               value={search.data ?? ''}
               onChange={(event) => {
                 // `AAAA-MM-DD` compara em ordem de calendário.
-                const data = event.target.value >= today ? event.target.value : null;
+                const value = event.target.value;
+                const data = value >= today && value <= maxDate ? value : null;
                 const keepTimes =
                   !data ||
                   (search.inicio !== null &&
                     startOptions(data, weeklyHours).includes(search.inicio));
                 onChange({ data, ...(keepTimes ? {} : { inicio: null, fim: null }) });
               }}
-              slotProps={{ input: { min: today } }}
+              slotProps={{ input: { min: today, max: maxDate } }}
             />
           </Field>
           <Field id={`${id}-inicio`} label="Início">

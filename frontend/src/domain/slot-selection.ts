@@ -30,6 +30,16 @@ export function selectSlot(
   return { start: index, end: index };
 }
 
+/** O segundo clique estenderia a seleção além da duração máxima (em blocos de 30 min). */
+export function wouldExceed(current: SlotRange | null, index: number, maxSlots: number): boolean {
+  return (
+    current !== null &&
+    current.start === current.end &&
+    index > current.start &&
+    index - current.start + 1 > maxSlots
+  );
+}
+
 export function isSelected(range: SlotRange | null, index: number): boolean {
   return range !== null && index >= range.start && index <= range.end;
 }

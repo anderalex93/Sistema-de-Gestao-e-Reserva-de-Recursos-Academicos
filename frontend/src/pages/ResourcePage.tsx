@@ -1,5 +1,6 @@
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -13,7 +14,11 @@ import { DetailList, type DetailItem } from '@/components/DetailList';
 import { LoadError } from '@/components/LoadError';
 import { PageHeader } from '@/components/PageHeader';
 import { capacityLabel, resourceTypeLabels } from '@/domain/resource-types';
+import { activeLimitFor } from '@/domain/rules';
+import { useAuth } from '@/hooks/useAuth';
 import { useResource } from '@/hooks/useCatalog';
+import { useMyReservations } from '@/hooks/useReservations';
+import { useRules } from '@/hooks/useRules';
 import { ApiError } from '@/lib/api/api-error';
 import type { SelectedInterval } from '@/domain/slot-selection';
 import type { ResourceRead } from '@/lib/api/types';
@@ -78,6 +83,13 @@ export default function ResourcePage() {
   const { id = '' } = useParams();
   const resourceId = Number(id);
   const query = useResource(resourceId);
+  const { user } = useAuth();
+  const rules = useRules();
+  const upcoming = useMyReservations({ escopo: 'proximas', page: 1, per_page: 1 });
+  const limit = user ? activeLimitFor(rules, user.perfil) : null;
+  const active = upcoming.data?.total ?? 0;
+  // Avisa antes de chamar a API; o back continua sendo quem garante a regra (#28).
+  const atLimit = limit !== null && active >= limit;
   const [pending, setPending] = useState<{
     interval: SelectedInterval;
     date: string;
@@ -126,14 +138,23 @@ export default function ResourcePage() {
         <AvailabilitySection
           resourceId={resource.id}
           resourceName={resource.nome}
-          renderActions={(interval, date, clearSelection) => (
-            <Button
-              variant="contained"
-              onClick={() => setPending({ interval, date, clearSelection })}
-            >
-              Reservar este horário
-            </Button>
-          )}
+          renderActions={(interval, date, clearSelection) =>
+            atLimit ? (
+              <Typography sx={{ maxWidth: '40ch' }}>
+                Você já tem {active} reservas ativas, o limite do seu perfil.{' '}
+                <Link component={RouterLink} to={paths.myReservations}>
+                  Ver minhas reservas
+                </Link>
+              </Typography>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={() => setPending({ interval, date, clearSelection })}
+              >
+                Reservar este horário
+              </Button>
+            )
+          }
         />
         {pending && (
           <ReservationDialog

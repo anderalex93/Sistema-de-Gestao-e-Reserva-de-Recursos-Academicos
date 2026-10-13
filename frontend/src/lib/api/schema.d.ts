@@ -657,6 +657,17 @@ export interface components {
        * @description Dias ausentes: campus fechado
        */
       horarios: components['schemas']['DayHoursRead'][];
+      /** Duracao Max Minutos */
+      duracao_max_minutos: number;
+      /** Antecedencia Max Dias */
+      antecedencia_max_dias: number;
+      /**
+       * Limite Reservas Ativas
+       * @description Reservas confirmadas e não terminadas por perfil; nulo = sem limite
+       */
+      limite_reservas_ativas: {
+        [key: string]: number | null;
+      };
     };
     /** SlotRead */
     SlotRead: {

@@ -111,6 +111,9 @@ describe('schedule', () => {
       fuso: 'America/Maceio',
       intervalo_minutos: 30,
       horarios: [{ dia_semana: 6, abertura: '08:00:00', fechamento: '12:00:00' }],
+      duracao_max_minutos: 240,
+      antecedencia_max_dias: 14,
+      limite_reservas_ativas: { ALUNO: 3, PROFESSOR: 10, ADMIN: null },
     });
     expect([...hours]).toEqual([[6, { opening: '08:00', closing: '12:00' }]]);
   });

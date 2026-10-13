@@ -23,11 +23,12 @@ import {
   toApiParams,
   type ResourceSearch,
 } from '@/domain/resource-search';
+import { lastBookableDate } from '@/domain/rules';
 import { dayLabel } from '@/domain/schedule';
 import { useBuildings, useFeatures, useResourceList } from '@/hooks/useCatalog';
 import { useResourceSearch } from '@/hooks/useResourceSearch';
 import { paths } from '@/router/paths';
-import { useWeeklyHours } from '@/hooks/useWeeklyHours';
+import { useRules } from '@/hooks/useRules';
 import { colors, zIndex } from '@/theme/tokens';
 
 const PER_PAGE = 24;
@@ -71,7 +72,7 @@ export default function ReservePage() {
   const query = useResourceList(toApiParams(search, PER_PAGE));
   const buildings = useBuildings();
   const features = useFeatures();
-  const weeklyHours = useWeeklyHours();
+  const rules = useRules();
   const data = query.data;
   const filters = activeFilterCount(search);
 
@@ -81,7 +82,8 @@ export default function ReservePage() {
       onChange={update}
       buildings={buildings.data ?? []}
       features={features.data ?? []}
-      weeklyHours={weeklyHours}
+      weeklyHours={rules.weeklyHours}
+      maxDate={lastBookableDate(rules)}
     />
   );
   const clearButton = filters > 0 && (

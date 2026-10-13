@@ -11,13 +11,16 @@ import { addDays, campusToday } from '@/domain/schedule';
 interface DayPickerProps {
   value: string;
   onChange: (date: string) => void;
+  /** Última data permitida; sem ela, o próximo dia nunca é bloqueado. */
+  max?: string;
 }
 
 /** Dia anterior, campo de data e próximo dia. Não volta para antes de hoje. */
-export function DayPicker({ value, onChange }: DayPickerProps) {
+export function DayPicker({ value, onChange, max }: DayPickerProps) {
   const id = useId();
   const today = campusToday();
   const atToday = value <= today;
+  const atMax = max !== undefined && value >= max;
 
   return (
     <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -38,19 +41,26 @@ export function DayPicker({ value, onChange }: DayPickerProps) {
         type="date"
         value={value}
         onChange={(event) => {
-          if (event.target.value) onChange(event.target.value < today ? today : event.target.value);
+          const picked = event.target.value;
+          if (!picked) return;
+          if (picked < today) onChange(today);
+          else if (max && picked > max) onChange(max);
+          else onChange(picked);
         }}
-        slotProps={{ input: { min: today, 'aria-label': 'Data' } }}
+        slotProps={{ input: { min: today, max, 'aria-label': 'Data' } }}
         sx={{ width: 180 }}
       />
       <Tooltip title="Próximo dia">
-        <IconButton
-          aria-label="Próximo dia"
-          onClick={() => onChange(addDays(value, 1))}
-          sx={{ width: 44, height: 44, border: 1, borderColor: 'divider' }}
-        >
-          <ChevronRightSharp />
-        </IconButton>
+        <span>
+          <IconButton
+            aria-label="Próximo dia"
+            disabled={atMax}
+            onClick={() => onChange(addDays(value, 1))}
+            sx={{ width: 44, height: 44, border: 1, borderColor: 'divider' }}
+          >
+            <ChevronRightSharp />
+          </IconButton>
+        </span>
       </Tooltip>
     </Stack>
   );

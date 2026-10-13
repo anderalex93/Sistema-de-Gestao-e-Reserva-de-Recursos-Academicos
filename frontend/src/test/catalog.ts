@@ -29,6 +29,9 @@ export const rules: RulesRead = {
   horarios: [1, 2, 3, 4, 5]
     .map((dia_semana) => ({ dia_semana, abertura: '08:00:00', fechamento: '21:00:00' }))
     .concat([{ dia_semana: 6, abertura: '08:00:00', fechamento: '12:00:00' }]),
+  duracao_max_minutos: 240,
+  antecedencia_max_dias: 14,
+  limite_reservas_ativas: { ALUNO: 3, PROFESSOR: 10, ADMIN: null },
 };
 
 /** Próximo dia útil depois de hoje (segunda a sexta, 08:00 às 21:00). */
