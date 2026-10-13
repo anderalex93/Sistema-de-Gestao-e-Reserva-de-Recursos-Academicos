@@ -33,7 +33,8 @@ dados impede que dois agendamentos ocupem o mesmo espaço no mesmo horário.
 
 Apresentação do MVP prevista para **20/11/2026**. O planejamento completo está nas
 [issues](https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos/issues),
-organizadas em épicos (#1 a #7) e marcos por sprint.
+organizadas em épicos (#1 a #7) e marcos por sprint, e acompanhado no quadro
+[EduSpace MVP](https://github.com/users/rdalbu/projects/1).
 
 ## Stack
 

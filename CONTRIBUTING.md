@@ -103,5 +103,7 @@ Use os templates ao abrir uma issue: **Bug**, **Funcionalidade** ou **Tarefa té
 ## Quadro
 
 Colunas: **Backlog → A fazer → Em andamento → Em revisão → Pronto**. "Em revisão" é usado para
-tarefas que dependem de validação do PO (wireframes, modelagem, textos). O quadro fica na aba
-**Projects** do repositório.
+tarefas que dependem de validação do PO (wireframes, modelagem, textos).
+
+Quadro: [EduSpace MVP](https://github.com/users/rdalbu/projects/1), com os campos Status, Sprint,
+Prioridade e Tamanho. Issue nova entra pelo template e deve ser adicionada ao quadro.
