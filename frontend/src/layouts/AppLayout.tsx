@@ -7,7 +7,7 @@ import { NavLink, Link as RouterLink, Outlet } from 'react-router';
 import { BrandMark } from '@/components/BrandMark';
 import { PageSkeleton } from '@/components/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
-import { accountNav, adminNav, primaryNav, type NavItem } from '@/layouts/navigation';
+import { accountNav, adminNav, boardNav, primaryNav, type NavItem } from '@/layouts/navigation';
 import { paths } from '@/router/paths';
 import { colors, layout, zIndex } from '@/theme/tokens';
 
@@ -39,7 +39,8 @@ function SideNavLink({ item }: { item: NavItem }) {
 
 function SideNav() {
   const { user } = useAuth();
-  const items = user?.perfil === 'ADMIN' ? [...primaryNav, adminNav] : primaryNav;
+  const main = [...primaryNav.slice(0, 2), boardNav, ...primaryNav.slice(2)];
+  const items = user?.perfil === 'ADMIN' ? [...main, adminNav] : main;
   return (
     <Box
       component="aside"

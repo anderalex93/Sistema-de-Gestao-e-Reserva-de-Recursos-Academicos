@@ -208,6 +208,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/quadro': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Ocupação de todos os recursos num dia
+     * @description Para cada recurso ativo, os intervalos já reservados no dia (fuso do campus). Quem reservou só é identificado para administradores.
+     */
+    get: operations['get_board_api_v1_quadro_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/admin/usuarios': {
     parameters: {
       query?: never;
@@ -241,6 +261,40 @@ export interface components {
       data: string;
       /** Slots */
       slots: components['schemas']['SlotRead'][];
+    };
+    /** BoardRead */
+    BoardRead: {
+      /**
+       * Data
+       * Format: date
+       */
+      data: string;
+      /**
+       * Abertura
+       * @description Nulo quando o campus não abre no dia
+       */
+      abertura: string | null;
+      /** Fechamento */
+      fechamento: string | null;
+      /** Linhas */
+      linhas: components['schemas']['BoardRowRead'][];
+    };
+    /** BoardResourceRead */
+    BoardResourceRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      tipo: components['schemas']['ResourceType'];
+      /** Capacidade */
+      capacidade: number | null;
+      bloco: components['schemas']['BuildingRead'];
+    };
+    /** BoardRowRead */
+    BoardRowRead: {
+      recurso: components['schemas']['BoardResourceRead'];
+      /** Ocupacoes */
+      ocupacoes: components['schemas']['OccupationRead'][];
     };
     /** BuildingRead */
     BuildingRead: {
@@ -313,6 +367,29 @@ export interface components {
       email: string;
       /** Senha */
       senha: string;
+    };
+    /** OccupationRead */
+    OccupationRead: {
+      /**
+       * Inicio
+       * Format: date-time
+       */
+      inicio: string;
+      /**
+       * Fim
+       * Format: date-time
+       */
+      fim: string;
+      /**
+       * Propria
+       * @description Reservada por quem consulta
+       */
+      propria: boolean;
+      /**
+       * Reservado Por
+       * @description Só para administradores (LGPD)
+       */
+      reservado_por: string | null;
     };
     /** Page[ResourceRead] */
     Page_ResourceRead_: {
@@ -1052,6 +1129,49 @@ export interface operations {
       };
       /** @description Reserva inexistente ou de outra pessoa */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_board_api_v1_quadro_get: {
+    parameters: {
+      query: {
+        /** @description Dia, AAAA-MM-DD, no fuso do campus */
+        data: string;
+        bloco_id?: number | null;
+        tipo?: components['schemas']['ResourceType'] | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BoardRead'];
+        };
+      };
+      /** @description Sem sessão válida */
+      401: {
         headers: {
           [name: string]: unknown;
         };

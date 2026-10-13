@@ -8,6 +8,7 @@ import {
   AccountPage,
   AdminPage,
   AdminUsersPage,
+  BoardPage,
   DashboardPage,
   LoginPage,
   MyReservationsPage,
@@ -44,6 +45,7 @@ export const routes: RouteObject[] = [
             children: [
               { index: true, element: <DashboardPage /> },
               { path: 'reservar', element: <ReservePage /> },
+              { path: 'quadro', element: <BoardPage /> },
               { path: 'recursos/:id', element: <ResourcePage /> },
               { path: 'minhas-reservas', element: <MyReservationsPage /> },
               { path: 'conta', element: <AccountPage /> },

@@ -3,6 +3,7 @@ export const paths = {
   login: '/login',
   signup: '/cadastro',
   reserve: '/reservar',
+  board: '/quadro',
   resource: (id: number | string) => `/recursos/${id}`,
   myReservations: '/minhas-reservas',
   receipt: (code: string) => `/comprovantes/${code}`,

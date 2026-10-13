@@ -1,6 +1,7 @@
 import { config } from '@/config';
 import { AdminUsersApi } from '@/lib/api/admin-users.api';
 import { AuthApi } from '@/lib/api/auth.api';
+import { BoardApi } from '@/lib/api/board.api';
 import { CatalogApi } from '@/lib/api/catalog.api';
 import { ConfigApi } from '@/lib/api/config.api';
 import { HealthApi } from '@/lib/api/health.api';
@@ -17,3 +18,4 @@ export const adminUsersApi = new AdminUsersApi(httpClient);
 export const catalogApi = new CatalogApi(httpClient);
 export const configApi = new ConfigApi(httpClient);
 export const reservationsApi = new ReservationsApi(httpClient);
+export const boardApi = new BoardApi(httpClient);

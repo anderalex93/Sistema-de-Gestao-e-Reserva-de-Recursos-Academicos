@@ -1,4 +1,5 @@
 import AdminPanelSettingsSharp from '@mui/icons-material/AdminPanelSettingsSharp';
+import CalendarViewDaySharp from '@mui/icons-material/CalendarViewDaySharp';
 import EventNoteSharp from '@mui/icons-material/EventNoteSharp';
 import HomeSharp from '@mui/icons-material/HomeSharp';
 import PersonSharp from '@mui/icons-material/PersonSharp';
@@ -25,6 +26,14 @@ export const primaryNav: readonly NavItem[] = [
     icon: EventNoteSharp,
   },
 ];
+
+/** Só na navegação lateral; no celular o acesso fica na página Reservar. */
+export const boardNav: NavItem = {
+  label: 'Quadro de horários',
+  shortLabel: 'Quadro',
+  to: paths.board,
+  icon: CalendarViewDaySharp,
+};
 
 export const accountNav: NavItem = {
   label: 'Minha conta',

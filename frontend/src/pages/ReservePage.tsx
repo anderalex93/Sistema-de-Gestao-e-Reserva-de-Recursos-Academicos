@@ -1,3 +1,4 @@
+import CalendarViewDaySharp from '@mui/icons-material/CalendarViewDaySharp';
 import CloseSharp from '@mui/icons-material/CloseSharp';
 import TuneSharp from '@mui/icons-material/TuneSharp';
 import Box from '@mui/material/Box';
@@ -10,6 +11,7 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useState } from 'react';
+import { Link as RouterLink } from 'react-router';
 
 import { ResourceCard, ResourceCardSkeleton } from '@/components/catalog/ResourceCard';
 import { SearchFiltersForm } from '@/components/catalog/SearchFiltersForm';
@@ -24,6 +26,7 @@ import {
 import { dayLabel } from '@/domain/schedule';
 import { useBuildings, useFeatures, useResourceList } from '@/hooks/useCatalog';
 import { useResourceSearch } from '@/hooks/useResourceSearch';
+import { paths } from '@/router/paths';
 import { useWeeklyHours } from '@/hooks/useWeeklyHours';
 import { colors, zIndex } from '@/theme/tokens';
 
@@ -92,6 +95,16 @@ export default function ReservePage() {
       <PageHeader
         title="Reservar espaço"
         description="Filtre por bloco, tipo, recursos e horário para encontrar um espaço livre."
+        actions={
+          <Button
+            component={RouterLink}
+            to={paths.board}
+            variant="outlined"
+            startIcon={<CalendarViewDaySharp />}
+          >
+            Quadro de horários
+          </Button>
+        }
       />
 
       {compact ? (

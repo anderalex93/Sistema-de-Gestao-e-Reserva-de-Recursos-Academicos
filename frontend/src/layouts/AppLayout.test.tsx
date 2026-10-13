@@ -13,6 +13,7 @@ describe('AppLayout', () => {
     expect(links.map((link) => link.textContent)).toEqual([
       'Início',
       'Reservar',
+      'Quadro de horários',
       'Minhas reservas',
       'Administração',
     ]);

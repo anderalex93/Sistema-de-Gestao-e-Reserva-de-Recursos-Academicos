@@ -11,10 +11,8 @@ import type { ReactNode } from 'react';
 import { isSelected, type SlotRange } from '@/domain/slot-selection';
 import { campusTime } from '@/domain/schedule';
 import type { SlotRead } from '@/lib/api/types';
+import { busyPattern } from '@/theme/patterns';
 import { colors, fonts } from '@/theme/tokens';
-
-/** Textura de "ocupado" (design system, seção 8): estado legível sem depender de cor. */
-const hatch = `repeating-linear-gradient(135deg, ${colors.hatch} 0 2px, transparent 2px 8px)`;
 
 interface SlotView {
   label: string;
@@ -43,7 +41,7 @@ function view(slot: SlotRead, selected: boolean): SlotView {
         ) : (
           <EventBusySharp sx={{ fontSize: 20 }} aria-hidden />
         ),
-        sx: { backgroundColor: colors.surface, backgroundImage: hatch, color: colors.ink },
+        sx: { backgroundColor: colors.surface, backgroundImage: busyPattern, color: colors.ink },
       };
     case 'PASSADO':
       return {
