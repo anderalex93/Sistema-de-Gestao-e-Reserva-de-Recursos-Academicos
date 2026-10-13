@@ -22,6 +22,7 @@ import { useRules } from '@/hooks/useRules';
 import { ApiError } from '@/lib/api/api-error';
 import type { SelectedInterval } from '@/domain/slot-selection';
 import type { ResourceRead } from '@/lib/api/types';
+import { loadFailure } from '@/lib/load-failure';
 import { paths } from '@/router/paths';
 
 const panelSx = {
@@ -83,6 +84,7 @@ export default function ResourcePage() {
   const { id = '' } = useParams();
   const resourceId = Number(id);
   const query = useResource(resourceId);
+  const failure = loadFailure(query);
   const { user } = useAuth();
   const rules = useRules();
   const upcoming = useMyReservations({ escopo: 'proximas', page: 1, per_page: 1 });
@@ -99,17 +101,17 @@ export default function ResourcePage() {
   const notFound =
     !Number.isInteger(resourceId) ||
     resourceId <= 0 ||
-    (query.isError && ApiError.from(query.error).status === 404);
+    (failure !== null && ApiError.from(failure).status === 404);
   if (notFound) return <NotFound />;
 
-  if (query.isError) {
+  if (failure) {
     return (
       <>
         <PageHeader
           title="Recurso"
           breadcrumbs={[{ label: 'Reservar', to: paths.reserve }, { label: 'Recurso' }]}
         />
-        <LoadError error={query.error} onRetry={() => void query.refetch()} />
+        <LoadError error={failure} onRetry={() => void query.refetch()} />
       </>
     );
   }

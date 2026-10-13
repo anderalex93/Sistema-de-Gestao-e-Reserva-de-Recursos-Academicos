@@ -19,6 +19,7 @@ import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReceipt } from '@/hooks/useReservations';
 import { ApiError } from '@/lib/api/api-error';
+import { loadFailure } from '@/lib/load-failure';
 import { colors, fonts } from '@/theme/tokens';
 
 /** Na impressão sai só o comprovante: sem cabeçalho do site e sem os botões. */
@@ -43,8 +44,9 @@ export default function ReceiptPage() {
   const { notify } = useFeedback();
   const url = `${window.location.origin}/comprovantes/${codigo}`;
 
-  if (query.isError) {
-    const notFound = ApiError.from(query.error).status === 404;
+  const failure = loadFailure(query);
+  if (failure) {
+    const notFound = ApiError.from(failure).status === 404;
     return (
       <>
         <PageHeader

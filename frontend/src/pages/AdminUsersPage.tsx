@@ -17,13 +17,14 @@ import { useState } from 'react';
 
 import { CreateUserDialog } from '@/components/admin/CreateUserDialog';
 import { EditUserDialog } from '@/components/admin/EditUserDialog';
+import { LoadError } from '@/components/LoadError';
 import { PageHeader } from '@/components/PageHeader';
 import { roleLabels } from '@/domain/roles';
 import { useAuth } from '@/hooks/useAuth';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { adminUsersApi } from '@/lib/api';
-import { ApiError } from '@/lib/api/api-error';
 import type { UserRead } from '@/lib/api/types';
+import { loadFailure } from '@/lib/load-failure';
 import { queryKeys } from '@/lib/query-keys';
 import { paths } from '@/router/paths';
 import { colors } from '@/theme/tokens';
@@ -81,13 +82,8 @@ export default function AdminUsersPage() {
         />
       </Box>
 
-      {query.isError ? (
-        <Box role="alert" sx={{ border: 1, borderColor: 'divider', p: 3 }}>
-          <Typography>{ApiError.from(query.error).message}</Typography>
-          <Button variant="outlined" sx={{ mt: 2 }} onClick={() => void query.refetch()}>
-            Tentar de novo
-          </Button>
-        </Box>
+      {loadFailure(query) ? (
+        <LoadError error={loadFailure(query)} onRetry={() => void query.refetch()} />
       ) : (
         <Box sx={{ border: 1, borderColor: 'divider', backgroundColor: 'background.paper' }}>
           <Box sx={{ overflowX: 'auto' }}>

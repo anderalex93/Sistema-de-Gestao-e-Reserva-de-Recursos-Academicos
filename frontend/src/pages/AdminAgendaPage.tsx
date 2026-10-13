@@ -24,6 +24,7 @@ import { useAdminAgenda } from '@/hooks/useAdminAgenda';
 import { useAdminBuildings } from '@/hooks/useAdminCatalog';
 import type { AgendaParams } from '@/lib/api/admin-reservations.api';
 import type { AdminReservationRead, ReservationStatus } from '@/lib/api/types';
+import { loadFailure } from '@/lib/load-failure';
 import { paths } from '@/router/paths';
 import { fonts } from '@/theme/tokens';
 
@@ -225,8 +226,8 @@ export default function AdminAgendaPage() {
         {data && ` · ${data.total === 1 ? '1 reserva' : `${data.total} reservas`}`}
       </Typography>
 
-      {query.isError && !data ? (
-        <LoadError error={query.error} onRetry={() => void query.refetch()} />
+      {loadFailure(query) ? (
+        <LoadError error={loadFailure(query)} onRetry={() => void query.refetch()} />
       ) : data?.total === 0 ? (
         <Box sx={{ border: 1, borderColor: 'divider', backgroundColor: 'background.paper', p: 3 }}>
           <Typography>Nenhuma reserva neste dia com estes filtros.</Typography>

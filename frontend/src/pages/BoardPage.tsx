@@ -20,6 +20,7 @@ import { useBoard } from '@/hooks/useBoard';
 import { useBuildings } from '@/hooks/useCatalog';
 import type { BoardParams } from '@/lib/api/board.api';
 import type { ResourceType } from '@/lib/api/types';
+import { loadFailure } from '@/lib/load-failure';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const labelSx = { mb: 0.75, fontWeight: 700, fontSize: '0.875rem', color: 'text.primary' };
@@ -123,8 +124,8 @@ export default function BoardPage() {
         <BoardLegend />
       </Stack>
 
-      {query.isError && !query.data ? (
-        <LoadError error={query.error} onRetry={() => void query.refetch()} />
+      {loadFailure(query) ? (
+        <LoadError error={loadFailure(query)} onRetry={() => void query.refetch()} />
       ) : !board ? (
         <Box aria-busy="true" aria-label="Carregando quadro">
           {Array.from({ length: 6 }, (_, index) => (

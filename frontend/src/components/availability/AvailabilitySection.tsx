@@ -23,6 +23,7 @@ import {
 import { lastBookableDate, maxSlots } from '@/domain/rules';
 import { useAvailability } from '@/hooks/useCatalog';
 import { useRules } from '@/hooks/useRules';
+import { loadFailure } from '@/lib/load-failure';
 import { colors, layout, zIndex } from '@/theme/tokens';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -194,8 +195,8 @@ function DayAvailability({
           >
             {hint}
           </Typography>
-          {query.isError && !query.data ? (
-            <LoadError error={query.error} onRetry={() => void query.refetch()} />
+          {loadFailure(query) ? (
+            <LoadError error={loadFailure(query)} onRetry={() => void query.refetch()} />
           ) : loading ? (
             <SlotGridSkeleton />
           ) : slots.length === 0 ? (

@@ -29,6 +29,7 @@ import { useBuildings, useFeatures, useResourceList } from '@/hooks/useCatalog';
 import { useResourceSearch } from '@/hooks/useResourceSearch';
 import { paths } from '@/router/paths';
 import { useRules } from '@/hooks/useRules';
+import { loadFailure } from '@/lib/load-failure';
 import { colors, zIndex } from '@/theme/tokens';
 
 const PER_PAGE = 24;
@@ -174,8 +175,8 @@ export default function ReservePage() {
         </Stack>
       </Drawer>
 
-      {query.isError && !data ? (
-        <LoadError error={query.error} onRetry={() => void query.refetch()} />
+      {loadFailure(query) ? (
+        <LoadError error={loadFailure(query)} onRetry={() => void query.refetch()} />
       ) : (
         <>
           <Typography

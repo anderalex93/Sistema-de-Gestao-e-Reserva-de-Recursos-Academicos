@@ -14,6 +14,7 @@ import { CancelReservationDialog } from '@/components/reservation/CancelReservat
 import { ReservationRow, ReservationRowSkeleton } from '@/components/reservation/ReservationRow';
 import { useMyReservations } from '@/hooks/useReservations';
 import type { MyReservationRead, ReservationScope } from '@/lib/api/types';
+import { loadFailure } from '@/lib/load-failure';
 import { paths } from '@/router/paths';
 
 const PER_PAGE = 10;
@@ -61,8 +62,8 @@ export default function MyReservationsPage() {
       </Tabs>
 
       <Box role="tabpanel" id="painel-reservas" aria-labelledby={`aba-${escopo}`}>
-        {query.isError && !data ? (
-          <LoadError error={query.error} onRetry={() => void query.refetch()} />
+        {loadFailure(query) ? (
+          <LoadError error={loadFailure(query)} onRetry={() => void query.refetch()} />
         ) : data?.total === 0 ? (
           <Box
             sx={{ border: 1, borderColor: 'divider', backgroundColor: 'background.paper', p: 3 }}

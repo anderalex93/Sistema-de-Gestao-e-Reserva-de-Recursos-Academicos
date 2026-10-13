@@ -6,6 +6,7 @@ import { AuthContext, type AuthContextValue, type AuthStatus } from '@/contexts/
 import { useFeedback } from '@/hooks/useFeedback';
 import { authApi, httpClient, tokenStore } from '@/lib/api';
 import type { LoginRequest } from '@/lib/api/types';
+import { loadFailure } from '@/lib/load-failure';
 import { queryKeys } from '@/lib/query-keys';
 import { paths } from '@/router/paths';
 
@@ -64,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   let status: AuthStatus = 'anonymous';
   if (user) status = 'authenticated';
   else if (hasToken && meQuery.isPending) status = 'loading';
-  else if (hasToken && meQuery.isError) status = 'error';
+  else if (hasToken && loadFailure(meQuery)) status = 'error';
 
   const value = useMemo<AuthContextValue>(
     () => ({ status, user, login, logout, retry }),

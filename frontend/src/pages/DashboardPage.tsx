@@ -13,6 +13,7 @@ import { locationLabel } from '@/domain/resource-types';
 import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyReservations } from '@/hooks/useReservations';
+import { loadFailure } from '@/lib/load-failure';
 import { paths } from '@/router/paths';
 import { fonts } from '@/theme/tokens';
 
@@ -28,7 +29,8 @@ function NextReservation() {
   const query = useMyReservations({ escopo: 'proximas', page: 1, per_page: 1 });
   const next = query.data?.items[0];
 
-  if (query.isError) return <LoadError error={query.error} onRetry={() => void query.refetch()} />;
+  const failure = loadFailure(query);
+  if (failure) return <LoadError error={failure} onRetry={() => void query.refetch()} />;
   if (query.isPending) {
     return (
       <Box sx={panelSx} aria-busy="true" aria-label="Carregando sua próxima reserva">

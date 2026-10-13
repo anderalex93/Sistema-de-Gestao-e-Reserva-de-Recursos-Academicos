@@ -33,6 +33,7 @@ import { adminCatalogApi } from '@/lib/api';
 import type { AdminResourceListParams } from '@/lib/api/admin-catalog.api';
 import { ApiError } from '@/lib/api/api-error';
 import type { ResourceAdminRead, ResourceType } from '@/lib/api/types';
+import { loadFailure } from '@/lib/load-failure';
 import { paths } from '@/router/paths';
 
 const ANY = '';
@@ -197,8 +198,8 @@ export default function AdminResourcesPage() {
         </Filter>
       </Box>
 
-      {query.isError && !query.data ? (
-        <LoadError error={query.error} onRetry={() => void query.refetch()} />
+      {loadFailure(query) ? (
+        <LoadError error={loadFailure(query)} onRetry={() => void query.refetch()} />
       ) : query.data?.total === 0 ? (
         <Box sx={{ border: 1, borderColor: 'divider', backgroundColor: 'background.paper', p: 3 }}>
           <Typography>

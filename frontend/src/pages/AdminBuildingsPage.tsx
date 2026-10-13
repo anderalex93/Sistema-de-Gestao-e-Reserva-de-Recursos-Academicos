@@ -22,6 +22,7 @@ import { useFeedback } from '@/hooks/useFeedback';
 import { adminCatalogApi } from '@/lib/api';
 import { ApiError } from '@/lib/api/api-error';
 import type { BuildingAdminRead, FeatureAdminRead } from '@/lib/api/types';
+import { loadFailure } from '@/lib/load-failure';
 import { paths } from '@/router/paths';
 import { colors } from '@/theme/tokens';
 
@@ -184,8 +185,8 @@ function BuildingsTab() {
           Novo bloco
         </Button>
       </Stack>
-      {query.isError && !query.data ? (
-        <LoadError error={query.error} onRetry={() => void query.refetch()} />
+      {loadFailure(query) ? (
+        <LoadError error={loadFailure(query)} onRetry={() => void query.refetch()} />
       ) : rows?.length === 0 ? (
         <Box sx={{ border: 1, borderColor: 'divider', backgroundColor: 'background.paper', p: 3 }}>
           <Typography>
@@ -259,8 +260,8 @@ function FeaturesTab() {
           Nova característica
         </Button>
       </Stack>
-      {query.isError && !query.data ? (
-        <LoadError error={query.error} onRetry={() => void query.refetch()} />
+      {loadFailure(query) ? (
+        <LoadError error={loadFailure(query)} onRetry={() => void query.refetch()} />
       ) : rows?.length === 0 ? (
         <Box sx={{ border: 1, borderColor: 'divider', backgroundColor: 'background.paper', p: 3 }}>
           <Typography>
