@@ -24,9 +24,24 @@ npm run dev          # http://localhost:5173
 | `npm run typecheck` | TypeScript estrito                                                  |
 | `npm run format`    | Formata com Prettier                                                |
 | `npm run gen:api`   | Regera `src/lib/api/schema.d.ts` a partir do OpenAPI da API rodando |
+| `npm run e2e`       | Testes E2E com Playwright (veja abaixo)                             |
 
 Rode `npm run gen:api` sempre que o contrato do backend mudar e commite o arquivo gerado. Para
 outra origem: `OPENAPI_URL=https://.../openapi.json npm run gen:api`.
+
+## Testes E2E (Playwright)
+
+`npm run e2e` percorre o fluxo principal de ponta a ponta (cadastro, login, busca, grade,
+reserva, conflito, comprovante e cancelamento), no desktop e num Pixel 7. Ele sobe sozinho a
+API em `:8100` e o front em `:5180`, então roda ao lado do `make dev` e do `npm run dev`.
+
+Pré-requisitos: Postgres do `docker-compose` no ar (`make db-up` no `backend/`), `uv` no `PATH`
+e o Chromium do Playwright (`npx playwright install chromium`, uma vez). O banco
+`eduspace_e2e` é apagado e recriado com o seed a cada execução; outro banco pode ser indicado em
+`E2E_DATABASE_URL`, desde que o nome termine em `_e2e`.
+
+Na falha, trace, vídeo e print ficam em `test-results/` (`npx playwright show-trace ...`). No
+GitHub, o workflow `E2E` roda a cada push na `main` e publica esses arquivos como artefato.
 
 ## Estrutura
 

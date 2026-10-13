@@ -25,3 +25,8 @@ dist-ssr
 
 # Gerado por make openapi (backend)
 openapi.json
+
+# Playwright (npm run e2e)
+test-results
+playwright-report
+blob-report
