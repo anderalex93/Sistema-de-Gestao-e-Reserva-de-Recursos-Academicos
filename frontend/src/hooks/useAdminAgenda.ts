@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 
 import { adminReservationsApi } from '@/lib/api';
 import type { AgendaParams } from '@/lib/api/admin-reservations.api';
+import { liveQueryOptions } from '@/lib/live-query';
 import { queryKeys } from '@/lib/query-keys';
 
 /** A agenda muda a cada reserva feita ou cancelada: sem cache longo. */
@@ -11,6 +12,7 @@ export function useAdminAgenda(params: AgendaParams) {
     queryFn: () => adminReservationsApi.agenda(params),
     staleTime: 0,
     placeholderData: keepPreviousData,
+    ...liveQueryOptions,
   });
 }
 

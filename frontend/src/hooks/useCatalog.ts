@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { catalogApi } from '@/lib/api';
 import type { ResourceListParams } from '@/lib/api/catalog.api';
+import { liveQueryOptions } from '@/lib/live-query';
 import { queryKeys } from '@/lib/query-keys';
 
 /** Blocos e características mudam pouco: ficam em cache por 10 minutos. */
@@ -12,6 +13,7 @@ export function useResourceList(params: ResourceListParams) {
     queryKey: queryKeys.resourceList(params),
     queryFn: () => catalogApi.listResources(params),
     placeholderData: keepPreviousData,
+    ...liveQueryOptions,
   });
 }
 
@@ -39,12 +41,13 @@ export function useFeatures() {
   });
 }
 
-/** Grade do dia. Muda a cada reserva: sem cache longo. */
+/** Grade do dia. Muda a cada reserva, inclusive de outras pessoas: sem cache e sempre ao vivo. */
 export function useAvailability(resourceId: number, date: string) {
   return useQuery({
     queryKey: queryKeys.availability(resourceId, date),
     queryFn: () => catalogApi.getAvailability(resourceId, date),
     staleTime: 0,
     placeholderData: keepPreviousData,
+    ...liveQueryOptions,
   });
 }
