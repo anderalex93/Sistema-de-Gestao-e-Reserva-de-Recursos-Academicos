@@ -5,10 +5,12 @@ export const busyPattern = `repeating-linear-gradient(135deg, ${colors.hatch} 0 
 
 /**
  * Link solto (fora de texto corrido) com área de toque de 44px (design system, seção 12).
- * Só a altura cresce: o texto continua alinhado com o que está ao lado.
+ * Altura e largura mínimas de 44px; o texto continua alinhado com o que está ao lado.
  */
 export const touchTarget = {
   display: 'inline-flex',
   alignItems: 'center',
   minHeight: 44,
+  minWidth: 44,
+  justifyContent: 'center',
 } as const;

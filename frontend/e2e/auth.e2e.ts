@@ -29,7 +29,7 @@ test.describe('cadastro', () => {
     await email.fill(user.email);
     await page.getByRole('button', { name: 'Criar conta' }).click();
 
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/inicio');
     await expect(page.getByRole('heading', { level: 1, name: 'Início' })).toBeVisible();
     await expect(page.getByRole('status').filter({ hasText: 'Conta criada' })).toBeVisible();
   });
@@ -47,6 +47,6 @@ test.describe('login', () => {
     await expect(page).toHaveURL('/login');
 
     await loginThroughUi(page, user);
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/inicio');
   });
 });

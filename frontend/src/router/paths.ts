@@ -1,5 +1,9 @@
 export const paths = {
-  home: '/',
+  /** Página pública de entrada; quem está logado vai direto para `home`. */
+  landing: '/',
+  home: '/inicio',
+  about: '/sobre',
+  help: '/ajuda',
   login: '/login',
   signup: '/cadastro',
   reserve: '/reservar',

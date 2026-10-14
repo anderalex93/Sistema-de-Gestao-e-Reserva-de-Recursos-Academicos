@@ -194,7 +194,7 @@ describe('session', () => {
   it('offers a retry when the API is unreachable', async () => {
     window.localStorage.setItem('eduspace.token', 'valido');
     server.use(http.get(api('/auth/me'), () => HttpResponse.error()));
-    renderRoute('/', { user: null });
+    renderRoute('/inicio', { user: null });
 
     expect(
       await screen.findByRole('heading', { name: 'Não foi possível carregar sua sessão' }),

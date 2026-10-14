@@ -1,10 +1,11 @@
 import type { RouteObject } from 'react-router';
 
 import AppLayout from '@/layouts/AppLayout';
-import PublicLayout from '@/layouts/PublicLayout';
+import PublicLayout, { type PublicPageHandle } from '@/layouts/PublicLayout';
 import ErrorPage, { PageError } from '@/pages/ErrorPage';
 import { AuthRoot, PublicOnly, RequireAuth, RequireRole } from '@/router/guards';
 import {
+  AboutPage,
   AccountPage,
   AdminAgendaPage,
   AdminBuildingsPage,
@@ -13,6 +14,8 @@ import {
   AdminUsersPage,
   BoardPage,
   DashboardPage,
+  HelpPage,
+  LandingPage,
   LoginPage,
   MyReservationsPage,
   NotFoundPage,
@@ -23,6 +26,9 @@ import {
   SignupPage,
   TermsPage,
 } from '@/router/lazy-pages';
+
+const wide: PublicPageHandle = { width: 'wide' };
+const text: PublicPageHandle = { width: 'text' };
 
 export const routes: RouteObject[] = [
   {
@@ -35,13 +41,16 @@ export const routes: RouteObject[] = [
           {
             element: <PublicOnly />,
             children: [
+              { index: true, element: <LandingPage />, handle: wide },
               { path: 'login', element: <LoginPage /> },
               { path: 'cadastro', element: <SignupPage /> },
             ],
           },
+          { path: 'sobre', element: <AboutPage />, handle: text },
+          { path: 'ajuda', element: <HelpPage />, handle: text },
           { path: 'comprovantes/:codigo', element: <ReceiptPage /> },
-          { path: 'privacidade', element: <PrivacyPage /> },
-          { path: 'termos', element: <TermsPage /> },
+          { path: 'privacidade', element: <PrivacyPage />, handle: text },
+          { path: 'termos', element: <TermsPage />, handle: text },
         ],
       },
       {
@@ -54,7 +63,7 @@ export const routes: RouteObject[] = [
                 // Erro numa página fica dentro do layout: a navegação continua disponível.
                 errorElement: <PageError />,
                 children: [
-                  { index: true, element: <DashboardPage /> },
+                  { path: 'inicio', element: <DashboardPage /> },
                   { path: 'reservar', element: <ReservePage /> },
                   { path: 'quadro', element: <BoardPage /> },
                   { path: 'recursos/:id', element: <ResourcePage /> },

@@ -50,13 +50,12 @@ flowchart LR
 | 5 | Resumo da reserva (História 02, CA2) | #23 | `12-resumo` | `05-resumo` |
 | 6 | Comprovante com QR code, confirmado e cancelado | #24 | `14-comprovante` | `06-comprovante` |
 | 7 | Minhas reservas, histórico e "Deseja cancelar esta reserva?" (História 03, CA1) | #25, #26 | `16-reservas`, `17-cancelar` | `07-minhas-reservas`, `07b-cancelar`, `07c-historico` |
-| 8 | Administração: recursos (lista e formulário), blocos e características, agenda do dia, usuários | #27, #30, #50 | `19` a `24` | ainda não implementadas |
+| 8 | Administração: recursos (lista e formulário), blocos e características, agenda do dia, usuários | #27, #30, #50 | `19` a `24` | implementadas no app |
 | 9 | Estados: carregando, vazio, sem conexão, acesso restrito | #36 | `25-estados` e os estados de cada tela | parte já no app |
 | | Quadro de horários de todos os recursos | #51 | `15-quadro` | `08-quadro` |
-| | Páginas públicas: início, sobre, ajuda, termos, privacidade, 404 | #47, #34 | `01` a `06` | ainda não implementadas |
+| | Páginas públicas: início, sobre, ajuda, termos, privacidade, 404 | #47, #34 | `01` a `06` | implementadas no app (`/`, `/sobre`, `/ajuda`) |
 
-As telas de administração e as páginas públicas existem só no protótipo. Elas servem de referência
-para as issues em que serão construídas.
+As páginas públicas usam capturas reais do sistema (`frontend/src/assets/landing/`), nunca mockup.
 
 ## Guia visual mínimo
 
@@ -79,7 +78,7 @@ A referência completa está no [design system](design-system.md). O resumo usad
    cancelar essas reservas e avisar as pessoas. A alternativa é recusar até elas acabarem (#27).
 3. **Cancelamento pelo admin com motivo obrigatório** (`20-admin-agenda`): o motivo aparece no
    histórico de quem reservou (#30).
-4. **Páginas públicas**: nomes e foto real da equipe em Sobre, canal de suporte em Ajuda.
+4. **Páginas públicas**: falta a foto real da equipe em Sobre (`teamPhoto` em `frontend/src/content/public-content.ts`) e o e-mail de suporte da Ajuda (`VITE_SUPPORT_EMAIL`). Sem eles, Sobre mostra só os nomes e a Ajuda orienta procurar a administração do campus.
 5. **Selecionado em azul**: a issue fala em verde, mas o design system reserva o verde para
    "confirmada" e usa o azul de ação para a seleção. O protótipo e o app seguem o design system.
 

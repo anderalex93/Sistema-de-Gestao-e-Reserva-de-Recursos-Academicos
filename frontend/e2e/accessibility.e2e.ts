@@ -36,6 +36,9 @@ interface Screen {
 }
 
 const SCREENS: Screen[] = [
+  { name: 'início público', session: 'none', path: () => '/' },
+  { name: 'sobre', session: 'none', path: () => '/sobre' },
+  { name: 'ajuda', session: 'none', path: () => '/ajuda' },
   { name: 'entrar', session: 'none', path: () => '/login' },
   { name: 'criar conta', session: 'none', path: () => '/cadastro' },
   {
@@ -50,7 +53,7 @@ const SCREENS: Screen[] = [
   { name: 'aviso de privacidade', session: 'none', path: () => '/privacidade' },
   { name: 'termos de uso', session: 'none', path: () => '/termos' },
   { name: 'comprovante', session: 'none', path: (f) => `/comprovantes/${f.receiptCode}` },
-  { name: 'início', session: 'student', path: () => '/' },
+  { name: 'início', session: 'student', path: () => '/inicio' },
   { name: 'reservar', session: 'student', path: () => '/reservar' },
   {
     name: 'filtros no celular',

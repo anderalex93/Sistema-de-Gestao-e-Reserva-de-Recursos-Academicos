@@ -90,13 +90,16 @@ export function RequireRole({ roles }: { roles: readonly UserRole[] }) {
 }
 
 /**
- * Login e cadastro: quem está logado sai daqui. Ao entrar, volta para a página que tentou abrir
- * (é o único ponto que navega após o login, para não haver dois redirecionamentos concorrendo).
+ * Início público, login e cadastro: quem está logado sai daqui. Ao entrar, volta para a página
+ * que tentou abrir (é o único ponto que navega após o login, para não haver dois
+ * redirecionamentos concorrendo).
  */
 export function PublicOnly() {
   const { status } = useAuth();
   const location = useLocation();
 
+  // Com token guardado, espera a sessão: quem está logado não vê a landing piscar antes do painel.
+  if (status === 'loading') return <PageSkeleton />;
   if (status === 'authenticated') {
     const from = (location.state as RedirectState | null)?.from;
     return <Navigate to={from ? `${from.pathname}${from.search ?? ''}` : paths.home} replace />;

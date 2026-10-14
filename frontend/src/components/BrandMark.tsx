@@ -10,7 +10,7 @@ export function BrandMark() {
   return (
     <Link
       component={RouterLink}
-      to={paths.home}
+      to={paths.landing}
       underline="none"
       sx={{ ...touchTarget, gap: 1.25, color: 'text.primary' }}
     >

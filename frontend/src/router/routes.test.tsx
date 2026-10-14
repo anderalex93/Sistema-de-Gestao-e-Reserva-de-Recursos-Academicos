@@ -39,7 +39,10 @@ describe('routes', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Página não encontrada' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Ir para o início' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Ir para o início' })).toHaveAttribute(
+      'href',
+      '/inicio',
+    );
     expect(screen.getByRole('link', { name: 'Reservar espaço' })).toHaveAttribute(
       'href',
       '/reservar',

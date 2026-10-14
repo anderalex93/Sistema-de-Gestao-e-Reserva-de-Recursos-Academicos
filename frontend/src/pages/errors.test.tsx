@@ -86,7 +86,10 @@ describe('unexpected page error', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Algo deu errado' })).toBeVisible();
     expect(screen.getByRole('navigation', { name: 'Navegação principal' })).toBeInTheDocument();
     expect(document.body.textContent).not.toContain('detalhe técnico');
-    expect(screen.getByRole('link', { name: 'Ir para o início' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Ir para o início' })).toHaveAttribute(
+      'href',
+      '/inicio',
+    );
   });
 
   it('is wired inside the app layout for every logged page', () => {

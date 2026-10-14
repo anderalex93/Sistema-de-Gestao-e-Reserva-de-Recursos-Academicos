@@ -21,4 +21,6 @@ export const config = {
   appName: 'EduSpace',
   /** Google Analytics 4 (#49). Sem ID, nada é carregado e o aviso de cookies não aparece. */
   gaMeasurementId: optional(import.meta.env.VITE_GA_MEASUREMENT_ID),
+  /** Canal de suporte da página Ajuda (#47). Sem ele, a Ajuda orienta procurar a administração. */
+  supportEmail: optional(import.meta.env.VITE_SUPPORT_EMAIL),
 } as const;
