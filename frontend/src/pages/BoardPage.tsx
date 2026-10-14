@@ -1,4 +1,5 @@
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -8,10 +9,17 @@ import Stack from '@mui/material/Stack';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 
 import { DayPicker } from '@/components/availability/DayPicker';
-import { BoardLegend, BoardList, BoardTable } from '@/components/board/BoardViews';
+import {
+  BoardLegend,
+  BoardList,
+  BoardTable,
+  type GroupToggle,
+} from '@/components/board/BoardViews';
+import { groupByBuilding, OPEN_ALL_UP_TO } from '@/domain/board';
 import { LoadError } from '@/components/LoadError';
 import { PageHeader } from '@/components/PageHeader';
 import { resourceTypeLabels } from '@/domain/resource-types';
@@ -61,6 +69,24 @@ export default function BoardPage() {
 
   // Enquanto o novo dia carrega, não mostra o quadro do dia anterior com o rótulo errado.
   const board = query.data?.data === params.data ? query.data : undefined;
+
+  // Blocos abertos. Até a pessoa mexer, um quadro curto abre inteiro e um longo abre só o
+  // primeiro bloco, para a página não virar uma lista sem fim.
+  const [chosen, setChosen] = useState<ReadonlySet<number> | null>(null);
+  const groupIds = board ? groupByBuilding(board.linhas).map((group) => group.bloco.id) : [];
+  const openIds =
+    chosen ??
+    new Set(board && board.linhas.length > OPEN_ALL_UP_TO ? groupIds.slice(0, 1) : groupIds);
+  const groups: GroupToggle = {
+    isOpen: (id) => openIds.has(id),
+    toggle: (id) => {
+      const next = new Set(openIds);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      setChosen(next);
+    },
+  };
+  const allOpen = groupIds.every((id) => openIds.has(id));
 
   return (
     <>
@@ -121,7 +147,22 @@ export default function BoardPage() {
         <Typography variant="body2" color="text.secondary" aria-live="polite">
           {dayLabel(params.data)}
         </Typography>
-        <BoardLegend />
+        <Stack
+          direction="row"
+          useFlexGap
+          sx={{ flexWrap: 'wrap', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}
+        >
+          <BoardLegend />
+          {groupIds.length > 1 && (
+            <Button
+              variant="text"
+              onClick={() => setChosen(new Set(allOpen ? [] : groupIds))}
+              sx={{ ml: 'auto' }}
+            >
+              {allOpen ? 'Recolher todos os blocos' : 'Expandir todos os blocos'}
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
       {loadFailure(query) ? (
@@ -146,9 +187,9 @@ export default function BoardPage() {
           <Typography>Nenhum recurso com esses filtros.</Typography>
         </Box>
       ) : compact ? (
-        <BoardList board={board} />
+        <BoardList board={board} {...groups} />
       ) : (
-        <BoardTable board={board} />
+        <BoardTable board={board} {...groups} />
       )}
     </>
   );

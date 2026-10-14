@@ -90,6 +90,46 @@ export function rowSegments(
   return segments;
 }
 
+type Line = BoardRead['linhas'][number];
+
+export interface BuildingGroup {
+  bloco: Line['recurso']['bloco'];
+  linhas: Line[];
+}
+
+/** Agrupa as linhas por bloco, na ordem em que a API devolve. */
+export function groupByBuilding(lines: readonly Line[]): BuildingGroup[] {
+  const groups = new Map<number, BuildingGroup>();
+  for (const line of lines) {
+    const { bloco } = line.recurso;
+    const group = groups.get(bloco.id) ?? { bloco, linhas: [] };
+    group.linhas.push(line);
+    groups.set(bloco.id, group);
+  }
+  return [...groups.values()];
+}
+
+/** Acima disso, o quadro abre só o primeiro bloco e a pessoa expande os outros. */
+export const OPEN_ALL_UP_TO = 12;
+
+/**
+ * Parte do dia já reservada nas linhas, de 0 a 1, contando também o que já passou: é o retrato
+ * de ocupação do bloco, igual de manhã e à noite.
+ */
+export function reservedShare(
+  date: string,
+  marks: readonly string[],
+  lines: readonly Line[],
+): number {
+  const total = marks.length * lines.length;
+  if (total === 0) return 0;
+  const reserved = lines
+    .flatMap((line) => rowSegments(date, marks, line.ocupacoes, new Date(0)))
+    .filter((segment) => segment.kind === 'OCUPADO' || segment.kind === 'PROPRIA')
+    .reduce((sum, segment) => sum + segment.span, 0);
+  return reserved / total;
+}
+
 export function describeSegment(segment: Segment): string {
   const who = segment.reservadoPor ? ` por ${segment.reservadoPor}` : '';
   return `${segment.start} às ${segment.end}, ${segmentLabels[segment.kind].toLowerCase()}${who}`;

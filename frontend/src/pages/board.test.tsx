@@ -112,6 +112,24 @@ describe('board page', () => {
     await waitFor(() => expect(requests.at(-1)?.toString()).toBe(`data=${next}&tipo=LABORATORIO`));
   });
 
+  it('groups resources by building and folds a building away', async () => {
+    serveBoard();
+    const { user } = renderRoute(`/quadro?data=${day}`);
+
+    const table = await screen.findByRole('table', { name: 'Quadro de horários' });
+    const blocoC = within(table).getByRole('button', { name: /^Bloco C/ });
+    expect(blocoC).toHaveAttribute('aria-expanded', 'true');
+    expect(blocoC).toHaveTextContent('1 espaço, 15% do dia reservado');
+
+    await user.click(blocoC);
+
+    expect(blocoC).toHaveAttribute('aria-expanded', 'false');
+    expect(within(table).queryByRole('row', { name: /Laboratório 1/ })).not.toBeInTheDocument();
+    expect(within(table).getByRole('row', { name: /Sala de estudo 204/ })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Expandir todos os blocos' }));
+    expect(within(table).getByRole('row', { name: /Laboratório 1/ })).toBeInTheDocument();
+  });
+
   it('explains when the campus is closed', async () => {
     serveBoard();
     renderRoute(`/quadro?data=${nextSunday()}`);
