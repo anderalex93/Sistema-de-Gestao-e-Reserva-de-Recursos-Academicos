@@ -122,6 +122,7 @@ const SCREENS: Screen[] = [
   { name: 'admin: blocos', session: 'admin', path: () => '/admin/blocos' },
   { name: 'admin: agenda do dia', session: 'admin', path: () => '/admin/agenda' },
   { name: 'admin: ocupação', session: 'admin', path: () => '/admin/ocupacao' },
+  { name: 'admin: configurações', session: 'admin', path: () => '/admin/configuracoes' },
   {
     name: 'admin: QR da porta',
     session: 'admin',
