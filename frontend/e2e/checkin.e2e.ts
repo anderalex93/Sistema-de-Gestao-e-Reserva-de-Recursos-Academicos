@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
 
 import { ApiHelper, type TestUser } from './support/api';
+import { startReservationNow } from './support/backend';
 import { E2E_ADMIN } from './support/env';
 import { loginThroughUi, startSession } from './support/flows';
-import { nextSlot } from './support/schedule';
+import { campusDate, nextSlot } from './support/schedule';
 
 // Uma sala por tentativa: retries e --repeat-each reservam o mesmo próximo horário.
 const ROOMS = [
@@ -81,4 +82,62 @@ test('a administração imprime o QR da porta e acompanha a ocupação', async (
   await expect(page.getByRole('heading', { level: 1, name: 'Ocupação' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Resumo' })).toBeVisible();
   await expect(page.getByRole('table', { name: /Parte do tempo disponível/ })).toBeVisible();
+});
+
+// Salas só deste teste, uma por tentativa: o horário é movido para agora direto no banco.
+const EARLY_END_ROOMS = [
+  'Sala de estudo 301',
+  'Sala de estudo 302',
+  'Sala de estudo 303',
+  'Sala de estudo 304',
+];
+
+function plusHalfHour(time: string): string {
+  const [hours = 0, minutes = 0] = time.split(':').map(Number);
+  const total = hours * 60 + minutes + 30;
+  return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
+test('encerra o uso pelo QR da porta e a grade mostra o resto do horário livre', async ({
+  page,
+  request,
+}) => {
+  const api = new ApiHelper(request);
+  const admin: TestUser = { ...E2E_ADMIN };
+  await api.acceptTerms(admin);
+  const user = await api.signup();
+  const attempt = test.info().retry + test.info().repeatEachIndex;
+  const roomName = EARLY_END_ROOMS[attempt % EARLY_END_ROOMS.length] ?? '';
+  const room = await api.resourceByName(user, roomName, 'Bloco D');
+  const token = await api.checkinToken(admin, room.id);
+  const slot = nextSlot();
+  const reservation = await api.reserve(user, room, slot.date, slot.inicio, slot.fim);
+
+  await loginThroughUi(page, user);
+  await page.goto(`/checkin/${token}`);
+  await page.getByRole('button', { name: 'Confirmar presença' }).click();
+  await expect(page.getByText('Presença confirmada')).toBeVisible();
+
+  // A reserva começa agora: ao sair, a pessoa lê o QR de novo e encerra o uso.
+  startReservationNow(reservation.codigo);
+  await page.reload();
+  await page.getByRole('button', { name: 'Encerrar uso e liberar a sala' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Encerrar o uso agora?' });
+  const notice = await dialog.getByText(/^A sala fica livre a partir das \d\d:\d\d\.$/).innerText();
+  const freeAt = /(\d\d:\d\d)/.exec(notice)?.[1] ?? '';
+  await dialog.getByRole('button', { name: 'Sim, encerrar' }).click();
+
+  await expect(page.getByText('Uso encerrado', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(`A sala ficou livre a partir das ${freeAt}. Obrigado por liberar o espaço.`),
+  ).toBeVisible();
+
+  await page.goto(`/recursos/${room.id}?data=${campusDate(new Date())}`);
+  const grid = page.getByRole('list', { name: 'Horários do dia' });
+  await expect(
+    grid.getByRole('button', { name: `${freeAt} às ${plusHalfHour(freeAt)}, livre` }),
+  ).toBeEnabled();
+
+  await page.goto('/minhas-reservas');
+  await expect(page.getByText(/^Uso encerrado às \d\d:\d\d$/).first()).toBeVisible();
 });

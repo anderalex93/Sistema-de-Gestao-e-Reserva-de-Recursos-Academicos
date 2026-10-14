@@ -16,3 +16,8 @@ export const E2E_ADMIN = {
 
 /** Pasta do vídeo da demo; definida só pela config `playwright.demo.config.ts`. */
 export const DEMO_VIDEO_DIR = process.env.DEMO_VIDEO_DIR;
+
+/** Banco do E2E, recriado a cada execução; os helpers que mexem nele direto recusam outro. */
+export const E2E_DATABASE_URL =
+  process.env.E2E_DATABASE_URL ??
+  'postgresql+psycopg://eduspace:eduspace_dev@localhost:5433/eduspace_e2e';

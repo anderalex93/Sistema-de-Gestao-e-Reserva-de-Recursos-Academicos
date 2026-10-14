@@ -4,7 +4,7 @@ const CAMPUS_TIMEZONE = 'America/Maceio';
 // Maceió não tem horário de verão: o deslocamento é fixo.
 const CAMPUS_OFFSET = '-03:00';
 
-function campusDate(instant: Date): string {
+export function campusDate(instant: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: CAMPUS_TIMEZONE }).format(instant);
 }
 

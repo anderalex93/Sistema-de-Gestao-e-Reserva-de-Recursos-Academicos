@@ -1,6 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
-import { API_PORT, API_URL, E2E_ADMIN, WEB_PORT, WEB_URL } from './e2e/support/env';
+import {
+  API_PORT,
+  API_URL,
+  E2E_ADMIN,
+  E2E_DATABASE_URL,
+  WEB_PORT,
+  WEB_URL,
+} from './e2e/support/env';
 
 const ci = Boolean(process.env.CI);
 
@@ -35,9 +42,7 @@ export default defineConfig({
       reuseExistingServer: false,
       env: {
         APP_ENV: 'test',
-        DATABASE_URL:
-          process.env.E2E_DATABASE_URL ??
-          'postgresql+psycopg://eduspace:eduspace_dev@localhost:5433/eduspace_e2e',
+        DATABASE_URL: E2E_DATABASE_URL,
         JWT_SECRET: 'e2e-only-secret-never-used-outside-local-tests',
         ALLOWED_EMAIL_DOMAINS: 'umj.edu.br',
         CORS_ORIGINS: WEB_URL,
