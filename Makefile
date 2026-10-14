@@ -13,9 +13,18 @@ run: setup  ## Sobe banco, API (:8000) e front (:5173) com recarga automática; 
 	@echo "API em http://localhost:8000/docs, front em http://localhost:5173. Ctrl+C para parar."
 	@$(MAKE) --no-print-directory -j2 api web
 
-setup: backend/.venv frontend/node_modules  ## Dependências, banco, migrações e catálogo (pode rodar várias vezes)
+setup: backend/.env backend/.venv frontend/node_modules  ## Dependências, banco, migrações e catálogo (pode rodar várias vezes)
 	$(BACK) db-up migrate seed
 	$(if $(DEMO),$(BACK) seed-demo)
+
+# Só no primeiro uso: um .env local pronto, com segredo JWT aleatório e as senhas locais do
+# docker-compose.yml. Um .env existente nunca é sobrescrito.
+backend/.env:
+	@sed -e "s|^JWT_SECRET=.*|JWT_SECRET=$$(node -e 'console.log(require("crypto").randomBytes(48).toString("base64url"))')|" \
+		-e "s|^SEED_ADMIN_SENHA=$$|SEED_ADMIN_SENHA=Eduspace2026|" \
+		-e "s|^SEED_DEMO_SENHA=$$|SEED_DEMO_SENHA=Demo2026|" \
+		backend/.env.example > $@
+	@echo "Criado backend/.env com os valores locais (admin@umj.edu.br / Eduspace2026)."
 
 backend/.venv: backend/uv.lock
 	$(BACK) install

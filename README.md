@@ -41,42 +41,97 @@ horário, vê a grade de disponibilidade e confirma a reserva com um clique. O c
 com QR code é apresentado na entrada. O próprio banco de dados impede que dois agendamentos ocupem
 o mesmo espaço no mesmo horário, mesmo com acessos simultâneos.
 
-## Acesso
+## Como rodar
 
-| Ambiente | Endereço | Conta de demonstração |
+Escolha um dos dois caminhos. Os dois funcionam no Windows, no macOS e no Linux.
+
+| Caminho | Para quem | Precisa instalar |
 |---|---|---|
-| Produção | Publicação pendente da [#19](https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos/issues/19); passo a passo em [docs/deploy.md](docs/deploy.md) | Admin definido no painel do Render (`SEED_ADMIN_*`) |
-| Local com Docker | <http://localhost:8080> (API em <http://localhost:8000/docs>) | `aluno.demo@umj.edu.br`, `prof.demo@umj.edu.br` e `admin.demo@umj.edu.br`, senha `Demo2026` (só local) |
+| **A. Só Docker** | Quer ver o sistema funcionando, sem mexer no código | Git e Docker |
+| **B. `make run`** | Vai programar e quer recarga automática ao salvar | Git, Docker, Python 3.13 com uv, Node.js 24 e make |
 
-Qualquer pessoa cria a própria conta de aluno com um e-mail `@umj.edu.br`.
+### Caminho A: só Docker
 
-## Rodar com Docker em menos de 5 minutos
+1. Instale o [Git](https://git-scm.com/) e o [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+2. Abra o Docker Desktop e espere ele mostrar "Engine running".
+3. Num terminal (no Windows, o Git Bash ou o PowerShell):
 
-Pré-requisitos: [Git](https://git-scm.com/) e [Docker](https://www.docker.com/) com Docker Compose.
+   ```bash
+   git clone https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos.git
+   cd Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos
+   docker compose up --build
+   ```
 
-```bash
-git clone https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos.git
-cd Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos
-docker compose up --build
-```
+4. A primeira vez leva alguns minutos. Quando aparecer `Uvicorn running`, abra
+   <http://localhost:8080>.
+5. Entre com uma das contas da tabela [Contas para entrar](#contas-para-entrar).
 
-Quando o terminal mostrar `Uvicorn running`, abra <http://localhost:8080>. O Compose sobe o
-PostgreSQL (porta 5433), a API (8000, já com as migrações, o catálogo do campus e o admin local)
-e o front (8080). Para parar: `Ctrl+C`; para apagar também os dados: `docker compose down -v`.
+Para parar: `Ctrl+C` no terminal. Para apagar também os dados e começar do zero:
+`docker compose down -v`.
+
+### Caminho B: `make run`
+
+1. Instale, além do Git e do Docker Desktop:
+   - [Python 3.13](https://www.python.org/downloads/) e o [uv](https://docs.astral.sh/uv/getting-started/installation/) (`pip install uv`);
+   - [Node.js 24](https://nodejs.org/);
+   - `make`. No Windows, use o terminal **Git Bash** (vem com o Git) e instale o make com
+     `choco install make` ou `winget install GnuWin32.Make`. No macOS e no Linux ele já vem
+     instalado.
+2. Abra o Docker Desktop e espere ele mostrar "Engine running".
+3. No terminal, na pasta do projeto:
+
+   ```bash
+   make run
+   ```
+
+4. Quando aparecerem `Uvicorn running` e `VITE ... ready`, abra <http://localhost:5173>. A
+   documentação da API fica em <http://localhost:8000/docs>.
+
+O `make run` faz tudo sozinho, e pode ser rodado de novo quantas vezes quiser:
+
+1. cria o `backend/.env` no primeiro uso, com um segredo aleatório e as senhas locais;
+2. instala as dependências do back e do front quando faltam;
+3. sobe o PostgreSQL no Docker (porta 5433), aplica as migrações e cadastra o catálogo do campus
+   e o administrador;
+4. roda a API e o front juntos. Ao salvar um arquivo, a tela se atualiza sozinha.
+
+Para parar: `Ctrl+C`. O banco continua rodando no Docker com os dados; `make stop` desliga.
+
+`make run DEMO=1` também cria as contas e reservas da apresentação (Lucas, Marina e um mês de
+histórico). `make help` lista os outros atalhos.
+
+### Contas para entrar
+
+| Caminho | E-mail | Senha | Perfil |
+|---|---|---|---|
+| A e B | `admin@umj.edu.br` | `Eduspace2026` | Administração |
+| A, e B com `DEMO=1` | `aluno.demo@umj.edu.br` | `Demo2026` | Aluno (Lucas Andrade) |
+| A, e B com `DEMO=1` | `prof.demo@umj.edu.br` | `Demo2026` | Professora (Marina Lopes) |
+| A, e B com `DEMO=1` | `admin.demo@umj.edu.br` | `Demo2026` | Administração |
+
+Também dá para criar a própria conta de aluno na tela de cadastro. As senhas acima valem só na
+máquina local. No caminho B, se o `backend/.env` já existia, valem as senhas que estão nele.
+
+### Se algo der errado
+
+| Mensagem | O que fazer |
+|---|---|
+| `Cannot connect to the Docker daemon` ou `error during connect` | Abra o Docker Desktop e espere "Engine running" |
+| `Port 5433 is already in use`, `8000` ou `5173` | Outro programa usa a porta. Feche-o, ou pare um `make run` antigo com `Ctrl+C` |
+| `make: command not found` | No Windows, use o Git Bash e instale o make (passo 1 do caminho B) |
+| `uv: command not found` | `pip install uv`; o Makefile encontra o uv instalado pelo pip mesmo fora do PATH |
+| A tela abre, mas o login diz que o servidor não responde | A API ainda está subindo; espere `Uvicorn running` e tente de novo |
+
+### Produção
+
+A publicação (Neon, Render e Vercel) está versionada na
+[#19](https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos/issues/19),
+com o passo a passo em [docs/deploy.md](docs/deploy.md).
 
 ## Desenvolvimento
 
-Para trabalhar no código, com recarga automática:
-
-- Pré-requisitos extras: [Python 3.13](https://www.python.org/) com [uv](https://docs.astral.sh/uv/),
-  [Node.js 24](https://nodejs.org/) e `make` (no Windows, use o Git Bash).
-- Tudo de uma vez, na raiz: `make run` instala o que faltar, sobe o PostgreSQL, aplica as
-  migrações e o catálogo e roda a API (<http://localhost:8000/docs>) e o front
-  (<http://localhost:5173>) juntos. `make run DEMO=1` também refaz as contas da demonstração
-  (`SEED_DEMO_SENHA` no `backend/.env`); `make help` lista os outros atalhos.
-- Backend: [backend/README.md](backend/README.md) (`make install db-up migrate seed dev`).
-- Frontend: [frontend/README.md](frontend/README.md) (`npm install && npm run dev`, em
-  <http://localhost:5173>).
+Comandos de cada lado, para quem prefere rodar separado: [backend/README.md](backend/README.md)
+e [frontend/README.md](frontend/README.md).
 
 ### Testes
 
