@@ -48,15 +48,16 @@ function resourceLink(line: Line, date: string, segment?: Segment) {
   const params = new URLSearchParams({ data: date });
   if (segment) {
     params.set('inicio', segment.start);
-    // Um bloco por padrão: a pessoa estende na grade do recurso.
-    params.set('fim', segment.span > 1 ? nextMark(segment.start) : segment.end);
+    // Uma hora por padrão, o uso mais comum, quando a faixa livre comporta; a pessoa ajusta na
+    // grade do recurso.
+    params.set('fim', segment.span >= 2 ? laterMark(segment.start, 60) : segment.end);
   }
   return `${paths.resource(line.recurso.id)}?${params.toString()}`;
 }
 
-function nextMark(time: string): string {
+function laterMark(time: string, add: number): string {
   const [hours = 0, minutes = 0] = time.split(':').map(Number);
-  const total = hours * 60 + minutes + 30;
+  const total = hours * 60 + minutes + add;
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 

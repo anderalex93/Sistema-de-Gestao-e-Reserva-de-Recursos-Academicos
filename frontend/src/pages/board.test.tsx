@@ -80,7 +80,7 @@ describe('board page', () => {
     );
   });
 
-  it('links free time to the resource grid with the slot preselected', async () => {
+  it('links free time to the resource grid with one hour preselected', async () => {
     serveBoard();
     renderRoute(`/quadro?data=${day}`);
 
@@ -89,7 +89,7 @@ describe('board page', () => {
       name: 'Sala de estudo 204: 20:00 às 21:00, livre',
     });
 
-    expect(free).toHaveAttribute('href', `/recursos/204?data=${day}&inicio=20%3A00&fim=20%3A30`);
+    expect(free).toHaveAttribute('href', `/recursos/204?data=${day}&inicio=20%3A00&fim=21%3A00`);
     expect(within(table).getByRole('link', { name: 'Laboratório 1' })).toHaveAttribute(
       'href',
       `/recursos/30?data=${day}`,
