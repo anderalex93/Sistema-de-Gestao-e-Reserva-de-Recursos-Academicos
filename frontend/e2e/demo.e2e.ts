@@ -166,7 +166,6 @@ test('roteiro da apresentação: reserva, conflito, check-in, cancelamento e adm
   await adminPage.getByRole('option', { name: 'Bloco B' }).click();
   await form.getByLabel(/^Nome/).fill(newRoom);
   await form.getByLabel(/^Capacidade/).fill('8');
-  await form.getByRole('button', { name: 'Projetor' }).click();
   await form.getByRole('button', { name: 'Criar recurso' }).click();
   await expect(form).toBeHidden();
 

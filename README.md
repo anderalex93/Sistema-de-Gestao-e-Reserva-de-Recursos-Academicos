@@ -18,6 +18,18 @@ Projeto Integrador I · Análise e Desenvolvimento de Sistemas / Engenharia de S
 Busca, grade de horários e Minhas reservas, no celular. Mais telas, inclusive as da administração,
 no [manual do usuário](docs/manual-do-usuario.md).
 
+## O que tem de diferente
+
+- **Check-in pelo QR da porta.** Cada sala tem um QR fixado na entrada. Quem reservou lê o código
+  ao chegar; sem check-in em 15 minutos, a reserva é liberada e a sala volta para o campus. Ataca
+  a sala reservada e vazia, a outra metade do problema (#43).
+- **Painel de ocupação.** Mapa de calor da semana, comparecimento, horas devolvidas pelo check-in,
+  espaços mais e menos usados e CSV para a administração decidir com dados (#44).
+- **Conflito impossível por construção.** Uma exclusion constraint do PostgreSQL impede duas
+  reservas no mesmo horário, mesmo com cliques simultâneos (RNF03).
+- **A demo é um teste.** O roteiro da apresentação roda inteiro, com dois navegadores, a cada push
+  ([docs/apresentacao/roteiro.md](docs/apresentacao/roteiro.md)).
+
 ## O problema e a solução
 
 Hoje a reserva de espaços no campus é feita em formulários de papel ou planilhas. O resultado são
@@ -34,7 +46,7 @@ o mesmo espaço no mesmo horário, mesmo com acessos simultâneos.
 | Ambiente | Endereço | Conta de demonstração |
 |---|---|---|
 | Produção | Publicação pendente da [#19](https://github.com/anderalex93/Sistema-de-Gestao-e-Reserva-de-Recursos-Academicos/issues/19); passo a passo em [docs/deploy.md](docs/deploy.md) | Admin definido no painel do Render (`SEED_ADMIN_*`) |
-| Local com Docker | <http://localhost:8080> (API em <http://localhost:8000/docs>) | `admin@umj.edu.br` / `Eduspace2026` (só local) |
+| Local com Docker | <http://localhost:8080> (API em <http://localhost:8000/docs>) | `aluno.demo@umj.edu.br`, `prof.demo@umj.edu.br` e `admin.demo@umj.edu.br`, senha `Demo2026` (só local) |
 
 Qualquer pessoa cria a própria conta de aluno com um e-mail `@umj.edu.br`.
 
@@ -86,7 +98,8 @@ OpenAPI), a imagem Docker da API e, à parte, o E2E.
 | RNF03 | Nenhuma reserva sobreposta, mesmo com acessos simultâneos | #23 |
 
 Também entram: administração do patrimônio e da agenda (#27, #30, #50), regras de uso
-configuráveis (#28), quadro de horários (#51), LGPD (#34) e as páginas públicas (#47, #48). A
+configuráveis (#28), quadro de horários (#51), LGPD (#34), as páginas públicas (#47, #48), o
+check-in pelo QR da porta (#43) e o painel de ocupação (#44). A
 ligação de cada requisito com commits e testes está na [matriz de rastreabilidade](docs/rastreabilidade.md).
 
 ## Stack
@@ -132,7 +145,8 @@ render.yaml       Serviço da API no Render
 
 | Documento | Conteúdo |
 |---|---|
-| [Manual do usuário](docs/manual-do-usuario.md) | Como reservar, conferir e cancelar; telas da administração |
+| [Manual do usuário](docs/manual-do-usuario.md) | Como reservar, fazer check-in, conferir e cancelar; telas da administração |
+| [Apresentação](docs/apresentacao/roteiro.md) | Roteiro da demo, contas, preparação e plano B |
 | [Arquitetura](docs/arquitetura.md) | Componentes, camadas, fluxo de uma reserva e a garantia contra sobreposição |
 | [Rastreabilidade](docs/rastreabilidade.md) | Requisito, issue, commit e teste |
 | [ADR 0001](docs/adr/0001-arquitetura-e-stack.md) | Stack, camadas, tipagem, contrato da API e convenções |

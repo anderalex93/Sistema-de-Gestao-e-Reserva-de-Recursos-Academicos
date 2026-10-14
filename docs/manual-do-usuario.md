@@ -22,6 +22,7 @@ fuso de Maceió.
 | Antecedência | Até 14 dias a partir de hoje. |
 | Reservas ativas ao mesmo tempo | Aluno: 3. Professor: 10. Reservas passadas e canceladas não contam. |
 | Cancelamento | Pela própria pessoa, até 30 minutos antes do início. |
+| Check-in | Pelo QR da porta do espaço, de 15 minutos antes até 15 minutos depois do início. Sem check-in nesse prazo, a reserva é liberada para outras pessoas. |
 | Funcionamento | Segunda a sexta, 08:00 às 21:00. Sábado, 08:00 às 12:00. Domingo fechado. |
 
 O sistema não deixa duas pessoas reservarem o mesmo espaço no mesmo horário.
@@ -131,7 +132,24 @@ motivo.
 
 ![Janela Deseja cancelar esta reserva com Laboratório Maker, Bloco C, quinta 15 de outubro, 10:00 às 11:30, o código e os botões Manter reserva e Sim, cancelar](manual/09-cancelar.png)
 
-### 9. Quadro de horários
+### 9. Check-in pela porta
+
+Cada espaço tem um QR code fixado na porta. Ao chegar para a sua reserva:
+
+1. Leia o QR da porta com a câmera do celular. Se pedir, entre na sua conta.
+2. Toque em **Confirmar presença**. A tela mostra "Presença confirmada" e a hora.
+
+O check-in abre 15 minutos antes do início e vai até 15 minutos depois. Se ninguém confirmar a
+presença nesse prazo, a reserva vira **Não compareceu** e o espaço volta a ficar livre para
+outras pessoas. Em Minhas reservas, cada reserva mostra a janela do check-in, a presença
+confirmada ou a liberação.
+
+Se você ler o QR sem ter reserva naquele espaço, a tela oferece ver os horários livres e reservar
+ali mesmo.
+
+![Tela do QR da Sala de estudo 203 no celular: Você não tem reserva aqui agora, com os botões Ver horários deste espaço e Minhas reservas](manual/16-checkin-sem-reserva.png)
+
+### 10. Quadro de horários
 
 O **Quadro de horários** mostra o que já está reservado em cada espaço e equipamento num dia.
 Escolha o dia, o bloco e o tipo. Cada espaço lista os intervalos livres e ocupados, e as suas
@@ -142,7 +160,7 @@ No celular, abra o quadro pelo botão **Quadro de horários** na tela **Reservar
 
 ![Quadro de horários no celular para quarta, 14 de outubro, no Bloco A, com a legenda Livre, Ocupado, Sua reserva e Encerrado e a Sala de estudo 101 ocupada das 10:00 às 12:00](manual/10-quadro.png)
 
-### 10. Minha conta
+### 11. Minha conta
 
 Em **Conta** (no computador, clique no seu nome no alto da página) você vê nome, e-mail, perfil e matrícula, e cuida dos seus dados:
 
@@ -227,6 +245,33 @@ A administração pode cancelar qualquer reserva que ainda não terminou, sem o 
 minutos. O horário fica livre na hora e o comprovante passa a mostrar a reserva como cancelada.
 
 ![Agenda do dia de quarta, 14 de outubro, com a janela Cancelar a reserva de Joana Ribeiro aberta, mostrando recurso, local, horário, código, o campo Motivo preenchido e os botões Manter reserva e Cancelar reserva](manual/15-admin-agenda.png)
+
+### 6. QR da porta
+
+Em **Recursos**, o botão **QR da porta** abre o cartaz de check-in de cada espaço: nome, bloco,
+o QR e a regra dos 15 minutos. Toque em **Imprimir** e fixe o cartaz na entrada.
+
+Se o cartaz for fotografado e compartilhado, ou estragar, toque em **Gerar novo QR**. O código
+impresso antes deixa de funcionar na hora; imprima e troque o cartaz.
+
+![Cartaz de check-in da Sala de estudo 203, Bloco B, com o QR, a instrução Chegou para a sua reserva e o link embaixo do código](manual/17-admin-qr-da-porta.png)
+
+### 7. Ocupação
+
+O painel **Ocupação** mostra como o campus usa os espaços num período (7, 30 ou 90 dias, ou
+datas escolhidas), para todos os blocos ou um só:
+
+- **Ocupação**: parte das horas disponíveis que ficou reservada.
+- **Comparecimento**: reservas com check-in entre as que já começaram.
+- **Horas devolvidas**: tempo que voltou a ficar livre porque ninguém fez check-in.
+- **Cancelamentos**: parte das reservas que foi cancelada.
+- **Mapa de calor**: a ocupação de cada dia da semana e hora, com a porcentagem escrita em cada
+  célula. Quanto mais escuro, mais cheio.
+- **Mais usados e menos usados**, e a lista de todos os espaços.
+
+**Baixar CSV** gera uma planilha com os números de cada espaço, que abre direto no Excel.
+
+![Painel de ocupação dos últimos 30 dias com 28% de ocupação, 92% de comparecimento, 188,5 horas devolvidas, 7% de cancelamentos e o mapa de calor da semana](manual/18-admin-ocupacao.png)
 
 ## Problemas comuns
 

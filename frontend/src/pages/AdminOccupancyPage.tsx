@@ -15,6 +15,7 @@ import { useSearchParams } from 'react-router';
 import {
   OccupancyHeatmap,
   RankedBars,
+  ResourceOccupancyList,
   ResourceOccupancyTable,
   StatTile,
 } from '@/components/admin/OccupancyViews';
@@ -298,7 +299,14 @@ export default function AdminOccupancyPage() {
             {ranked.length === 0 ? (
               <Typography color="text.secondary">Nenhum espaço neste filtro.</Typography>
             ) : (
-              <ResourceOccupancyTable items={ranked} />
+              <>
+                <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                  <ResourceOccupancyTable items={ranked} />
+                </Box>
+                <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                  <ResourceOccupancyList items={ranked} />
+                </Box>
+              </>
             )}
             <Typography variant="body2" sx={{ mt: 1, color: colors.inkMuted }}>
               Só espaços ativos. O CSV traz estes mesmos números.

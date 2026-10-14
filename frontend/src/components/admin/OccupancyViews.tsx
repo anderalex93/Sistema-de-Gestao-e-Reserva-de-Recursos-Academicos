@@ -314,3 +314,40 @@ export function ResourceOccupancyTable({ items }: { items: readonly ResourceOccu
     </Box>
   );
 }
+
+/** Celular: só nome, bloco e ocupação; os demais números ficam na tabela do computador e no CSV. */
+export function ResourceOccupancyList({ items }: { items: readonly ResourceOccupancyRead[] }) {
+  return (
+    <Box
+      component="ol"
+      aria-label="Ocupação por recurso"
+      sx={{ ...panelSx, m: 0, p: 0, listStyle: 'none' }}
+    >
+      {items.map((item, index) => (
+        <Stack
+          component="li"
+          key={item.id}
+          direction="row"
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2,
+            px: 2,
+            py: 1.25,
+            borderTop: index === 0 ? 0 : `1px solid ${colors.line}`,
+          }}
+        >
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 700 }}>{item.nome}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {item.bloco} · {item.reservas} reservas · {item.nao_comparecimentos} sem check-in
+            </Typography>
+          </Box>
+          <Typography sx={{ fontFamily: fonts.data, fontWeight: 500 }}>
+            {percent(item.taxa_ocupacao)}
+          </Typography>
+        </Stack>
+      ))}
+    </Box>
+  );
+}
