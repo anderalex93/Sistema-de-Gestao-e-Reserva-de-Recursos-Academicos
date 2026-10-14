@@ -1,4 +1,4 @@
-// Capturas reais do sistema para a página inicial (#47): grade de horários e comprovante.
+// Capturas reais do sistema para a página inicial (#47): grade de horários e imagem de compartilhamento.
 //
 // Pré-requisitos: API em :8100 com o banco do E2E recém-recriado (as contas abaixo são criadas
 // aqui) e o front em :5180 (`VITE_API_URL=http://127.0.0.1:8100/api/v1 npx vite --port 5180`).
@@ -53,7 +53,7 @@ await api(
   },
   maria,
 );
-const own = await api(
+await api(
   '/reservas',
   {
     method: 'POST',
@@ -88,23 +88,7 @@ await desk.screenshot({
   clip: { x: first.x, y: first.y, width: first.width, height: last.y + last.height - first.y },
 });
 
-// Comprovante no celular, como a pessoa mostra na entrada.
-const phone = await browser.newPage({
-  viewport: { width: 390, height: 844 },
-  deviceScaleFactor: 2,
-});
-await phone.goto(`${WEB}/comprovantes/${own.codigo}`);
-const receipt = phone.getByRole('article', { name: /^Comprovante / });
-await receipt.waitFor();
-await phone.waitForTimeout(800);
-await receipt.screenshot({ path: `${OUT}/comprovante.png` });
-
-console.log(
-  JSON.stringify({
-    grade: [first.width, last.y + last.height - first.y],
-    comprovante: await receipt.boundingBox(),
-  }),
-);
+console.log(JSON.stringify({ grade: [first.width, last.y + last.height - first.y] }));
 
 // Imagem de compartilhamento (#48): o topo da página inicial, com a marca e a grade.
 const share = await browser.newPage({ viewport: { width: 1200, height: 630 } });

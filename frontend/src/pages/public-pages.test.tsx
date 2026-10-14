@@ -19,19 +19,16 @@ describe('landing page', () => {
     expect(document.title).toBe('Reserva de salas e equipamentos da UMJ · EduSpace');
   });
 
-  it('shows real captures with description, reserved size and lazy loading below the fold', async () => {
+  it('shows only the real grid capture, with description and reserved size', async () => {
     renderRoute('/', { user: null });
 
     const grid = await screen.findByRole('img', {
       name: /Grade de horários da Sala de estudo 204/,
     });
-    const receipt = screen.getByRole('img', { name: /Comprovante de reserva no celular/ });
-    for (const image of [grid, receipt]) {
-      expect(image).toHaveAttribute('width');
-      expect(image).toHaveAttribute('height');
-    }
-    expect(grid).toHaveAttribute('loading', 'eager');
-    expect(receipt).toHaveAttribute('loading', 'lazy');
+    expect(grid).toHaveAttribute('width');
+    expect(grid).toHaveAttribute('height');
+    // Um comprovante de exemplo na vitrine parece uma reserva de verdade e confunde.
+    expect(screen.queryByRole('img', { name: /Comprovante/ })).not.toBeInTheDocument();
   });
 
   it('explains the journey in four numbered steps and answers five questions', async () => {

@@ -6,7 +6,6 @@ import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
 import { Link as RouterLink } from 'react-router';
 
-import receiptCapture from '@/assets/landing/comprovante.png';
 import gridCapture from '@/assets/landing/grade.png';
 import { FaqList } from '@/components/public/FaqList';
 import { mainFaq, product, steps } from '@/content/public-content';
@@ -15,10 +14,9 @@ import { fullTitle, seoPageFor } from '@/seo/public-seo';
 import { touchTarget } from '@/theme/patterns';
 import { colors, fonts, layout, zIndex } from '@/theme/tokens';
 
-// Dimensões reais das capturas (feitas com densidade 2x), para reservar o espaço e não haver
+// Dimensões reais da captura (feita com densidade 2x), para reservar o espaço e não haver
 // salto de layout quando a imagem chega.
 const GRID = { width: 480, height: 345 };
-const RECEIPT = { width: 358, height: 777 };
 
 const CTA_LABEL = 'Entrar com e-mail institucional';
 const LANDING_TITLE = seoPageFor('/')?.title ?? 'Início';
@@ -43,13 +41,11 @@ function Capture({
   alt,
   size,
   caption,
-  lazy = false,
 }: {
   src: string;
   alt: string;
   size: { width: number; height: number };
   caption: string;
-  lazy?: boolean;
 }) {
   return (
     <Box component="figure" sx={{ m: 0 }}>
@@ -59,7 +55,6 @@ function Capture({
         alt={alt}
         width={size.width}
         height={size.height}
-        loading={lazy ? 'lazy' : 'eager'}
         decoding="async"
         sx={{
           display: 'block',
@@ -156,35 +151,6 @@ export default function LandingPage() {
               </Box>
             </Box>
           ))}
-        </Box>
-      </Section>
-
-      <Section id="landing-comprovante" title="O comprovante vai no bolso">
-        <Box
-          sx={{
-            display: 'grid',
-            gap: { xs: 3, md: 6 },
-            gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 358px)' },
-            alignItems: 'start',
-          }}
-        >
-          <Stack spacing={1.5} sx={{ maxWidth: '60ch' }}>
-            <Typography>
-              Cada reserva confirmada gera um comprovante com código e QR code. Quem confere a sala
-              lê o código e vê na hora se a reserva vale, foi cancelada ou já terminou.
-            </Typography>
-            <Typography>
-              O comprovante mostra só o primeiro nome de quem reservou. Os outros dados ficam com
-              você e com a administração do campus.
-            </Typography>
-          </Stack>
-          <Capture
-            src={receiptCapture}
-            alt="Comprovante de reserva no celular: situação confirmada, código, espaço, data, horário, primeiro nome de quem reservou e o QR code para conferência."
-            size={RECEIPT}
-            caption="Comprovante aberto no celular. Captura do sistema."
-            lazy
-          />
         </Box>
       </Section>
 
