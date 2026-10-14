@@ -10,10 +10,14 @@ export async function loginThroughUi(page: Page, user: TestUser): Promise<void> 
   await expect(page.getByRole('heading', { level: 1, name: 'Início' })).toBeVisible();
 }
 
-/** Clica no bloco de início e no bloco de fim, como a pessoa faz na grade. */
+/**
+ * Clica no bloco de início e no bloco de fim, como a pessoa faz na grade. Para um bloco só,
+ * um clique: o segundo no mesmo bloco desfaria a seleção.
+ */
 export async function selectSlots(page: Page, first: string, last: string): Promise<void> {
   const grid = page.getByRole('list', { name: 'Horários do dia' });
   await grid.getByRole('button', { name: new RegExp(`^${first} às .*, livre$`) }).click();
+  if (last === first) return;
   await grid.getByRole('button', { name: new RegExp(`^${last} às .*, livre$`) }).click();
 }
 
