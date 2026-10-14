@@ -1,5 +1,7 @@
 name: eduspace
 
+# `docker compose up --build`: banco, API e front, prontos para usar (#37).
+# No dia a dia de desenvolvimento, `make db-up` sobe só o banco e a API e o front rodam com hot reload.
 services:
   db:
     image: postgres:16-alpine
@@ -21,6 +23,40 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  api:
+    build: ./backend
+    container_name: eduspace-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-eduspace}:${POSTGRES_PASSWORD:-eduspace_dev}@db:5432/${POSTGRES_DB:-eduspace}
+      # Segredo e admin só para uso local; em produção vêm do painel do Render (docs/deploy.md).
+      JWT_SECRET: local-docker-secret-not-for-production-use
+      ALLOWED_EMAIL_DOMAINS: umj.edu.br
+      CORS_ORIGINS: http://localhost:8080
+      SEED_ON_START: "true"
+      SEED_ADMIN_NOME: Administração EduSpace
+      SEED_ADMIN_EMAIL: admin@umj.edu.br
+      SEED_ADMIN_SENHA: Eduspace2026
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build: ./frontend
+    container_name: eduspace-web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8080:80"
 
 volumes:
   eduspace-pgdata:
