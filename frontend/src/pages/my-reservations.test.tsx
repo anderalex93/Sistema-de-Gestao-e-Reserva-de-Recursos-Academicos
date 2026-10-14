@@ -26,7 +26,10 @@ function mine(overrides: Partial<MyReservationRead> = {}): MyReservationRead {
     motivo_cancelamento: null,
     checkin_em: null,
     liberada_em: null,
+    encerrada_em: null,
+    fim_previsto: null,
     pode_cancelar: true,
+    pode_encerrar: false,
     ...overrides,
   };
 }
@@ -248,5 +251,85 @@ describe('check-in in my reservations (#43)', () => {
       within(history).getByText('Liberada às 19:15: não houve check-in no prazo'),
     ).toBeVisible();
     expect(within(history).getByText('Presença confirmada às 18:55')).toBeVisible();
+  });
+});
+
+describe('ending the use early', () => {
+  const inProgress = () => mine({ pode_cancelar: false, pode_encerrar: true });
+
+  it('asks first, says when the room is free and shows the end time in the row', async () => {
+    let ended = false;
+    const endedRow = mine({
+      pode_cancelar: false,
+      fim: campusToUtcIso(day, '19:30'),
+      fim_previsto: campusToUtcIso(day, '21:00'),
+      encerrada_em: campusToUtcIso(day, '19:10'),
+    });
+    server.use(
+      http.get(api('/reservas/minhas'), () =>
+        HttpResponse.json(page([ended ? endedRow : inProgress()])),
+      ),
+      http.post(api('/reservas/10/encerrar'), () => {
+        ended = true;
+        return HttpResponse.json(endedRow);
+      }),
+    );
+    const { user } = renderRoute('/minhas-reservas');
+
+    const list = await screen.findByRole('list', { name: 'Próximas reservas' });
+    expect(await within(list).findByRole('button', { name: 'Encerrar uso' })).toBeVisible();
+    expect(within(list).queryByRole('button', { name: 'Cancelar' })).toBeNull();
+    await user.click(within(list).getByRole('button', { name: 'Encerrar uso' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Encerrar o uso agora?' });
+    expect(dialog).toHaveTextContent('A sala fica livre a partir das 19:30.');
+    await user.click(within(dialog).getByRole('button', { name: 'Sim, encerrar' }));
+
+    expect(
+      await screen.findByText('Uso encerrado. A sala ficou livre a partir das 19:30.'),
+    ).toBeInTheDocument();
+    expect(await within(list).findByText('Uso encerrado às 19:10')).toBeVisible();
+    expect(within(list).queryByRole('button', { name: 'Encerrar uso' })).toBeNull();
+    expect(within(list).queryByRole('button', { name: 'Cancelar' })).toBeNull();
+  });
+
+  it('keeps the reservation when the person gives up', async () => {
+    let posts = 0;
+    serveMine({ proximas: [inProgress()] });
+    server.use(
+      http.post(api('/reservas/:id/encerrar'), () => {
+        posts += 1;
+        return HttpResponse.json(inProgress());
+      }),
+    );
+    const { user } = renderRoute('/minhas-reservas');
+
+    await user.click(await screen.findByRole('button', { name: 'Encerrar uso' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Encerrar o uso agora?' });
+    await user.click(within(dialog).getByRole('button', { name: 'Continuar usando' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(posts).toBe(0);
+  });
+
+  it('shows the server reason when the use was already ended', async () => {
+    serveMine({ proximas: [inProgress()] });
+    server.use(
+      http.post(api('/reservas/10/encerrar'), () =>
+        HttpResponse.json(
+          {
+            detail: 'O uso desta reserva já foi encerrado às 19:10.',
+            code: 'RESERVA_JA_ENCERRADA',
+          },
+          { status: 409 },
+        ),
+      ),
+    );
+    const { user } = renderRoute('/minhas-reservas');
+
+    await user.click(await screen.findByRole('button', { name: 'Encerrar uso' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Encerrar o uso agora?' });
+    await user.click(within(dialog).getByRole('button', { name: 'Sim, encerrar' }));
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('já foi encerrado às 19:10');
   });
 });

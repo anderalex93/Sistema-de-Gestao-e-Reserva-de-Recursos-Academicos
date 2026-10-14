@@ -29,6 +29,8 @@ function booking(overrides: Partial<AdminReservationRead> = {}): AdminReservatio
     motivo_cancelamento: null,
     checkin_em: null,
     liberada_em: null,
+    encerrada_em: null,
+    fim_previsto: null,
     ...overrides,
   };
 }

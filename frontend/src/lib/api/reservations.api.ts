@@ -38,6 +38,11 @@ export class ReservationsApi {
     return this.#http.post<MyReservationRead>(`/reservas/${id}/cancelar`);
   }
 
+  /** Encerra o uso antes do fim: a sala fica livre a partir do próximo bloco de 30 min. */
+  endEarly(id: number): Promise<MyReservationRead> {
+    return this.#http.post<MyReservationRead>(`/reservas/${id}/encerrar`);
+  }
+
   get(id: number): Promise<ReservationRead> {
     return this.#http.get<ReservationRead>(`/reservas/${id}`);
   }

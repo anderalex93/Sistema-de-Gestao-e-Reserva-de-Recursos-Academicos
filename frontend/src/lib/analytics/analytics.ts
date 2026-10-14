@@ -21,6 +21,7 @@ export type AnalyticsEvent =
     }
   | { name: 'reservation_created'; params: { tipo_recurso: string; duracao_min: number } }
   | { name: 'reservation_cancelled' }
+  | { name: 'reservation_ended_early' }
   | { name: 'receipt_viewed'; params: { situacao: string } };
 
 type GtagCommand = [string, ...unknown[]];

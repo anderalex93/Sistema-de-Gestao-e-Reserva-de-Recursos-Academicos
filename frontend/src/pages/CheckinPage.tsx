@@ -1,15 +1,17 @@
 import HowToRegSharp from '@mui/icons-material/HowToRegSharp';
+import LogoutSharp from '@mui/icons-material/LogoutSharp';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router';
 
 import { DetailList } from '@/components/DetailList';
 import { FormError } from '@/components/form/FormError';
 import { LoadError } from '@/components/LoadError';
+import { EndReservationDialog } from '@/components/reservation/EndReservationDialog';
 import { PageHeader } from '@/components/PageHeader';
 import { locationLabel, resourceTypeLabels } from '@/domain/resource-types';
 import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
@@ -43,7 +45,14 @@ function Panel({ children }: { children: ReactNode }) {
 }
 
 /** O momento que importa: presença registrada, em destaque e com a hora. */
-function Confirmed({ reservation }: { reservation: ReservationRead }) {
+function Confirmed({
+  reservation,
+  canEnd = false,
+}: {
+  reservation: ReservationRead;
+  canEnd?: boolean;
+}) {
+  const [ending, setEnding] = useState(false);
   return (
     <Panel>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', color: colors.success }}>
@@ -63,7 +72,17 @@ function Confirmed({ reservation }: { reservation: ReservationRead }) {
       <Typography color="text.secondary">
         A sala é sua até {campusTime(reservation.fim)}. Bom uso.
       </Typography>
+      {canEnd && (
+        <Typography color="text.secondary">
+          Terminou antes do horário? Encerre o uso para a sala ficar livre para outras pessoas.
+        </Typography>
+      )}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+        {canEnd && (
+          <Button variant="contained" startIcon={<LogoutSharp />} onClick={() => setEnding(true)}>
+            Encerrar uso e liberar a sala
+          </Button>
+        )}
         <Button component={RouterLink} to={paths.receipt(reservation.codigo)} variant="outlined">
           Ver comprovante
         </Button>
@@ -71,6 +90,36 @@ function Confirmed({ reservation }: { reservation: ReservationRead }) {
           Minhas reservas
         </Button>
       </Stack>
+      {ending && (
+        <EndReservationDialog reservation={reservation} onClose={() => setEnding(false)} />
+      )}
+    </Panel>
+  );
+}
+
+/** Depois de encerrar: quando saiu e a partir de quando a sala ficou livre. */
+function Ended({ reservation, resourceId }: { reservation: ReservationRead; resourceId: number }) {
+  return (
+    <Panel>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+        <LogoutSharp sx={{ fontSize: 40 }} aria-hidden />
+        <Box>
+          <Typography variant="h2" component="p">
+            Uso encerrado
+          </Typography>
+          {reservation.encerrada_em && (
+            <Typography sx={{ fontFamily: fonts.data, color: colors.ink }}>
+              às {campusTime(reservation.encerrada_em)}
+            </Typography>
+          )}
+        </Box>
+      </Stack>
+      <DetailList items={reservationItems(reservation)} />
+      <Typography>
+        A sala ficou livre a partir das {campusTime(reservation.fim)}. Obrigado por liberar o
+        espaço.
+      </Typography>
+      <ResourceLinks resourceId={resourceId} />
     </Panel>
   );
 }
@@ -93,8 +142,14 @@ function CheckinState({ token, data }: { token: string; data: CheckinStatusRead 
   const rules = useRules();
   const { reserva: reservation, recurso: resource } = data;
 
+  // A situação recarregada depois do check-in vem primeiro: ela diz se dá para encerrar o uso.
+  if (data.situacao === 'FEITO' && reservation) {
+    return <Confirmed reservation={reservation} canEnd={data.pode_encerrar} />;
+  }
+  if (data.situacao === 'ENCERRADA' && reservation) {
+    return <Ended reservation={reservation} resourceId={resource.id} />;
+  }
   if (checkIn.data) return <Confirmed reservation={checkIn.data} />;
-  if (data.situacao === 'FEITO' && reservation) return <Confirmed reservation={reservation} />;
 
   if (data.situacao === 'DISPONIVEL' && reservation) {
     return (

@@ -11,6 +11,7 @@ const base = {
   fim: campusToUtcIso(day, '21:00'),
   checkin_em: null,
   liberada_em: null,
+  encerrada_em: null,
 };
 const beforeStart = new Date(campusToUtcIso(day, '18:00'));
 
@@ -50,5 +51,20 @@ describe('checkinNote', () => {
     expect(checkinNote({ ...base, status: 'CANCELADA' }, DEFAULT_RULES, beforeStart)).toBeNull();
     expect(checkinNote(base, DEFAULT_RULES, afterEnd)).toBeNull();
     expect(checkinNote(base, { ...DEFAULT_RULES, checkinToleranceMin: 0 }, beforeStart)).toBeNull();
+  });
+});
+
+describe('checkinNote after ending early', () => {
+  it('says when the use ended, before the presence', () => {
+    const note = checkinNote(
+      {
+        ...base,
+        checkin_em: campusToUtcIso(day, '18:52'),
+        encerrada_em: campusToUtcIso(day, '19:40'),
+      },
+      DEFAULT_RULES,
+    );
+
+    expect(note).toEqual({ kind: 'encerrada', text: 'Uso encerrado às 19:40' });
   });
 });

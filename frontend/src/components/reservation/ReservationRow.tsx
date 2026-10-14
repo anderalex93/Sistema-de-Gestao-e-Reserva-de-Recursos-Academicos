@@ -23,13 +23,20 @@ interface ReservationRowProps {
   /** Situação do check-in (#43), calculada pela página com as regras do campus. */
   checkin?: CheckinNote | null;
   onCancel: (reservation: MyReservationRead) => void;
+  /** Encerrar o uso de uma reserva em andamento; sem ele, o botão não aparece. */
+  onEnd?: (reservation: MyReservationRead) => void;
 }
 
 /**
  * Linha da lista de reservas (design system, seção 8): data à esquerda, espaço e horário,
  * status e ações à direita. No celular empilha.
  */
-export function ReservationRow({ reservation, checkin = null, onCancel }: ReservationRowProps) {
+export function ReservationRow({
+  reservation,
+  checkin = null,
+  onCancel,
+  onEnd,
+}: ReservationRowProps) {
   const status = displayStatus(reservation.status, reservation.fim);
   const date = campusToday(new Date(reservation.inicio));
 
@@ -84,7 +91,14 @@ export function ReservationRow({ reservation, checkin = null, onCancel }: Reserv
         <Button component={RouterLink} to={paths.receipt(reservation.codigo)} variant="outlined">
           Ver comprovante
         </Button>
+        {status === 'CONFIRMADA' && reservation.pode_encerrar && onEnd && (
+          <Button variant="outlined" onClick={() => onEnd(reservation)}>
+            Encerrar uso
+          </Button>
+        )}
         {status === 'CONFIRMADA' &&
+          !reservation.pode_encerrar &&
+          !reservation.encerrada_em &&
           (reservation.pode_cancelar ? (
             <Button variant="outlined" color="error" onClick={() => onCancel(reservation)}>
               Cancelar

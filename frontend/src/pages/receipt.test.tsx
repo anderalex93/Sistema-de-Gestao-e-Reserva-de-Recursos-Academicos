@@ -82,3 +82,19 @@ describe('display status', () => {
     expect(displayStatus('CANCELADA', '2030-01-01T11:00:00Z', now)).toBe('CANCELADA');
   });
 });
+
+describe('receipt of a use ended early', () => {
+  it('shows when the use ended', async () => {
+    serveReceipt(
+      buildReceipt({
+        fim: '2026-10-21T22:30:00Z',
+        checkin_em: '2026-10-21T21:57:00Z',
+        encerrada_em: '2026-10-21T22:10:00Z',
+      }),
+    );
+    renderRoute('/comprovantes/EDU-7K3F9Q', { user: null });
+
+    const receipt = await screen.findByRole('article', { name: 'Comprovante EDU-7K3F9Q' });
+    expect(within(receipt).getByText('Uso encerrado às 19:10')).toBeInTheDocument();
+  });
+});

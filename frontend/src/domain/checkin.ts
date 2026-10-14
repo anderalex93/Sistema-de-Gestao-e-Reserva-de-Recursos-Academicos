@@ -2,7 +2,7 @@ import { checkinWindow, type CampusRules } from '@/domain/rules';
 import { campusTime } from '@/domain/schedule';
 import type { ReservationRead } from '@/lib/api/types';
 
-export type CheckinNoteKind = 'feito' | 'liberada' | 'pendente';
+export type CheckinNoteKind = 'feito' | 'encerrada' | 'liberada' | 'pendente';
 
 export interface CheckinNote {
   kind: CheckinNoteKind;
@@ -11,11 +11,11 @@ export interface CheckinNote {
 
 type CheckinFields = Pick<
   ReservationRead,
-  'status' | 'inicio' | 'fim' | 'checkin_em' | 'liberada_em'
+  'status' | 'inicio' | 'fim' | 'checkin_em' | 'liberada_em' | 'encerrada_em'
 >;
 
 /**
- * O que dizer sobre o check-in de uma reserva (#43): presença confirmada, liberada por falta de
+ * O que dizer sobre o check-in de uma reserva (#43): uso encerrado mais cedo, presença confirmada, liberada por falta de
  * check-in ou a janela em que a pessoa precisa ler o QR da porta. `null` quando não há nada a
  * dizer (cancelada, encerrada sem check-in ou check-in opcional).
  */
@@ -24,6 +24,9 @@ export function checkinNote(
   rules: CampusRules,
   now: Date = new Date(),
 ): CheckinNote | null {
+  if (reservation.encerrada_em) {
+    return { kind: 'encerrada', text: `Uso encerrado às ${campusTime(reservation.encerrada_em)}` };
+  }
   if (reservation.checkin_em) {
     return { kind: 'feito', text: `Presença confirmada às ${campusTime(reservation.checkin_em)}` };
   }

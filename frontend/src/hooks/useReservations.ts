@@ -35,3 +35,19 @@ export function useCancelReservation() {
       ]),
   });
 }
+
+/**
+ * Encerrar o uso antes do fim libera o resto do horário: listas, situação do check-in, grade,
+ * busca e quadro são recarregados.
+ */
+export function useEndReservationEarly() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => reservationsApi.endEarly(id),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.reservations }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.resources }),
+      ]),
+  });
+}

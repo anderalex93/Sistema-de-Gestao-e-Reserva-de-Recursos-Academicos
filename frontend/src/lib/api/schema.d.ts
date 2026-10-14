@@ -369,6 +369,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/reservas/{reservation_id}/encerrar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Encerra o uso antes do fim e libera o resto do horário
+     * @description Quem reservou avisa que saiu. Só vale para reserva `CONFIRMADA` em andamento (`inicio <= agora < fim`, relógio do servidor). O novo `fim` é a próxima marca de 30 minutos depois de agora, nunca antes de `inicio + 30 min`; o fim original fica em `fim_previsto` e o trecho entre os dois volta a ficar livre na grade. `encerrada_em` registra o momento.
+     */
+    post: operations['end_reservation_early_api_v1_reservas__reservation_id__encerrar_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/quadro': {
     parameters: {
       query?: never;
@@ -401,7 +421,8 @@ export interface paths {
      * @description Não registra nada: mostra o espaço e a situação da reserva de quem leu nele hoje (fuso do campus). A janela de check-in vai de `checkin_antecedencia_min` antes do início até `checkin_tolerancia_min` depois (`GET /api/v1/config/regras`). Situações:
      *
      *     - `DISPONIVEL`: dentro da janela e sem check-in;
-     *     - `FEITO`: check-in já feito numa reserva que não terminou;
+     *     - `FEITO`: check-in já feito numa reserva que não terminou; `pode_encerrar` diz se dá para encerrar o uso agora (`POST /api/v1/reservas/{id}/encerrar`);
+     *     - `ENCERRADA`: quem leu encerrou o uso mais cedo e o fim original ainda não chegou;
      *     - `CEDO`: há reserva confirmada mais tarde hoje; `abre_em` diz quando a janela abre;
      *     - `LIBERADA`: a reserva virou `NAO_COMPARECEU` e ainda não terminou;
      *     - `SEM_RESERVA`: nenhuma das anteriores (`reserva` nula).
@@ -834,6 +855,16 @@ export interface components {
        * @description Quando a reserva virou `NAO_COMPARECEU` e o horário foi liberado
        */
       liberada_em: string | null;
+      /**
+       * Encerrada Em
+       * @description Quando quem reservou encerrou o uso antes do fim
+       */
+      encerrada_em: string | null;
+      /**
+       * Fim Previsto
+       * @description O fim original, só quando o encerramento antecipado encurtou a reserva; o trecho entre `fim` e `fim_previsto` voltou a ficar livre
+       */
+      fim_previsto: string | null;
       usuario: components['schemas']['ReservationHolderRead'];
     };
     /** AvailabilityRead */
@@ -964,11 +995,11 @@ export interface components {
      * @description O que a leitura do QR Code de um espaço encontra para quem leu (#43).
      * @enum {string}
      */
-    CheckinSituation: 'DISPONIVEL' | 'FEITO' | 'CEDO' | 'LIBERADA' | 'SEM_RESERVA';
+    CheckinSituation: 'DISPONIVEL' | 'FEITO' | 'ENCERRADA' | 'CEDO' | 'LIBERADA' | 'SEM_RESERVA';
     /** CheckinStatusRead */
     CheckinStatusRead: {
       recurso: components['schemas']['CheckinResourceRead'];
-      /** @description `DISPONIVEL`: dá para fazer check-in agora. `FEITO`: check-in já feito numa reserva que não terminou. `CEDO`: há reserva confirmada mais tarde hoje; a janela abre em `abre_em`. `LIBERADA`: a reserva de agora virou `NAO_COMPARECEU`. `SEM_RESERVA`: nenhuma reserva de quem leu neste espaço para hoje */
+      /** @description `DISPONIVEL`: dá para fazer check-in agora. `FEITO`: check-in já feito numa reserva que não terminou. `ENCERRADA`: quem leu encerrou o uso mais cedo e o fim original ainda não chegou. `CEDO`: há reserva confirmada mais tarde hoje; a janela abre em `abre_em`. `LIBERADA`: a reserva de agora virou `NAO_COMPARECEU`. `SEM_RESERVA`: nenhuma reserva de quem leu neste espaço para hoje */
       situacao: components['schemas']['CheckinSituation'];
       /** @description A reserva de quem leu neste espaço hoje a que a situação se refere */
       reserva: components['schemas']['ReservationRead'] | null;
@@ -977,6 +1008,11 @@ export interface components {
        * @description Quando a janela de check-in abre; só na situação `CEDO`
        */
       abre_em: string | null;
+      /**
+       * Pode Encerrar
+       * @description A reserva já começou e o uso ainda não foi encerrado: dá para encerrar agora por `POST /api/v1/reservas/{reserva.id}/encerrar`
+       */
+      pode_encerrar: boolean;
     };
     /** DayHoursRead */
     DayHoursRead: {
@@ -1158,10 +1194,25 @@ export interface components {
        */
       liberada_em: string | null;
       /**
+       * Encerrada Em
+       * @description Quando quem reservou encerrou o uso antes do fim
+       */
+      encerrada_em: string | null;
+      /**
+       * Fim Previsto
+       * @description O fim original, só quando o encerramento antecipado encurtou a reserva; o trecho entre `fim` e `fim_previsto` voltou a ficar livre
+       */
+      fim_previsto: string | null;
+      /**
        * Pode Cancelar
        * @description Confirmada e com pelo menos 30 minutos até o início (RF04)
        */
       pode_cancelar: boolean;
+      /**
+       * Pode Encerrar
+       * @description Confirmada, em andamento e com o uso ainda não encerrado
+       */
+      pode_encerrar: boolean;
     };
     /** OccupancyPeriodRead */
     OccupancyPeriodRead: {
@@ -1283,7 +1334,7 @@ export interface components {
       taxa_comparecimento: number | null;
       /**
        * Horas Devolvidas
-       * @description Horas liberadas por não comparecimento (da liberação ao fim da reserva)
+       * @description Horas que voltaram a ficar livres: por não comparecimento (da liberação ao fim da reserva) e por uso encerrado mais cedo (do novo fim ao fim original)
        */
       horas_devolvidas: number;
     };
@@ -1411,6 +1462,11 @@ export interface components {
        * @description Quando quem reservou fez check-in
        */
       checkin_em: string | null;
+      /**
+       * Encerrada Em
+       * @description Quando quem reservou encerrou o uso antes do fim
+       */
+      encerrada_em: string | null;
     };
     /** ReceiptResourceRead */
     ReceiptResourceRead: {
@@ -1558,6 +1614,16 @@ export interface components {
        * @description Quando a reserva virou `NAO_COMPARECEU` e o horário foi liberado
        */
       liberada_em: string | null;
+      /**
+       * Encerrada Em
+       * @description Quando quem reservou encerrou o uso antes do fim
+       */
+      encerrada_em: string | null;
+      /**
+       * Fim Previsto
+       * @description O fim original, só quando o encerramento antecipado encurtou a reserva; o trecho entre `fim` e `fim_previsto` voltou a ficar livre
+       */
+      fim_previsto: string | null;
     };
     /**
      * ReservationScope
@@ -2687,6 +2753,73 @@ export interface operations {
       };
     };
   };
+  end_reservation_early_api_v1_reservas__reservation_id__encerrar_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        reservation_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MyReservationRead'];
+        };
+      };
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description A reserva é de outra pessoa (`ACESSO_NEGADO`) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Reserva inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Uso já encerrado (`RESERVA_JA_ENCERRADA`), reserva cancelada (`RESERVA_JA_CANCELADA`) ou liberada por não comparecimento (`RESERVA_LIBERADA`) */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description A reserva ainda não começou (`RESERVA_NAO_INICIADA`) ou já terminou (`RESERVA_ENCERRADA`) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
   get_board_api_v1_quadro_get: {
     parameters: {
       query: {
@@ -2819,7 +2952,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description A reserva foi liberada por falta de check-in no prazo (`RESERVA_LIBERADA`) */
+      /** @description A reserva foi liberada por falta de check-in no prazo (`RESERVA_LIBERADA`) ou o uso já foi encerrado (`RESERVA_JA_ENCERRADA`) */
       409: {
         headers: {
           [name: string]: unknown;

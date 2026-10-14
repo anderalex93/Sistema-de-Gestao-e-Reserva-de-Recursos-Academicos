@@ -1,4 +1,5 @@
 import HowToRegSharp from '@mui/icons-material/HowToRegSharp';
+import LogoutSharp from '@mui/icons-material/LogoutSharp';
 import PersonOffSharp from '@mui/icons-material/PersonOffSharp';
 import QrCode2Sharp from '@mui/icons-material/QrCode2Sharp';
 import Stack from '@mui/material/Stack';
@@ -9,6 +10,7 @@ import { colors } from '@/theme/tokens';
 
 const STYLES = {
   feito: { Icon: HowToRegSharp, color: colors.success },
+  encerrada: { Icon: LogoutSharp, color: colors.ink },
   liberada: { Icon: PersonOffSharp, color: colors.warning },
   pendente: { Icon: QrCode2Sharp, color: colors.inkMuted },
 } as const;

@@ -135,6 +135,9 @@ export default function ReceiptPage() {
               ...(receipt.checkin_em
                 ? [{ label: 'Presença', value: `Confirmada às ${campusTime(receipt.checkin_em)}` }]
                 : []),
+              ...(receipt.encerrada_em
+                ? [{ label: 'Uso', value: `Uso encerrado às ${campusTime(receipt.encerrada_em)}` }]
+                : []),
             ]}
           />
           {status === 'CANCELADA' && (

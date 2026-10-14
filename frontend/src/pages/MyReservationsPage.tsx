@@ -11,6 +11,7 @@ import { Link as RouterLink, useSearchParams } from 'react-router';
 import { LoadError } from '@/components/LoadError';
 import { PageHeader } from '@/components/PageHeader';
 import { CancelReservationDialog } from '@/components/reservation/CancelReservationDialog';
+import { EndReservationDialog } from '@/components/reservation/EndReservationDialog';
 import { ReservationRow, ReservationRowSkeleton } from '@/components/reservation/ReservationRow';
 import { checkinNote } from '@/domain/checkin';
 import { useMyReservations } from '@/hooks/useReservations';
@@ -32,6 +33,7 @@ export default function MyReservationsPage() {
   const page = Math.max(1, Number(params.get('page')) || 1);
   const query = useMyReservations({ escopo, page, per_page: PER_PAGE });
   const [cancelling, setCancelling] = useState<MyReservationRead | null>(null);
+  const [ending, setEnding] = useState<MyReservationRead | null>(null);
   const rules = useRules();
   const data = query.data;
 
@@ -101,6 +103,7 @@ export default function MyReservationsPage() {
                         reservation={reservation}
                         checkin={checkinNote(reservation, rules)}
                         onCancel={setCancelling}
+                        onEnd={setEnding}
                       />
                     </li>
                   </Fragment>
@@ -133,6 +136,7 @@ export default function MyReservationsPage() {
       {cancelling && (
         <CancelReservationDialog reservation={cancelling} onClose={() => setCancelling(null)} />
       )}
+      {ending && <EndReservationDialog reservation={ending} onClose={() => setEnding(null)} />}
     </>
   );
 }

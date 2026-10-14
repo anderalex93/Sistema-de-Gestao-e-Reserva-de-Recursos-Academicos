@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 
@@ -28,6 +28,8 @@ function reservation(overrides: Partial<ReservationRead> = {}): ReservationRead 
     motivo_cancelamento: null,
     checkin_em: null,
     liberada_em: null,
+    encerrada_em: null,
+    fim_previsto: null,
     ...overrides,
   };
 }
@@ -44,6 +46,7 @@ function status(overrides: Partial<CheckinStatusRead>): CheckinStatusRead {
     situacao: 'SEM_RESERVA',
     reserva: null,
     abre_em: null,
+    pode_encerrar: false,
     ...overrides,
   };
 }
@@ -181,5 +184,77 @@ describe('door QR check-in', () => {
         from: { pathname: `/checkin/${TOKEN}` },
       }),
     );
+  });
+});
+
+describe('ending the use from the door QR', () => {
+  const checkedIn = () => reservation({ checkin_em: campusToUtcIso(day, '18:57') });
+
+  it('offers to end the use after the check-in and shows the room free', async () => {
+    let ended = false;
+    const endedReservation = reservation({
+      checkin_em: campusToUtcIso(day, '18:57'),
+      fim: campusToUtcIso(day, '19:30'),
+      fim_previsto: campusToUtcIso(day, '21:00'),
+      encerrada_em: campusToUtcIso(day, '19:12'),
+    });
+    server.use(
+      http.get(api(`/checkin/${TOKEN}`), () =>
+        HttpResponse.json(
+          ended
+            ? status({ situacao: 'ENCERRADA', reserva: endedReservation })
+            : status({ situacao: 'FEITO', reserva: checkedIn(), pode_encerrar: true }),
+        ),
+      ),
+      http.post(api('/reservas/10/encerrar'), () => {
+        ended = true;
+        return HttpResponse.json({
+          ...endedReservation,
+          pode_cancelar: false,
+          pode_encerrar: false,
+        });
+      }),
+    );
+    const { user } = renderRoute(`/checkin/${TOKEN}`);
+
+    expect(await screen.findByText('Presença confirmada')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Encerrar uso e liberar a sala' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Encerrar o uso agora?' });
+    expect(dialog).toHaveTextContent('A sala fica livre a partir das 19:30.');
+    await user.click(within(dialog).getByRole('button', { name: 'Sim, encerrar' }));
+
+    expect(await screen.findByText('Uso encerrado', { selector: 'p' })).toBeVisible();
+    expect(screen.getByText('às 19:12')).toBeVisible();
+    expect(screen.getByText(/livre a partir das 19:30. Obrigado por liberar/)).toBeVisible();
+  });
+
+  it('does not offer to end before the reservation starts', async () => {
+    serveStatus(status({ situacao: 'FEITO', reserva: checkedIn(), pode_encerrar: false }));
+    renderRoute(`/checkin/${TOKEN}`);
+
+    expect(await screen.findByText('Presença confirmada')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Encerrar uso e liberar a sala' })).toBeNull();
+  });
+
+  it('shows the API reason when ending fails', async () => {
+    serveStatus(status({ situacao: 'FEITO', reserva: checkedIn(), pode_encerrar: true }));
+    server.use(
+      http.post(api('/reservas/10/encerrar'), () =>
+        HttpResponse.json(
+          {
+            detail: 'Esta reserva já terminou: não há uso para encerrar.',
+            code: 'RESERVA_ENCERRADA',
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+    const { user } = renderRoute(`/checkin/${TOKEN}`);
+
+    await user.click(await screen.findByRole('button', { name: 'Encerrar uso e liberar a sala' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Encerrar o uso agora?' });
+    await user.click(within(dialog).getByRole('button', { name: 'Sim, encerrar' }));
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('já terminou');
   });
 });

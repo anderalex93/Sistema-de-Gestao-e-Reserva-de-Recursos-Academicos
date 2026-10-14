@@ -257,7 +257,7 @@ export default function AdminOccupancyPage() {
             <StatTile
               label="Horas devolvidas"
               value={hours(summary.horas_devolvidas)}
-              detail="Liberadas por falta de check-in e abertas de novo para o campus"
+              detail="Liberadas por falta de check-in ou por uso encerrado mais cedo"
             />
             <StatTile
               label="Cancelamentos"
