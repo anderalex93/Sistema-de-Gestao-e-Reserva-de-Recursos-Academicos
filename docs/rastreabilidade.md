@@ -11,8 +11,8 @@ Como conferir:
 - testes do front: `cd frontend && npm run ci`;
 - testes E2E: `cd frontend && npm run e2e`, e o workflow `E2E` a cada push na `main`.
 
-Toda a evidência abaixo é local e de CI. A conferência no ambiente publicado depende do deploy
-(#19), que ainda está aberto.
+Toda a evidência abaixo é local e de CI. A conferência no ambiente publicado depende de o deploy
+versionado na #19 ([docs/deploy.md](deploy.md)) ser colocado no ar.
 
 ## Matriz
 
@@ -31,8 +31,10 @@ Toda a evidência abaixo é local e de CI. A conferência no ambiente publicado 
 | **História 02 CA2** Resumo antes de confirmar | #23 | `491651c` | `frontend/src/pages/reservation.test.tsx`, `frontend/e2e/reservation.e2e.ts`, `frontend/e2e/keyboard.e2e.ts` | Coberto |
 | **História 03 CA1** Confirmação explícita do cancelamento | #26 | `d4021d7` | `frontend/src/pages/my-reservations.test.tsx`, `frontend/e2e/reservation.e2e.ts` | Coberto |
 | **História 03 CA2** Status volta para "Disponível" | #26, #31 | `797818a`, `d4021d7`, `fca3d53` | `backend/tests/services/test_cancellation.py`, `backend/tests/services/test_reservation_service.py`, `backend/tests/models/test_reservation_constraints.py`, `backend/tests/api/test_resource_search.py`, `frontend/src/pages/realtime.test.tsx`, `frontend/e2e/reservation.e2e.ts` | Coberto |
-| **Épico #5** Administração do patrimônio | #27, #30, #50, #17 | `9bde022`, `2fe21fa`, `4c86503`, `a34ee8d`, `165d83f`, `5f762ca`, `347130a`, `64164d8`, `069c414` | `backend/tests/api/test_admin_catalog.py`, `backend/tests/api/test_admin_reservations.py`, `backend/tests/api/test_admin_users.py`, `backend/tests/services/test_admin_seed.py`, `frontend/src/pages/admin-catalog.test.tsx`, `frontend/src/pages/admin-agenda.test.tsx`, `frontend/src/pages/AdminUsersPage.test.tsx` | Coberto. Sem fluxo E2E funcional de admin |
+| **Épico #5** Administração do patrimônio | #27, #30, #50, #17 | `9bde022`, `2fe21fa`, `4c86503`, `a34ee8d`, `165d83f`, `5f762ca`, `347130a`, `64164d8`, `069c414`, `b59baea` | `backend/tests/api/test_admin_catalog.py`, `backend/tests/api/test_admin_reservations.py`, `backend/tests/api/test_admin_users.py`, `backend/tests/services/test_admin_seed.py`, `frontend/src/pages/admin-catalog.test.tsx`, `frontend/src/pages/admin-agenda.test.tsx`, `frontend/src/pages/AdminUsersPage.test.tsx`, `frontend/e2e/demo.e2e.ts` | Coberto. Sem E2E do cancelamento pela agenda |
 | **#34** LGPD | #34, #49 | `62a1ce1`, `bd92810`, `ee9ea0d`, `c2de7d1`, `4aa0606` | `backend/tests/api/test_account.py`, `backend/tests/api/test_reservations_api.py`, `backend/tests/api/test_board.py`, `backend/tests/services/test_availability.py`, `backend/tests/services/test_admin_seed.py`, `backend/tests/api/test_process_time.py`, `frontend/src/pages/auth.test.tsx`, `frontend/src/pages/privacy.test.tsx`, `frontend/src/components/legal/CookieBanner.test.tsx`, `frontend/src/lib/analytics/analytics.test.ts` | Coberto |
+| **#43** Check-in pelo QR da porta e liberação de quem não compareceu | #43 | `a666c83`, `a1918d9`, `fd4ddd2`, `31cdb5a`, `b59baea` | `backend/tests/services/test_checkin.py`, `backend/tests/api/test_checkin_api.py`, `backend/tests/test_migrations.py`, `frontend/src/domain/checkin.test.ts`, `frontend/src/pages/checkin.test.tsx`, `frontend/src/pages/admin-resource-qr.test.tsx`, `frontend/src/pages/my-reservations.test.tsx`, `frontend/e2e/checkin.e2e.ts`, `frontend/e2e/demo.e2e.ts` | Coberto |
+| **#44** Painel de ocupação com exportação CSV | #44 | `4e9e0b2`, `21f51e0`, `31cdb5a` | `backend/tests/services/test_occupancy.py`, `backend/tests/api/test_admin_occupancy.py`, `frontend/src/pages/admin-occupancy.test.tsx`, `frontend/e2e/checkin.e2e.ts`, `frontend/e2e/accessibility.e2e.ts` | Coberto |
 
 Mensagens dos commits citados:
 
@@ -79,6 +81,13 @@ Mensagens dos commits citados:
 | `5886a26` | perf(frontend): drop axios and date pickers, lazy reservation dialog, preload page chunk and critical fonts (refs #32) |
 | `5207290` | test(e2e): responsive and WCAG 2.2 audit, keyboard-only flow and Lighthouse script with report (refs #32) |
 | `4aa0606` | feat(frontend): GA4 with consent mode, cookie banner and privacy-safe product events (refs #49) |
+| `a666c83` | feat(checkin): door QR check-in and automatic no-show release with configurable window (refs #43) |
+| `a1918d9` | feat(frontend): door QR check-in page, printable door poster and check-in status across reservations (closes #43) |
+| `fd4ddd2` | fix(checkin): find reservations whose window opens before midnight (refs #43) |
+| `4e9e0b2` | feat(occupancy): admin occupancy analytics with heatmap, attendance, returned hours and CSV export (refs #44) |
+| `21f51e0` | feat(frontend): occupancy dashboard with validated heatmap ramp, rankings, period presets and CSV download (closes #44) |
+| `31cdb5a` | test(e2e): door QR check-in, door poster and occupancy dashboard in the browser and accessibility audit (refs #43 #44) |
+| `b59baea` | test(e2e): presentation script end to end with two browsers and a recordable plan B video (refs #38) |
 
 ## Detalhe por requisito
 
@@ -274,9 +283,10 @@ com cancelamento administrativo (#30), contas (#17 e #50).
 | `frontend/src/pages/AdminUsersPage.test.tsx` | "creates an account with the chosen role", "changes the role of an existing account", "asks for confirmation before deactivating an account" |
 | `frontend/src/pages/my-reservations.test.tsx` | "shows the reason when the administration cancelled the reservation" |
 
-**Lacuna:** as telas de administração entram na auditoria de acessibilidade do E2E, mas não há
-teste E2E que cadastre um recurso ou cancele pela agenda no navegador. Essa parte é coberta só
-por testes de API e de componente.
+| `frontend/e2e/demo.e2e.ts` | "roteiro da apresentação: reserva, conflito, check-in, cancelamento e administração" (cadastra uma sala pela tela de administração e confere que ela aparece na busca) |
+
+**Lacuna:** o cancelamento administrativo pela agenda não tem teste E2E no navegador. Essa parte
+é coberta só por testes de API e de componente.
 
 ### #34: LGPD
 
@@ -296,11 +306,37 @@ os endpoints quanto aos dados pessoais expostos (critério da #34).
 | `frontend/src/components/legal/CookieBanner.test.tsx` | "asks on the first visit, with accept and decline side by side and the privacy notice", "starts measuring only after accept and remembers the choice" |
 | `frontend/src/lib/analytics/analytics.test.ts` | "loads nothing and sends nothing before consent", "stops measuring and deletes the _ga cookies when consent is withdrawn" |
 
+### #43: check-in pelo QR da porta
+
+Cada recurso tem um token de check-in (o QR fixado na porta). A janela abre
+`CHECKIN_ANTECEDENCIA_MIN` antes do início e fecha `CHECKIN_TOLERANCIA_MIN` depois; sem check-in,
+a reserva vira `NAO_COMPARECEU` na primeira requisição seguinte e o horário volta a ficar livre.
+Tolerância zero desliga a liberação.
+
+| Teste | Nome |
+|---|---|
+| `backend/tests/services/test_checkin.py` | `test_window_goes_from_lead_before_start_to_tolerance_after`, `test_check_in_is_accepted_at_both_ends_of_the_window`, `test_too_early_is_rejected_with_the_local_opening_time`, `test_after_the_deadline_the_reservation_is_released_and_check_in_is_a_conflict`, `test_nobody_checks_in_on_someone_elses_reservation`, `test_unknown_token_or_inactive_resource_is_an_invalid_qr_code`, `test_releases_every_confirmed_reservation_without_check_in_after_the_tolerance`, `test_zero_tolerance_turns_the_release_off`, `test_released_time_is_free_again_and_can_be_booked_for_the_rest_of_the_slot`, `test_window_that_opens_the_day_before_finds_the_midnight_reservation` |
+| `backend/tests/api/test_checkin_api.py` | `test_check_in_requires_login`, `test_reads_the_qr_code_checks_in_and_reads_again`, `test_after_the_tolerance_the_reservation_is_released`, `test_released_time_shows_free_on_the_grid_and_in_the_admin_agenda`, `test_admin_sees_and_renews_the_qr_code_token`, `test_resources_get_distinct_tokens` |
+| `frontend/src/pages/checkin.test.tsx` | "confirms presence with one tap when the window is open", "tells when the check-in opens when the person arrives early", "explains a reservation released for lack of check-in and offers to book again", "says the QR was not recognized for an old or wrong code", "asks a visitor to sign in and comes back to the QR page" |
+| `frontend/src/pages/admin-resource-qr.test.tsx` | "shows a printable poster with the check-in QR and its link", "replaces the QR after confirmation, invalidating the printed one", "is only for the administration" |
+| `frontend/e2e/checkin.e2e.ts` | "confirma presença pelo QR da porta e a lista mostra o check-in", "QR antigo ou inventado não confirma nada" |
+| `frontend/e2e/demo.e2e.ts` | "roteiro da apresentação: reserva, conflito, check-in, cancelamento e administração" |
+
+### #44: painel de ocupação
+
+| Teste | Nome |
+|---|---|
+| `backend/tests/services/test_occupancy.py` | `test_summary_counts_only_confirmed_hours_inside_period_and_opening`, `test_heatmap_splits_reservations_by_local_hour_and_skips_closed_hours`, `test_heatmap_counts_only_open_minutes_of_a_partial_hour`, `test_building_filter_keeps_only_its_resources`, `test_returned_hours_are_clipped_to_the_period`, `test_attendance_rate_is_null_without_checkins_or_no_shows`, `test_invalid_period_is_rejected` |
+| `backend/tests/api/test_admin_occupancy.py` | `test_only_admins`, `test_releases_no_shows_before_computing`, `test_csv_opens_in_excel_pt_br`, `test_invalid_period_is_a_friendly_error` |
+| `frontend/src/pages/admin-occupancy.test.tsx` | "leads with occupancy, attendance, returned hours and cancellations", "writes the rate inside every heatmap cell and explains the colors", "ranks the most and the least used spaces", "downloads the CSV with the BOM Excel needs", "is only for the administration" |
+| `frontend/e2e/checkin.e2e.ts` | "a administração imprime o QR da porta e acompanha a ocupação" |
+| `frontend/e2e/accessibility.e2e.ts` | auditoria WCAG 2.2 de "admin: ocupação" |
+
 ## Requisitos sem evidência completa
 
 | Requisito | O que falta |
 |---|---|
 | RNF02 | Medição do p95 na API de produção (critério da #33). Existe só a medição local |
 | RNF01 | Lighthouse mobile com Performance de 80 ou mais na busca (72) e na grade (68), critério da #32. Medição em produção pendente |
-| Épico #5 | Teste E2E funcional das telas de administração |
-| Todos | Conferência no ambiente publicado, que depende da #19 |
+| Épico #5 | Teste E2E do cancelamento administrativo pela agenda |
+| Todos | Conferência no ambiente publicado, que depende de o deploy da #19 ir ao ar |
