@@ -108,13 +108,15 @@ interface PreparedGroup extends BuildingGroup {
 }
 
 function prepare(board: BoardRead, marks: string[], now?: Date): PreparedGroup[] {
-  return groupByBuilding(board.linhas).map((group) => {
-    const rows = group.linhas.map((line) => ({
+  return groupByBuilding(board.linhas).map(({ bloco, linhas }) => ({
+    bloco,
+    linhas,
+    rows: linhas.map((line) => ({
       line,
       segments: rowSegments(board.data, marks, line.ocupacoes, now),
-    }));
-    return { ...group, rows, reserved: reservedShare(board.data, marks, group.linhas) };
-  });
+    })),
+    reserved: reservedShare(board.data, marks, linhas),
+  }));
 }
 
 function groupSummary(group: PreparedGroup): string {
