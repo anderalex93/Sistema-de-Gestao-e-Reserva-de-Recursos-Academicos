@@ -1,7 +1,7 @@
 UV ?= uv
 COMPOSE ?= docker compose -f ../docker-compose.yml
 
-.PHONY: install db-up db-down dev migrate seed seed-volume revision lint format typecheck test migrations-check ci openapi
+.PHONY: install db-up db-down dev migrate seed seed-volume seed-demo revision lint format typecheck test migrations-check ci openapi
 
 install:  ## Instala dependências (inclui as de desenvolvimento)
 	$(UV) sync
@@ -23,6 +23,9 @@ seed:  ## Catálogo inicial do campus e admin (SEED_ADMIN_* no .env); pode rodar
 
 seed-volume:  ## Massa do teste de carga (~100 recursos, ~20 mil reservas); só em banco de medição
 	$(UV) run python -m app.seed --volume
+
+seed-demo:  ## Contas e reservas da apresentação (SEED_DEMO_SENHA no .env); refaz o cenário de hoje
+	$(UV) run python -m app.seed --demo
 
 revision:  ## Gera migração a partir dos models: make revision m="create reserva"
 	$(UV) run alembic revision --autogenerate -m "$(m)"

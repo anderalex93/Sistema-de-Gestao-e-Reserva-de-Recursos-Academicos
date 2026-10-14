@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from datetime import datetime
 
-from sqlalchemy import exists, func, or_, select, update
+from sqlalchemy import delete, exists, func, or_, select, update
 from sqlalchemy.orm import contains_eager, joinedload
 
 from app.core.enums import ReservationScope, ReservationStatus
@@ -215,6 +215,17 @@ class ReservationRepository(BaseRepository[Reservation]):
             ReservationSpan(recurso_id, inicio, fim, status, checkin_em, liberada_em)
             for recurso_id, inicio, fim, status, checkin_em, liberada_em in rows
         ]
+
+    def delete_by_code_prefix(self, prefix: str) -> int:
+        """Apaga de uma vez as reservas cujo código começa com `prefix` (seed de demonstração,
+        #38). Devolve quantas foram apagadas."""
+        deleted = self._session.scalars(
+            delete(Reservation)
+            .where(Reservation.codigo.startswith(prefix, autoescape=True))
+            .returning(Reservation.id)
+            .execution_options(synchronize_session="fetch")
+        ).all()
+        return len(deleted)
 
     def all_for_user(self, user_id: int) -> Sequence[Reservation]:
         """Histórico completo de uma pessoa, da mais recente para a mais antiga (exportação)."""

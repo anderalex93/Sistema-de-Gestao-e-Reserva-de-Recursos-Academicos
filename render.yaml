@@ -29,3 +29,8 @@ services:
         sync: false
       - key: SEED_ADMIN_SENHA
         sync: false
+      # Contas e reservas da apresentação (#38), refeitas a cada reinício do serviço.
+      - key: SEED_DEMO
+        value: "true"
+      - key: SEED_DEMO_SENHA
+        sync: false

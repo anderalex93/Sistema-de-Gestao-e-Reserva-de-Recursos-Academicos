@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     seed_volume_password: SecretStr | None = Field(
         default=None, validation_alias="SEED_VOLUME_SENHA"
     )
+    # Senha das contas de demonstração (#38): aluno.demo, prof.demo e admin.demo @umj.edu.br.
+    # Sem ela, o seed de demonstração não roda.
+    seed_demo_password: SecretStr | None = Field(default=None, validation_alias="SEED_DEMO_SENHA")
 
     display_timezone: str = Field(default="America/Maceio", validation_alias="TZ_EXIBICAO")
     # Formato em app/core/opening_hours.py. Dia ausente = fechado (padrão: domingo).

@@ -41,6 +41,9 @@ services:
       SEED_ADMIN_NOME: Administração EduSpace
       SEED_ADMIN_EMAIL: admin@umj.edu.br
       SEED_ADMIN_SENHA: Eduspace2026
+      # Contas e reservas de demonstração (#38), refeitas a cada subida. Senha só local.
+      SEED_DEMO: "true"
+      SEED_DEMO_SENHA: Demo2026
     ports:
       - "8000:8000"
     healthcheck:

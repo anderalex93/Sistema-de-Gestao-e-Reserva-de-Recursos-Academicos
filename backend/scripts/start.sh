@@ -10,6 +10,12 @@ if [ "${SEED_ON_START:-false}" = "true" ]; then
   python -m app.seed
 fi
 
+# Contas e reservas da apresentação (#38), relativas ao dia de hoje: cada reinício refaz o
+# cenário. Exige SEED_DEMO_SENHA e o catálogo do seed acima. Só em ambiente de demonstração.
+if [ "${SEED_DEMO:-false}" = "true" ]; then
+  python -m app.seed --demo
+fi
+
 # --proxy-headers: atrás do proxy do Render, o IP real vem do X-Forwarded-For. Sem isso o
 # limite de tentativas de login trataria todo mundo como o mesmo IP.
 exec uvicorn app.main:create_app --factory \
