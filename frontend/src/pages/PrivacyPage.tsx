@@ -86,12 +86,30 @@ const sections: readonly LegalSection[] = [
   {
     title: 'Cookies e armazenamento no navegador',
     body: (
-      <p>
-        Guardamos no seu navegador só o código da sua sessão, necessário para você continuar
-        conectado. Não usamos cookies de publicidade. Se passarmos a medir o uso do sistema com o
-        Google Analytics, ele só funcionará depois que você aceitar no aviso de cookies, e você
-        poderá mudar a escolha a qualquer momento.
-      </p>
+      <>
+        <p>
+          <strong>Necessários:</strong> guardamos no seu navegador o código da sua sessão, para você
+          continuar conectado, e a sua escolha no aviso de cookies. Sem eles o sistema não funciona,
+          por isso não pedem consentimento.
+        </p>
+        <p>
+          <strong>Medição (opcional):</strong> com o seu consentimento (Art. 7º, I), usamos o Google
+          Analytics 4 para saber quais telas são usadas, quanto tempo levam para abrir e quais ações
+          são feitas (entrar, criar conta, buscar, reservar, cancelar e ver comprovante). Ele recebe
+          a tela pelo caminho genérico (por exemplo, "/recursos/:id"), o tipo de navegador e de
+          aparelho e a cidade aproximada. Ele <strong>não</strong> recebe seu nome, e-mail,
+          matrícula, o texto que você digita na busca nem o código do comprovante, e não é usado
+          para publicidade.
+        </p>
+        <p>
+          Os cookies de medição são o <code>_ga</code> e o <code>_ga_*</code>, do Google, e duram
+          até 1 ano. Os dados de uso ficam no Google Analytics por até 2 meses e depois são
+          apagados. Sem o seu aceite, o Google Analytics nem é carregado e nenhum cookie de medição
+          é gravado. O Google, que opera o serviço, pode tratar esses dados fora do Brasil (Art.
+          33). Você pode mudar a escolha quando quiser em <strong>Preferências de cookies</strong>,
+          no rodapé ou em Minha conta; ao recusar, os cookies de medição são apagados.
+        </p>
+      </>
     ),
   },
   {

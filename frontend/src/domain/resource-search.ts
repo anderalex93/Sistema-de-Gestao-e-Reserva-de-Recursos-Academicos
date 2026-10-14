@@ -119,3 +119,16 @@ export function activeFilterCount(search: ResourceSearch): number {
     search.data !== null || search.inicio !== null || search.fim !== null,
   ].filter(Boolean).length;
 }
+
+/** Resumo dos filtros para o Analytics (#49): o que foi usado, nunca o texto digitado. */
+export function searchSummary(search: ResourceSearch) {
+  return {
+    tipo: search.tipo ?? 'todos',
+    bloco: search.bloco_id !== null,
+    caracteristicas: search.caracteristicas.length,
+    capacidade: search.capacidade_min !== null,
+    data: search.data !== null,
+    horario: hasTimeWindow(search),
+    texto: search.busca.trim() !== '',
+  };
+}

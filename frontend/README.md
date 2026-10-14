@@ -29,6 +29,24 @@ npm run dev          # http://localhost:5173
 Rode `npm run gen:api` sempre que o contrato do backend mudar e commite o arquivo gerado. Para
 outra origem: `OPENAPI_URL=https://.../openapi.json npm run gen:api`.
 
+## Google Analytics 4 (#49)
+
+Sem `VITE_GA_MEASUREMENT_ID` nada é carregado e o aviso de cookies não aparece (desenvolvimento,
+testes e E2E). Com o ID:
+
+- O `gtag.js` só é baixado depois do "Aceitar" (Consent Mode v2 no modo básico): sem aceite,
+  nenhuma requisição ao Google e nenhum cookie `_ga`.
+- A escolha fica no navegador com data e versão do aviso (`CONSENT_VERSION` em
+  `src/lib/analytics/consent-store.ts`); ao mudar o texto de cookies do Aviso de Privacidade,
+  troque a versão para perguntar de novo.
+- Page views vão pelo padrão da rota (`/recursos/:id`, `/comprovantes/:codigo`). Eventos:
+  `login`, `sign_up`, `search`, `reservation_created`, `reservation_cancelled` e
+  `receipt_viewed`, sem nome, e-mail, matrícula, id de pessoa ou texto digitado.
+
+Na propriedade do GA4, configure a **retenção de dados em 2 meses** (Administrador, Coleta e
+retenção de dados), que é o prazo declarado no Aviso de Privacidade, e deixe os Google Signals
+desligados.
+
 ## Testes E2E (Playwright)
 
 `npm run e2e` percorre o fluxo principal de ponta a ponta (cadastro, login, busca, grade,

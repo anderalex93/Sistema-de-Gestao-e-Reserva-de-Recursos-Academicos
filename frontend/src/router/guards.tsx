@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { PageSkeleton } from '@/components/PageSkeleton';
 import { AuthProvider } from '@/contexts/AuthProvider';
 import { useAuth } from '@/hooks/useAuth';
+import { usePageViews } from '@/hooks/usePageViews';
 import type { UserRole } from '@/lib/api/types';
 import { paths } from '@/router/paths';
 
@@ -15,8 +16,12 @@ export interface RedirectState {
   from?: { pathname: string; search?: string };
 }
 
-/** Raiz das rotas: a sessão precisa do roteador (navegação no logout e na expiração). */
+/**
+ * Raiz das rotas: a sessão precisa do roteador (navegação no logout e na expiração), e a
+ * medição de páginas precisa da rota atual.
+ */
 export function AuthRoot() {
+  usePageViews();
   return (
     <AuthProvider>
       <Outlet />

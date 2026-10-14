@@ -12,6 +12,7 @@ import { FormTextField } from '@/components/form/FormTextField';
 import { PasswordField } from '@/components/form/PasswordField';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
+import { analytics } from '@/lib/analytics';
 import { ApiError } from '@/lib/api/api-error';
 import { paths } from '@/router/paths';
 import { loginSchema, type LoginForm } from '@/schemas/forms/user';
@@ -29,7 +30,10 @@ export default function LoginPage() {
   });
 
   // Após o login, o guarda PublicOnly leva de volta à página de origem.
-  const mutation = useMutation({ mutationFn: login });
+  const mutation = useMutation({
+    mutationFn: login,
+    onSuccess: () => analytics.track({ name: 'login' }),
+  });
 
   const formError = mutation.error ? ApiError.from(mutation.error).message : null;
 

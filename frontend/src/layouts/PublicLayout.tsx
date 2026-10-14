@@ -5,13 +5,16 @@ import { Suspense } from 'react';
 import { Outlet, Link as RouterLink } from 'react-router';
 
 import { BrandMark } from '@/components/BrandMark';
+import { CookieBanner } from '@/components/legal/CookieBanner';
 import { PageSkeleton } from '@/components/PageSkeleton';
+import { useConsent } from '@/hooks/useConsent';
 import { paths } from '@/router/paths';
 import { touchTarget } from '@/theme/patterns';
 import { colors, layout } from '@/theme/tokens';
 
 /** Páginas sem navegação do app: login, cadastro, comprovante público e textos legais. */
 export default function PublicLayout() {
+  const consent = useConsent();
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <Box
@@ -48,8 +51,8 @@ export default function PublicLayout() {
           component="nav"
           aria-label="Rodapé"
           direction="row"
-          spacing={3}
-          sx={{ justifyContent: 'center', fontSize: '0.875rem' }}
+          useFlexGap
+          sx={{ justifyContent: 'center', flexWrap: 'wrap', columnGap: 3, fontSize: '0.875rem' }}
         >
           <Link component={RouterLink} to={paths.terms} color="text.secondary" sx={touchTarget}>
             Termos de Uso
@@ -57,8 +60,20 @@ export default function PublicLayout() {
           <Link component={RouterLink} to={paths.privacy} color="text.secondary" sx={touchTarget}>
             Aviso de Privacidade
           </Link>
+          {consent.enabled && (
+            <Link
+              component="button"
+              type="button"
+              color="text.secondary"
+              onClick={consent.openPreferences}
+              sx={touchTarget}
+            >
+              Preferências de cookies
+            </Link>
+          )}
         </Stack>
       </Box>
+      <CookieBanner />
     </Box>
   );
 }

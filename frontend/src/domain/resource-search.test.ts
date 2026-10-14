@@ -4,6 +4,7 @@ import {
   activeFilterCount,
   EMPTY_SEARCH,
   parseSearch,
+  searchSummary,
   toApiParams,
   toUrlParams,
 } from '@/domain/resource-search';
@@ -126,5 +127,35 @@ describe('rules from an older API', () => {
       DEFAULT_RULES.maxDaysAhead,
       DEFAULT_RULES.activeLimits,
     ]);
+  });
+});
+
+describe('searchSummary', () => {
+  it('describes which filters were used, never the typed text', () => {
+    const summary = searchSummary({
+      ...EMPTY_SEARCH,
+      tipo: 'LABORATORIO',
+      bloco_id: 3,
+      caracteristicas: [1, 4],
+      busca: 'sala do professor Lucas',
+      data: '2026-10-21',
+      inicio: '19:00',
+      fim: '21:00',
+    });
+
+    expect(summary).toEqual({
+      tipo: 'LABORATORIO',
+      bloco: true,
+      caracteristicas: 2,
+      capacidade: false,
+      data: true,
+      horario: true,
+      texto: true,
+    });
+    expect(JSON.stringify(summary)).not.toContain('Lucas');
+  });
+
+  it('reports "todos" when no type was picked', () => {
+    expect(searchSummary(EMPTY_SEARCH).tipo).toBe('todos');
   });
 });

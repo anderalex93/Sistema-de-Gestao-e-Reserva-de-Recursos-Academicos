@@ -10,7 +10,7 @@ import Stack from '@mui/material/Stack';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router';
 
 import { ResourceCard, ResourceCardSkeleton } from '@/components/catalog/ResourceCard';
@@ -20,6 +20,7 @@ import { PageHeader } from '@/components/PageHeader';
 import {
   activeFilterCount,
   hasTimeWindow,
+  searchSummary,
   toApiParams,
   type ResourceSearch,
 } from '@/domain/resource-search';
@@ -29,6 +30,7 @@ import { useBuildings, useFeatures, useResourceList } from '@/hooks/useCatalog';
 import { useResourceSearch } from '@/hooks/useResourceSearch';
 import { paths } from '@/router/paths';
 import { useRules } from '@/hooks/useRules';
+import { analytics } from '@/lib/analytics';
 import { loadFailure } from '@/lib/load-failure';
 import { colors, zIndex } from '@/theme/tokens';
 
@@ -76,6 +78,24 @@ export default function ReservePage() {
   const rules = useRules();
   const data = query.data;
   const filters = activeFilterCount(search);
+
+  // Uma busca por combinação de filtros (a troca de página não conta).
+  const {
+    tipo,
+    bloco,
+    caracteristicas,
+    capacidade,
+    data: day,
+    horario,
+    texto,
+  } = searchSummary(search);
+  useEffect(() => {
+    if (filters === 0) return;
+    analytics.track({
+      name: 'search',
+      params: { tipo, bloco, caracteristicas, capacidade, data: day, horario, texto },
+    });
+  }, [filters, tipo, bloco, caracteristicas, capacidade, day, horario, texto]);
 
   const form = (
     <SearchFiltersForm

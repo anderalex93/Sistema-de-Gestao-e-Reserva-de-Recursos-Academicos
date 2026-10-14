@@ -15,6 +15,7 @@ import { PasswordField } from '@/components/form/PasswordField';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeedback } from '@/hooks/useFeedback';
+import { analytics } from '@/lib/analytics';
 import { authApi } from '@/lib/api';
 import { ApiError } from '@/lib/api/api-error';
 import { paths } from '@/router/paths';
@@ -54,7 +55,10 @@ export default function SignupPage() {
       return login({ email: data.email, senha: data.senha });
     },
     // Com a sessão aberta, o guarda PublicOnly leva ao início.
-    onSuccess: () => notify({ message: 'Conta criada. Você já está conectado.' }),
+    onSuccess: () => {
+      analytics.track({ name: 'sign_up' });
+      notify({ message: 'Conta criada. Você já está conectado.' });
+    },
     onError: (error) => {
       const apiError = ApiError.from(error);
       const field = FIELD_BY_CODE[apiError.code as keyof typeof FIELD_BY_CODE];

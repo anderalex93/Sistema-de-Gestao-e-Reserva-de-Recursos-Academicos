@@ -7,6 +7,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { QRCodeSVG } from 'qrcode.react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router';
 
 import { DetailList } from '@/components/DetailList';
@@ -18,6 +19,7 @@ import { resourceTypeLabels } from '@/domain/resource-types';
 import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useReceipt } from '@/hooks/useReservations';
+import { analytics } from '@/lib/analytics';
 import { ApiError } from '@/lib/api/api-error';
 import { loadFailure } from '@/lib/load-failure';
 import { colors, fonts } from '@/theme/tokens';
@@ -41,6 +43,11 @@ function campusDate(iso: string): string {
 export default function ReceiptPage() {
   const { codigo = '' } = useParams();
   const query = useReceipt(codigo);
+  const viewedStatus = query.data ? displayStatus(query.data.status, query.data.fim) : null;
+  useEffect(() => {
+    if (viewedStatus)
+      analytics.track({ name: 'receipt_viewed', params: { situacao: viewedStatus } });
+  }, [viewedStatus]);
   const { notify } = useFeedback();
   const url = `${window.location.origin}/comprovantes/${codigo}`;
 

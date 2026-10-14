@@ -11,7 +11,14 @@ function resolveApiUrl(): string {
   return DEV_API_URL;
 }
 
+/** Variável opcional: vazia vira `null` (recurso desligado). */
+function optional(value: string | undefined): string | null {
+  return value?.trim() || null;
+}
+
 export const config = {
   apiUrl: resolveApiUrl(),
   appName: 'EduSpace',
+  /** Google Analytics 4 (#49). Sem ID, nada é carregado e o aviso de cookies não aparece. */
+  gaMeasurementId: optional(import.meta.env.VITE_GA_MEASUREMENT_ID),
 } as const;

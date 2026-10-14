@@ -13,6 +13,7 @@ import { locationLabel } from '@/domain/resource-types';
 import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
 import { useCancelReservation } from '@/hooks/useReservations';
 import { useFeedback } from '@/hooks/useFeedback';
+import { analytics } from '@/lib/analytics';
 import { ApiError } from '@/lib/api/api-error';
 import { focusIfIdle } from '@/lib/focus';
 import type { MyReservationRead } from '@/lib/api/types';
@@ -40,6 +41,7 @@ export function CancelReservationDialog({ reservation, onClose }: CancelReservat
         submitting.current = false;
       },
       onSuccess: () => {
+        analytics.track({ name: 'reservation_cancelled' });
         notify({
           message: 'Reserva cancelada. O horário ficou livre de novo.',
           severity: 'success',

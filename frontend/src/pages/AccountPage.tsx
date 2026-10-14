@@ -12,10 +12,13 @@ import { PageHeader } from '@/components/PageHeader';
 import { roleLabels } from '@/domain/roles';
 import { useExportData } from '@/hooks/useAccount';
 import { useAuth } from '@/hooks/useAuth';
+import { useConsent } from '@/hooks/useConsent';
 import { useFeedback } from '@/hooks/useFeedback';
 import { ApiError } from '@/lib/api/api-error';
 import type { MyDataExport } from '@/lib/api/types';
 import { paths } from '@/router/paths';
+
+const CONSENT_LABELS = { granted: 'aceitos', denied: 'recusados', pending: 'sem escolha' } as const;
 
 const panelSx = {
   border: 1,
@@ -39,6 +42,7 @@ function download(data: MyDataExport) {
 export default function AccountPage() {
   const { user, logout } = useAuth();
   const { notify } = useFeedback();
+  const consent = useConsent();
   const exportData = useExportData();
   const [deleting, setDeleting] = useState(false);
   if (!user) return null;
@@ -92,6 +96,14 @@ export default function AccountPage() {
               </Button>
             )}
           </Stack>
+          {consent.enabled && (
+            <Typography variant="body2" sx={{ mt: 2 }}>
+              Cookies de medição: {CONSENT_LABELS[consent.choice ?? 'pending']}.{' '}
+              <Link component="button" type="button" onClick={consent.openPreferences}>
+                Preferências de cookies
+              </Link>
+            </Typography>
+          )}
           {user.perfil === 'ADMIN' && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
               Contas de administrador não podem ser excluídas por aqui. Peça a outro administrador

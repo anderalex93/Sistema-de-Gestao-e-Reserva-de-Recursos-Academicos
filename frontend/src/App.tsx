@@ -4,7 +4,9 @@ import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 
+import { ConsentProvider } from '@/contexts/ConsentProvider';
 import { FeedbackProvider } from '@/contexts/FeedbackContext';
+import { analytics, consentStore } from '@/lib/analytics';
 import { createQueryClient } from '@/lib/query-client';
 import { preloadPages } from '@/router/preload';
 import { routes } from '@/router/routes';
@@ -23,7 +25,11 @@ export function AppProviders({ queryClient, children }: AppProvidersProps) {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
-        <FeedbackProvider>{children}</FeedbackProvider>
+        <FeedbackProvider>
+          <ConsentProvider analytics={analytics} store={consentStore}>
+            {children}
+          </ConsentProvider>
+        </FeedbackProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

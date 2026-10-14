@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { NavLink, Link as RouterLink, Outlet } from 'react-router';
 
 import { BrandMark } from '@/components/BrandMark';
+import { CookieBanner } from '@/components/legal/CookieBanner';
 import { PageSkeleton } from '@/components/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { accountNav, adminNav, boardNav, primaryNav, type NavItem } from '@/layouts/navigation';
@@ -197,6 +198,7 @@ export default function AppLayout() {
         </Box>
       </Box>
       <BottomNav />
+      <CookieBanner aboveBottomNav />
     </Box>
   );
 }

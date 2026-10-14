@@ -18,6 +18,7 @@ import { capacityLabel, locationLabel, resourceTypeLabels } from '@/domain/resou
 import { campusTime, dayLabel } from '@/domain/schedule';
 import { durationLabel, type SelectedInterval } from '@/domain/slot-selection';
 import { useFeedback } from '@/hooks/useFeedback';
+import { analytics } from '@/lib/analytics';
 import { reservationsApi } from '@/lib/api';
 import { ApiError } from '@/lib/api/api-error';
 import { focusIfIdle } from '@/lib/focus';
@@ -89,6 +90,10 @@ export function ReservationDialog({
         queryClient.invalidateQueries({ queryKey: queryKeys.resources }),
         queryClient.invalidateQueries({ queryKey: queryKeys.reservations }),
       ]);
+      analytics.track({
+        name: 'reservation_created',
+        params: { tipo_recurso: resource.tipo, duracao_min: interval.minutes },
+      });
       notify({ message: 'Reserva confirmada.', severity: 'success' });
       void navigate(paths.receipt(reservation.codigo));
     },
