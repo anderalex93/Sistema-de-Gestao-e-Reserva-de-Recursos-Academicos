@@ -42,6 +42,14 @@ export class ApiHelper {
     return ((await response.json()) as TokenRead).access_token;
   }
 
+  /** Contas criadas pelo seed ainda não aceitaram os termos (LGPD, #34). */
+  async acceptTerms(user: TestUser): Promise<void> {
+    const response = await this.#request.post(`${API_URL}/auth/me/aceite-termos`, {
+      headers: { Authorization: `Bearer ${await this.token(user)}` },
+    });
+    expect(response.ok(), await response.text()).toBe(true);
+  }
+
   async resourceByName(user: TestUser, nome: string, bloco: string): Promise<ResourceRead> {
     const response = await this.#request.get(`${API_URL}/recursos`, {
       headers: { Authorization: `Bearer ${await this.token(user)}` },
@@ -71,5 +79,29 @@ export class ApiHelper {
     });
     expect(response.status(), await response.text()).toBe(201);
     return (await response.json()) as ReservationRead;
+  }
+
+  /** Primeira meia hora livre do dia, entre as horas dadas (cenários que só precisam de uma reserva). */
+  async reserveFirstFree(
+    user: TestUser,
+    resource: ResourceRead,
+    date: string,
+    hours: readonly number[],
+  ): Promise<ReservationRead> {
+    const token = await this.token(user);
+    for (const hour of hours) {
+      const start = `${String(hour).padStart(2, '0')}:00`;
+      const response = await this.#request.post(`${API_URL}/reservas`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: {
+          recurso_id: resource.id,
+          inicio: campusInstant(date, start),
+          fim: campusInstant(date, `${String(hour).padStart(2, '0')}:30`),
+        },
+      });
+      if (response.status() === 201) return (await response.json()) as ReservationRead;
+      expect(response.status(), await response.text()).toBe(409);
+    }
+    throw new Error(`Nenhum horário livre em ${resource.nome} no dia ${date}.`);
   }
 }

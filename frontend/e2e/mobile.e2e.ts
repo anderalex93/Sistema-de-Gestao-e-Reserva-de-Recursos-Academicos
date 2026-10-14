@@ -27,10 +27,11 @@ test('reserva e cancela pelo celular, sem rolagem horizontal', async ({ page, re
   await expect(filters).toBeHidden();
   await expectNoHorizontalScroll(page);
 
-  await page
-    .getByRole('list', { name: 'Recursos' })
-    .getByRole('link', { name: /Sala de estudo 202/ })
-    .click();
+  const card = page.getByRole('list', { name: 'Recursos' }).getByRole('link', {
+    name: /Sala de estudo 202/,
+  });
+  await expect(card).toHaveAttribute('href', new RegExp(`data=${date}`));
+  await card.click();
   await selectSlots(page, '16:00', '17:30');
   const bar = page.getByRole('region', { name: 'Horário escolhido' });
   await expect(bar).toContainText('16:00 às 18:00 · 2h');

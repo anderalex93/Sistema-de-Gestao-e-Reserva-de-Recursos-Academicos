@@ -27,10 +27,12 @@ test('busca sala com projetor, reserva pela grade e recebe o comprovante', async
   await filters.getByLabel('Data').fill(date);
   await expect(page.getByText(/^3 recursos$/)).toBeVisible();
 
-  await page
-    .getByRole('list', { name: 'Recursos' })
-    .getByRole('link', { name: /Sala de estudo 201/ })
-    .click();
+  // O total não muda com a data (todas livres): espera o card já apontar para o dia escolhido.
+  const card = page.getByRole('list', { name: 'Recursos' }).getByRole('link', {
+    name: /Sala de estudo 201/,
+  });
+  await expect(card).toHaveAttribute('href', new RegExp(`data=${date}`));
+  await card.click();
   await expect(page.getByRole('heading', { level: 1, name: 'Sala de estudo 201' })).toBeVisible();
 
   await selectSlots(page, '09:00', '09:30');

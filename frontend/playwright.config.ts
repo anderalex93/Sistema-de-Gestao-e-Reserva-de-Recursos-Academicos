@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-import { API_PORT, API_URL, WEB_PORT, WEB_URL } from './e2e/support/env';
+import { API_PORT, API_URL, E2E_ADMIN, WEB_PORT, WEB_URL } from './e2e/support/env';
 
 const ci = Boolean(process.env.CI);
 
@@ -42,6 +42,9 @@ export default defineConfig({
         ALLOWED_EMAIL_DOMAINS: 'umj.edu.br',
         CORS_ORIGINS: WEB_URL,
         RATE_LIMIT_ENABLED: 'false',
+        SEED_ADMIN_NOME: E2E_ADMIN.nome,
+        SEED_ADMIN_EMAIL: E2E_ADMIN.email,
+        SEED_ADMIN_SENHA: E2E_ADMIN.senha,
       },
     },
     {

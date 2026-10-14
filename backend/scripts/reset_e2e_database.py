@@ -1,4 +1,4 @@
-"""Recria do zero o banco usado pelos testes E2E do frontend (#35) e aplica o seed do catálogo.
+"""Recria do zero o banco usado pelos testes E2E do frontend (#35) e aplica o seed.
 
 Uso: DATABASE_URL=...eduspace_e2e uv run python -m scripts.reset_e2e_database
 Recusa qualquer banco que não termine em `_e2e`: o schema inteiro é apagado.
@@ -13,7 +13,7 @@ from sqlalchemy import create_engine, make_url, text
 from alembic import command
 from app.core.config import get_settings
 from app.core.logging import configure_logging
-from app.seed import seed_catalog
+from app.seed import seed_admin, seed_catalog
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 REQUIRED_SUFFIX = "_e2e"
@@ -62,7 +62,8 @@ def main() -> int:
 
     create_database_if_missing(settings.database_url)
     reset_schema(settings.database_url)
-    return seed_catalog(settings)
+    admin = seed_admin(settings) if settings.seed_admin_email else 0
+    return max(seed_catalog(settings), admin)
 
 
 if __name__ == "__main__":

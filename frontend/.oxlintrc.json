@@ -42,6 +42,12 @@
       "rules": {
         "no-console": "off"
       }
+    },
+    {
+      "files": ["e2e/**"],
+      "rules": {
+        "no-await-in-loop": "off"
+      }
     }
   ]
 }

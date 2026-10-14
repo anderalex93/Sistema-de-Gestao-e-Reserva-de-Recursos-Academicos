@@ -24,3 +24,17 @@ export async function expectNoHorizontalScroll(page: Page): Promise<void> {
   );
   expect(overflow, 'a página rola na horizontal').toBeLessThanOrEqual(0);
 }
+
+/** Abre a sessão direto com o token, como o app faz depois do login. */
+export async function startSession(page: Page, token: string): Promise<void> {
+  await page.addInitScript((value) => {
+    window.localStorage.setItem('eduspace.token', value);
+  }, token);
+}
+
+/** Espera a página sair do carregamento: nenhum skeleton nem região ocupada. */
+export async function waitUntilLoaded(page: Page): Promise<void> {
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(page.locator('.MuiSkeleton-root')).toHaveCount(0);
+  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
+}
