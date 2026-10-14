@@ -55,3 +55,10 @@ class RemovalOutcome(StrEnum):
 
     EXCLUIDO = "EXCLUIDO"
     DESATIVADO = "DESATIVADO"
+
+
+class SettingsSource(StrEnum):
+    """De onde vêm o horário e as regras em vigor."""
+
+    AMBIENTE = "AMBIENTE"
+    ADMINISTRACAO = "ADMINISTRACAO"

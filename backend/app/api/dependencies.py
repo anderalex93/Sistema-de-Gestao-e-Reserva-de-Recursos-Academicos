@@ -18,6 +18,7 @@ from app.core.security import PasswordHasher, TokenService
 from app.db.unit_of_work import UnitOfWork
 from app.models.user import User
 from app.repositories.building_repository import BuildingRepository
+from app.repositories.campus_settings_repository import CampusSettingsRepository
 from app.repositories.feature_repository import FeatureRepository
 from app.repositories.health_repository import HealthRepository
 from app.repositories.reservation_repository import ReservationRepository
@@ -28,6 +29,7 @@ from app.services.auth_service import AuthService
 from app.services.availability_service import AvailabilityService
 from app.services.board_service import BoardService
 from app.services.building_admin_service import BuildingAdminService
+from app.services.campus_settings_service import CampusSettingsService
 from app.services.catalog_service import CatalogService
 from app.services.checkin_service import CheckinService
 from app.services.feature_admin_service import FeatureAdminService
@@ -81,15 +83,26 @@ ClockDep = Annotated[Clock, Depends(get_clock)]
 PasswordHasherDep = Annotated[PasswordHasher, Depends(get_password_hasher)]
 
 
-def get_campus_schedule(settings: SettingsDep) -> CampusSchedule:
-    return CampusSchedule.from_settings(settings)
+def get_campus_settings_service(
+    session: SessionDep, settings: SettingsDep
+) -> CampusSettingsService:
+    return CampusSettingsService(CampusSettingsRepository(session), UnitOfWork(session), settings)
+
+
+CampusSettingsServiceDep = Annotated[CampusSettingsService, Depends(get_campus_settings_service)]
+
+
+def get_campus_schedule(campus: CampusSettingsServiceDep) -> CampusSchedule:
+    """Horário em vigor: o da tela de Configurações ou, sem ele, o do ambiente."""
+    return campus.schedule()
 
 
 CampusScheduleDep = Annotated[CampusSchedule, Depends(get_campus_schedule)]
 
 
-def get_reservation_rules(settings: SettingsDep) -> ReservationRules:
-    return ReservationRules.from_settings(settings)
+def get_reservation_rules(campus: CampusSettingsServiceDep) -> ReservationRules:
+    """Regras de uso em vigor: as da tela de Configurações ou, sem elas, as do ambiente."""
+    return campus.rules()
 
 
 ReservationRulesDep = Annotated[ReservationRules, Depends(get_reservation_rules)]
