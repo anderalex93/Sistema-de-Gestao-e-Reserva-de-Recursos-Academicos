@@ -32,3 +32,23 @@ export function testDay(info: TestInfo): string {
 export function campusInstant(date: string, time: string): string {
   return `${date}T${time}:00${CAMPUS_OFFSET}`;
 }
+
+/**
+ * Próximo início de bloco de 30 minutos a partir de agora, no fuso do campus, para um campus
+ * aberto das 00:00 às 23:30 (o ambiente do E2E). Se o próximo bloco seria 23:30, vai para 00:00
+ * do dia seguinte.
+ */
+export function nextSlot(now: Date = new Date()): { date: string; inicio: string; fim: string } {
+  const step = 30 * 60_000;
+  let start = new Date(Math.ceil((now.getTime() + 60_000) / step) * step);
+  const time = (instant: Date) =>
+    new Intl.DateTimeFormat('en-GB', {
+      timeZone: CAMPUS_TIMEZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).format(instant);
+  if (time(start) === '23:30') start = new Date(start.getTime() + step);
+  const end = new Date(start.getTime() + step);
+  return { date: campusDate(start), inicio: time(start), fim: time(end) };
+}

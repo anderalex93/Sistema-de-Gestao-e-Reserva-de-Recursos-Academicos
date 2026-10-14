@@ -261,7 +261,13 @@ export function RankedBars({
 /** Todos os recursos do filtro, com os números do CSV. */
 export function ResourceOccupancyTable({ items }: { items: readonly ResourceOccupancyRead[] }) {
   return (
-    <Box sx={{ ...panelSx, overflowX: 'auto' }}>
+    // Rola de lado no celular: focável e com nome, para quem navega pelo teclado (WCAG 2.1.1).
+    <Box
+      component="section"
+      aria-label="Tabela de ocupação por recurso"
+      tabIndex={0}
+      sx={{ ...panelSx, overflowX: 'auto' }}
+    >
       <Table aria-label="Ocupação por recurso" size="small">
         <TableHead>
           <TableRow>

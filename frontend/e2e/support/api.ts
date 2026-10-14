@@ -2,7 +2,13 @@ import { randomUUID } from 'node:crypto';
 
 import { expect, type APIRequestContext } from '@playwright/test';
 
-import type { Page, ReservationRead, ResourceRead, TokenRead } from '../../src/lib/api/types';
+import type {
+  Page,
+  ReservationRead,
+  ResourceAdminRead,
+  ResourceRead,
+  TokenRead,
+} from '../../src/lib/api/types';
 import { API_URL } from './env';
 import { campusInstant } from './schedule';
 
@@ -48,6 +54,15 @@ export class ApiHelper {
       headers: { Authorization: `Bearer ${await this.token(user)}` },
     });
     expect(response.ok(), await response.text()).toBe(true);
+  }
+
+  /** Código do QR da porta de um recurso (#43); só a administração enxerga. */
+  async checkinToken(admin: TestUser, resourceId: number): Promise<string> {
+    const response = await this.#request.get(`${API_URL}/admin/recursos/${resourceId}`, {
+      headers: { Authorization: `Bearer ${await this.token(admin)}` },
+    });
+    expect(response.ok(), await response.text()).toBe(true);
+    return ((await response.json()) as ResourceAdminRead).checkin_token;
   }
 
   async resourceByName(user: TestUser, nome: string, bloco: string): Promise<ResourceRead> {

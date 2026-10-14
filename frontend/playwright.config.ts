@@ -42,6 +42,10 @@ export default defineConfig({
         ALLOWED_EMAIL_DOMAINS: 'umj.edu.br',
         CORS_ORIGINS: WEB_URL,
         RATE_LIMIT_ENABLED: 'false',
+        // Campus sempre aberto e janela de check-in de 1 h: o E2E do check-in (#43) sempre
+        // encontra um horário começando em breve, a qualquer hora em que o CI rodar.
+        HORARIO_FUNCIONAMENTO: 'seg-dom 00:00-23:30',
+        CHECKIN_ANTECEDENCIA_MIN: '60',
         SEED_ADMIN_NOME: E2E_ADMIN.nome,
         SEED_ADMIN_EMAIL: E2E_ADMIN.email,
         SEED_ADMIN_SENHA: E2E_ADMIN.senha,

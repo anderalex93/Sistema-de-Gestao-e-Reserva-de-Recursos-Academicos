@@ -25,6 +25,7 @@ interface Fixtures {
   receiptCode: string;
   resourceId: number;
   date: string;
+  checkinToken: string;
 }
 
 interface Screen {
@@ -120,6 +121,17 @@ const SCREENS: Screen[] = [
   },
   { name: 'admin: blocos', session: 'admin', path: () => '/admin/blocos' },
   { name: 'admin: agenda do dia', session: 'admin', path: () => '/admin/agenda' },
+  { name: 'admin: ocupação', session: 'admin', path: () => '/admin/ocupacao' },
+  {
+    name: 'admin: QR da porta',
+    session: 'admin',
+    path: (f) => `/admin/recursos/${f.resourceId}/qr`,
+  },
+  {
+    name: 'check-in sem reserva agora',
+    session: 'student',
+    path: (f) => `/checkin/${f.checkinToken}`,
+  },
 ];
 
 /** Elementos interativos menores que o alvo mínimo. Links dentro de texto corrido são exceção (WCAG 2.5.8). */
@@ -178,7 +190,7 @@ test.describe('responsividade e acessibilidade (#32)', () => {
   test.describe.configure({ mode: 'default' });
 
   const tokens: Partial<Record<Session, string>> = {};
-  const fixtures: Fixtures = { receiptCode: '', resourceId: 0, date: '' };
+  const fixtures: Fixtures = { receiptCode: '', resourceId: 0, date: '', checkinToken: '' };
 
   test.beforeAll(async ({ request }, info) => {
     const api = new ApiHelper(request);
@@ -191,6 +203,7 @@ test.describe('responsividade e acessibilidade (#32)', () => {
     const reservation = await api.reserveFirstFree(student, room, fixtures.date, MORNING);
     fixtures.receiptCode = reservation.codigo;
     fixtures.resourceId = room.id;
+    fixtures.checkinToken = await api.checkinToken(admin, room.id);
     tokens.student = await api.token(student);
     tokens.admin = await api.token(admin);
   });
