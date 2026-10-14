@@ -75,8 +75,8 @@ src/
 
 - **oxlint** no lugar do ESLint (padrão do template atual do Vite): bem mais rápido, com regras
   de TypeScript, React, hooks e acessibilidade; `any` é erro.
-- **axios com adaptador `fetch`**: mesmo transporte no navegador e nos testes, já que o MSW 3
-  intercepta `fetch`.
+- **`fetch` nativo no `HttpClient`** (o axios saiu na #32): menos 13 KB no carregamento de toda
+  tela, e o MSW 3 intercepta `fetch` nos testes. O tempo limite usa `AbortSignal.timeout`.
 - **Fontes hospedadas no próprio app** (`@fontsource`), sem chamada ao Google Fonts.
 - O `openapi-typescript` ainda declara suporte só ao TypeScript 5; um `override` no
   `package.json` o faz usar o TypeScript 6 do projeto. A geração foi validada.

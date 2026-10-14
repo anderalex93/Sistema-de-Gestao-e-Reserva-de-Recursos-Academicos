@@ -1,5 +1,3 @@
-import { isAxiosError } from 'axios';
-
 export interface FieldError {
   field: string;
   message: string;
@@ -62,18 +60,27 @@ export class ApiError extends Error {
     return this.status === 0;
   }
 
+  /** Qualquer falha vira `ApiError`; o que não veio da API é tratado como erro desconhecido. */
   static from(error: unknown): ApiError {
     if (error instanceof ApiError) return error;
-    if (!isAxiosError(error)) {
-      return new ApiError(MESSAGES.unknown, { status: 0, code: 'ERRO_DESCONHECIDO' });
-    }
-    if (!error.response) {
-      return error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT'
-        ? new ApiError(MESSAGES.timeout, { status: 0, code: 'TEMPO_ESGOTADO' })
-        : new ApiError(MESSAGES.network, { status: 0, code: 'SEM_CONEXAO' });
-    }
+    return new ApiError(MESSAGES.unknown, { status: 0, code: 'ERRO_DESCONHECIDO' });
+  }
 
-    const { status, data } = error.response;
+  /** A requisição nem chegou a ter resposta: sem conexão ou tempo esgotado. */
+  static fromTransport(error: unknown): ApiError {
+    // Pelo nome, não por instanceof: o DOMException do navegador e o do Node são classes diferentes.
+    const timedOut =
+      typeof error === 'object' &&
+      error !== null &&
+      'name' in error &&
+      error.name === 'TimeoutError';
+    return timedOut
+      ? new ApiError(MESSAGES.timeout, { status: 0, code: 'TEMPO_ESGOTADO' })
+      : new ApiError(MESSAGES.network, { status: 0, code: 'SEM_CONEXAO' });
+  }
+
+  /** Resposta fora da faixa 2xx, com o corpo já lido. */
+  static fromResponse(status: number, data: unknown): ApiError {
     if (isDomainErrorBody(data)) {
       return new ApiError(data.detail, { status, code: data.code });
     }

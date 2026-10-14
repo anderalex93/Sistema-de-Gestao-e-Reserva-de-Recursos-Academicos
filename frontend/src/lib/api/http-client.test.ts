@@ -1,5 +1,4 @@
-import { AxiosError } from 'axios';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError } from '@/lib/api/api-error';
@@ -168,6 +167,43 @@ describe('HttpClient', () => {
     expect(onUnauthorized).not.toHaveBeenCalled();
   });
 
+  it('repeats list params and leaves out empty ones', async () => {
+    let query = '';
+    server.use(
+      http.get(`${API_URL}/recursos`, ({ request }) => {
+        query = new URL(request.url).search;
+        return HttpResponse.json({});
+      }),
+    );
+
+    await client.get('/recursos', {
+      params: { page: 1, caracteristicas: [2, 5], tipo: undefined, bloco_id: null, ativo: true },
+    });
+
+    expect(query).toBe('?page=1&caracteristicas=2&caracteristicas=5&ativo=true');
+  });
+
+  it('resolves to undefined when the response has no body', async () => {
+    server.use(http.delete(`${API_URL}/x`, () => new HttpResponse(null, { status: 204 })));
+
+    await expect(client.delete('/x')).resolves.toBeUndefined();
+  });
+
+  it('gives up after the timeout and reports TEMPO_ESGOTADO', async () => {
+    const impatient = new HttpClient({ baseURL: API_URL, tokenStore, timeoutMs: 50 });
+    server.use(
+      http.get(`${API_URL}/health`, async () => {
+        await delay(500);
+        return HttpResponse.json({});
+      }),
+    );
+
+    const error = await captureError(impatient.get('/health'));
+
+    expect(error).toMatchObject({ status: 0, code: 'TEMPO_ESGOTADO' });
+    expect(error.isNetworkError).toBe(true);
+  });
+
   it('supports put, patch and delete', async () => {
     server.use(
       http.put(`${API_URL}/x`, () => HttpResponse.json('put')),
@@ -182,12 +218,6 @@ describe('HttpClient', () => {
 });
 
 describe('ApiError.from', () => {
-  it('reports timeouts', () => {
-    const error = ApiError.from(new AxiosError('timeout', 'ECONNABORTED'));
-
-    expect(error.code).toBe('TEMPO_ESGOTADO');
-  });
-
   it('wraps unknown errors', () => {
     expect(ApiError.from(new TypeError('boom')).code).toBe('ERRO_DESCONHECIDO');
   });

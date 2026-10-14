@@ -47,7 +47,7 @@ hospedagem gratuita.
 | Front | React 19 + TypeScript (`strict` + `noUncheckedIndexedAccess`) + Vite |
 | Tipos da API no front | **`openapi-typescript`**, gerados a partir do OpenAPI do backend |
 | UI | MUI + `@mui/x-date-pickers` + dayjs (locale `pt-br`, plugin `timezone`) |
-| Dados no front | TanStack Query + axios |
+| Dados no front | TanStack Query + `fetch` nativo (axios removido na #32, por peso) |
 | Formulários | react-hook-form + zod (tipos inferidos com `z.infer`) |
 | Roteamento | React Router |
 | Testes do front | Vitest + Testing Library + MSW; Playwright no E2E |
@@ -91,7 +91,7 @@ hospedagem gratuita.
 │   │   ├── lib/api/
 │   │   │   ├── schema.d.ts        # GERADO pelo openapi-typescript — não editar à mão
 │   │   │   ├── types.ts           # aliases legíveis sobre o schema gerado
-│   │   │   ├── http-client.ts     # classe HttpClient (axios, token, ApiError)
+│   │   │   ├── http-client.ts     # classe HttpClient (fetch, token, ApiError)
 │   │   │   └── *.api.ts           # uma classe por domínio (ReservationApi, ResourceApi…)
 │   │   ├── domain/                # enums, labels e regras puras de apresentação
 │   │   ├── schemas/forms/         # schemas zod
@@ -208,7 +208,7 @@ de domínio sem conhecer HTTP, e os endpoints ficam sem `try/except`.
   front deixa de compilar no lugar exato que precisa ser ajustado.
 - `src/lib/api/types.ts` expõe aliases legíveis
   (`export type Reservation = components["schemas"]["ReservationRead"]`).
-- Classe `HttpClient` encapsula axios, token e conversão de erros em `ApiError`. Cada domínio
+- Classe `HttpClient` encapsula o `fetch`, token e conversão de erros em `ApiError`. Cada domínio
   tem sua classe (`ReservationApi`, `ResourceApi`, `AuthApi`) recebendo o `HttpClient` no
   construtor, com instâncias únicas exportadas.
 - Componentes e hooks continuam **funcionais**, que é o padrão idiomático do React. A orientação

@@ -2,6 +2,8 @@
  * Horários do campus. Tudo é exibido no fuso de Maceió e enviado à API em UTC.
  * O horário de funcionamento por dia vem de `GET /config/regras`.
  */
+import 'dayjs/locale/pt-br';
+
 import dayjs from 'dayjs';
 
 import type { RulesRead } from '@/lib/api/types';

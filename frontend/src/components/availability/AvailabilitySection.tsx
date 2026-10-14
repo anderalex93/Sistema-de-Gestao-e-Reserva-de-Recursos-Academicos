@@ -5,12 +5,11 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useState, type ReactNode } from 'react';
-import { useSearchParams } from 'react-router';
 
 import { DayPicker } from '@/components/availability/DayPicker';
 import { SlotGrid, SlotGridSkeleton } from '@/components/availability/SlotGrid';
 import { LoadError } from '@/components/LoadError';
-import { campusTime, campusToday, dayLabel, isTimeMark } from '@/domain/schedule';
+import { campusTime, dayLabel } from '@/domain/schedule';
 import {
   durationLabel,
   rangeFromTimes,
@@ -21,12 +20,11 @@ import {
   type SlotRange,
 } from '@/domain/slot-selection';
 import { lastBookableDate, maxSlots } from '@/domain/rules';
+import { useAvailabilityDay } from '@/hooks/useAvailabilityDay';
 import { useAvailability } from '@/hooks/useCatalog';
 import { useRules } from '@/hooks/useRules';
 import { loadFailure } from '@/lib/load-failure';
 import { colors, layout, zIndex } from '@/theme/tokens';
-
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 interface AvailabilitySectionProps {
   resourceId: number;
@@ -39,41 +37,10 @@ interface AvailabilitySectionProps {
   ) => ReactNode;
 }
 
-/** Dia na URL (`?data=`), para o link do resultado da busca já abrir no dia certo. */
-function useSelectedDate(
-  maxDate: string,
-): [string, string | null, string | null, (date: string) => void] {
-  const [params, setParams] = useSearchParams();
-  const today = campusToday();
-  const raw = params.get('data');
-  const valid = raw && DATE_PATTERN.test(raw) && raw >= today ? raw : today;
-  // Além da antecedência máxima não dá para reservar: mostra o último dia permitido.
-  const date = valid > maxDate ? maxDate : valid;
-  const inicio = params.get('inicio');
-  const fim = params.get('fim');
-  const setDate = (next: string) =>
-    setParams(
-      (current) => {
-        const updated = new URLSearchParams(current);
-        updated.set('data', next);
-        updated.delete('inicio');
-        updated.delete('fim');
-        return updated;
-      },
-      { replace: true },
-    );
-  return [
-    date,
-    inicio && isTimeMark(inicio) ? inicio : null,
-    fim && isTimeMark(fim) ? fim : null,
-    setDate,
-  ];
-}
-
 export function AvailabilitySection(props: AvailabilitySectionProps) {
   const rules = useRules();
   const maxDate = lastBookableDate(rules);
-  const [date, inicio, fim, setDate] = useSelectedDate(maxDate);
+  const { date, inicio, fim, setDate } = useAvailabilityDay(maxDate);
   return (
     <DayAvailability
       key={date}

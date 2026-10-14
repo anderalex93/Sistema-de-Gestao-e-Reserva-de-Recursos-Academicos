@@ -4,11 +4,10 @@ import Link from '@mui/material/Link';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router';
 
 import { AvailabilitySection } from '@/components/availability/AvailabilitySection';
-import { ReservationDialog } from '@/components/reservation/ReservationDialog';
 import { FeatureChips } from '@/components/catalog/FeatureChips';
 import { DetailList, type DetailItem } from '@/components/DetailList';
 import { LoadError } from '@/components/LoadError';
@@ -16,7 +15,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { capacityLabel, resourceTypeLabels } from '@/domain/resource-types';
 import { activeLimitFor } from '@/domain/rules';
 import { useAuth } from '@/hooks/useAuth';
-import { useResource } from '@/hooks/useCatalog';
+import { useAvailabilityDate } from '@/hooks/useAvailabilityDay';
+import { useAvailability, useResource } from '@/hooks/useCatalog';
 import { useMyReservations } from '@/hooks/useReservations';
 import { useRules } from '@/hooks/useRules';
 import { ApiError } from '@/lib/api/api-error';
@@ -24,6 +24,24 @@ import type { SelectedInterval } from '@/domain/slot-selection';
 import type { ResourceRead } from '@/lib/api/types';
 import { loadFailure } from '@/lib/load-failure';
 import { paths } from '@/router/paths';
+
+// O diálogo traz o formulário (react-hook-form e zod): fica fora do carregamento da grade.
+const loadReservationDialog = () => import('@/components/reservation/ReservationDialog');
+const ReservationDialog = lazy(() =>
+  loadReservationDialog().then((module) => ({ default: module.ReservationDialog })),
+);
+
+/** Aparece com o primeiro horário escolhido e já baixa o diálogo, que fica pronto para o clique. */
+function ReserveButton({ onClick }: { onClick: () => void }) {
+  useEffect(() => {
+    void loadReservationDialog();
+  }, []);
+  return (
+    <Button variant="contained" onClick={onClick}>
+      Reservar este horário
+    </Button>
+  );
+}
 
 const panelSx = {
   border: 1,
@@ -84,6 +102,8 @@ export default function ResourcePage() {
   const { id = '' } = useParams();
   const resourceId = Number(id);
   const query = useResource(resourceId);
+  // A grade começa a carregar junto com o recurso, em vez de esperar o cabeçalho (RNF02).
+  useAvailability(resourceId, useAvailabilityDate());
   const failure = loadFailure(query);
   const { user } = useAuth();
   const rules = useRules();
@@ -149,25 +169,22 @@ export default function ResourcePage() {
                 </Link>
               </Typography>
             ) : (
-              <Button
-                variant="contained"
-                onClick={() => setPending({ interval, date, clearSelection })}
-              >
-                Reservar este horário
-              </Button>
+              <ReserveButton onClick={() => setPending({ interval, date, clearSelection })} />
             )
           }
         />
-        {pending && (
-          <ReservationDialog
-            open
-            resource={resource}
-            date={pending.date}
-            interval={pending.interval}
-            onClose={() => setPending(null)}
-            onConflict={pending.clearSelection}
-          />
-        )}
+        <Suspense fallback={null}>
+          {pending && (
+            <ReservationDialog
+              open
+              resource={resource}
+              date={pending.date}
+              interval={pending.interval}
+              onClose={() => setPending(null)}
+              onConflict={pending.clearSelection}
+            />
+          )}
+        </Suspense>
       </Stack>
     </>
   );

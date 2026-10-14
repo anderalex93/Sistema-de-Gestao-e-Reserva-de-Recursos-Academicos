@@ -73,7 +73,7 @@ raio de 12px. Tema escuro fica para depois do MVP.
 
 | Papel | Fonte | Pesos | Uso |
 |---|---|---|---|
-| Display | **Literata** (serifa, Google Fonts) | 500, 600 | Títulos de página, landing, comprovante |
+| Display | **Literata** (serifa, Google Fonts) | 500 | Títulos de página, landing, comprovante |
 | Interface | **Atkinson Hyperlegible Next** (Google Fonts) | 400, 500, 700 | Todo o resto: textos, botões, campos, tabelas |
 | Dados | **Atkinson Hyperlegible Mono** (Google Fonts) | 400, 500 | Horários, datas na grade, código do comprovante |
 

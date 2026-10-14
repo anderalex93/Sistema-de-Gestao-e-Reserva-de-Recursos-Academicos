@@ -41,12 +41,15 @@ export function useFeatures() {
   });
 }
 
-/** Grade do dia. Muda a cada reserva, inclusive de outras pessoas: sem cache e sempre ao vivo. */
+/** Grade do dia. Muda a cada reserva, inclusive de outras pessoas: cache curto e sempre ao vivo. */
 export function useAvailability(resourceId: number, date: string) {
   return useQuery({
     queryKey: queryKeys.availability(resourceId, date),
     queryFn: () => catalogApi.getAvailability(resourceId, date),
-    staleTime: 0,
+    enabled: Number.isInteger(resourceId) && resourceId > 0,
+    // Curto, mas não zero: a página do recurso já busca a grade antes de a seção montar, e a
+    // seção não deve repetir a mesma consulta. O polling segue mantendo a grade atualizada.
+    staleTime: 5_000,
     placeholderData: keepPreviousData,
     ...liveQueryOptions,
   });
