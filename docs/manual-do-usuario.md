@@ -144,6 +144,12 @@ presença nesse prazo, a reserva vira **Não compareceu** e o espaço volta a fi
 outras pessoas. Em Minhas reservas, cada reserva mostra a janela do check-in, a presença
 confirmada ou a liberação.
 
+Terminou antes do horário? Leia o QR da porta de novo ao sair e toque em **Encerrar uso e
+liberar a sala** (ou em **Encerrar uso**, em Minhas reservas). A janela de confirmação mostra a
+partir de que horas a sala fica livre: o próximo bloco de 30 minutos, nunca antes de meia hora
+depois do início. O resto do horário volta para a grade na hora, e a reserva passa a mostrar
+"Uso encerrado às HH:MM", também no comprovante. Encerrar não dá para desfazer.
+
 Se você ler o QR sem ter reserva naquele espaço, a tela oferece ver os horários livres e reservar
 ali mesmo.
 
@@ -263,7 +269,8 @@ datas escolhidas), para todos os blocos ou um só:
 
 - **Ocupação**: parte das horas disponíveis que ficou reservada.
 - **Comparecimento**: reservas com check-in entre as que já começaram.
-- **Horas devolvidas**: tempo que voltou a ficar livre porque ninguém fez check-in.
+- **Horas devolvidas**: tempo que voltou a ficar livre porque ninguém fez check-in ou porque
+  quem reservou encerrou o uso mais cedo.
 - **Cancelamentos**: parte das reservas que foi cancelada.
 - **Mapa de calor**: a ocupação de cada dia da semana e hora, com a porcentagem escrita em cada
   célula. Quanto mais escuro, mais cheio.

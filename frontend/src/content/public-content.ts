@@ -135,6 +135,13 @@ export const helpFaq: readonly FaqItem[] = [
       'escolha outro horário ou outro espaço.',
   },
   {
+    pergunta: 'Terminei antes do horário. Preciso avisar?',
+    resposta:
+      'Ajuda bastante. Leia o QR da porta ao sair e toque em Encerrar uso e liberar a sala, ' +
+      'ou use Encerrar uso em Minhas reservas. O resto do horário fica livre para outras ' +
+      'pessoas a partir do próximo bloco de 30 minutos.',
+  },
+  {
     pergunta: 'Posso reservar para um grupo?',
     resposta:
       'Sim. Informe o número de participantes no resumo da reserva, até a capacidade do espaço.',
