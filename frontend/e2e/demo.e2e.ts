@@ -96,9 +96,10 @@ test('roteiro da apresentação: reserva, conflito, check-in, cancelamento e adm
   await projector.click();
   await expect(projector).toHaveAttribute('aria-pressed', 'true');
   await filters.getByLabel('Data').fill(slot.date);
+  // Há uma Sala de estudo 203 em mais de um bloco: o cartão certo é o do Bloco B.
   const card = lucas
     .getByRole('list', { name: 'Recursos' })
-    .getByRole('link', { name: new RegExp(ROOM.nome) });
+    .getByRole('link', { name: new RegExp(`${ROOM.nome} ${ROOM.bloco}`) });
   await expect(card).toHaveAttribute('href', new RegExp(`data=${slot.date}`));
   await card.click();
 
