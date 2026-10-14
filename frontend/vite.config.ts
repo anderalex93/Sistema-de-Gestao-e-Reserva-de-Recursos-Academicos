@@ -56,9 +56,13 @@ function prerenderPublicHeads(siteUrl: string): Plugin {
       const outDir = options.dir ?? 'dist';
       const template = readFileSync(join(outDir, 'index.html'), 'utf8');
       for (const page of SEO_PAGES) {
+        const html = injectHead(template, page, siteUrl);
         const dir = join(outDir, page.path);
         mkdirSync(dir, { recursive: true });
-        writeFileSync(join(dir, 'index.html'), injectHead(template, page, siteUrl));
+        writeFileSync(join(dir, 'index.html'), html);
+        // `sobre.html` ao lado de `sobre/index.html`: com `cleanUrls` a Vercel serve o primeiro
+        // em `/sobre`, sem redirecionar para a barra no fim.
+        if (page.path !== '/') writeFileSync(join(outDir, `${page.path.slice(1)}.html`), html);
       }
       writeFileSync(join(outDir, 'robots.txt'), robotsTxt(siteUrl));
       writeFileSync(join(outDir, 'sitemap.xml'), sitemapXml(siteUrl));

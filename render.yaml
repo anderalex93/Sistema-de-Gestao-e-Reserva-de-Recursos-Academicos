@@ -1,0 +1,31 @@
+# Blueprint do Render para a API (#19). No painel: New > Blueprint > este repositório.
+# Segredos (sync: false) são preenchidos no painel e nunca ficam no repositório.
+services:
+  - type: web
+    name: eduspace-api
+    runtime: docker
+    plan: free
+    # Virgínia: mais perto do Brasil e da região do Neon (aws-us-east-1).
+    region: virginia
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: ALLOWED_EMAIL_DOMAINS
+        value: umj.edu.br
+      - key: SEED_ON_START
+        value: "true"
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_SENHA
+        sync: false

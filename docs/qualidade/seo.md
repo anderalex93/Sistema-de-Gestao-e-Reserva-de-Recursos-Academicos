@@ -22,9 +22,10 @@
 - `VITE_SITE_URL` com o endereço público (sem barra no fim) é obrigatória no build de produção:
   canonical, `og:url`, `og:image`, `robots.txt` e `sitemap.xml` usam URLs absolutas. Sem ela, o
   build avisa e usa `http://localhost:4173`.
-- A Vercel serve `sobre/index.html` em `/sobre` antes do rewrite da SPA, então cada página pública
-  chega aos robôs com as próprias tags. O `vite preview` local não faz isso (cai sempre no
-  `index.html`), por isso a conferência das tags por página é em produção.
+- O build grava cada página pública em `sobre.html` e em `sobre/index.html`. Com `cleanUrls` no
+  [`vercel.json`](../../frontend/vercel.json), a Vercel serve `sobre.html` em `/sobre` antes do
+  rewrite da SPA, e cada página chega aos robôs com as próprias tags. O `vite preview` local cai
+  sempre no `index.html`, por isso a conferência das tags por página é em produção.
 
 ## Falta verificar em produção (depende da #19)
 

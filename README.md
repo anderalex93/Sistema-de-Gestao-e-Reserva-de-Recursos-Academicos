@@ -98,6 +98,7 @@ outra instalação local). Detalhes no [README do backend](backend/README.md).
 |---|---|
 | [ADR 0001](docs/adr/0001-arquitetura-e-stack.md) | Stack, camadas, tipagem, contrato da API e convenções |
 | [Design system](docs/design/design-system.md) | Cores, tipografia, componentes e regras de interface |
+| [Deploy](docs/deploy.md) | Neon, Render e Vercel: o que está versionado e o passo a passo |
 | [CONTRIBUTING](CONTRIBUTING.md) | Fluxo de trabalho, padrão de commits e Definição de Pronto |
 | [Swagger da API](http://localhost:8000/docs) | Disponível com o backend rodando |
 

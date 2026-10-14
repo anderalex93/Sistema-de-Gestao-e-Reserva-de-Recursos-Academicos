@@ -29,6 +29,7 @@ jobs:
             backend:
               - 'backend/**'
               - 'docker-compose.yml'
+              - 'render.yaml'
               - '.github/workflows/ci.yml'
             frontend:
               - 'frontend/**'
@@ -92,6 +93,17 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run ci
+
+  api-image:
+    name: Imagem da API (Dockerfile do deploy)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir a imagem usada no Render
+        run: docker build --tag eduspace-api:ci backend
 
   contract:
     name: Contrato da API (tipos do front em dia)
