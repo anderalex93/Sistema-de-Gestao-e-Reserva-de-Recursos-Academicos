@@ -20,7 +20,12 @@ def _blank_to_none(value: str | None) -> str | None:
 
 
 class BuildingCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [{"nome": "Bloco C", "descricao": "Laboratórios e salas de estudo"}]
+        },
+    )
 
     nome: BuildingName
     descricao: Description | None = None
@@ -44,7 +49,9 @@ class BuildingAdminRead(BuildingStatusRead):
 
 
 class FeatureCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid", json_schema_extra={"examples": [{"nome": "Projetor"}]}
+    )
 
     nome: FeatureName
 
@@ -58,7 +65,22 @@ class FeatureAdminRead(FeatureRead):
 
 
 class ResourceCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "bloco_id": 1,
+                    "tipo": "LABORATORIO",
+                    "nome": "Laboratório de Informática 2",
+                    "capacidade": 30,
+                    "andar": "2º andar",
+                    "descricao": "Computadores com IDE e acesso à rede do campus",
+                    "caracteristica_ids": [1, 2],
+                }
+            ]
+        },
+    )
 
     bloco_id: int = Field(ge=1)
     tipo: ResourceType

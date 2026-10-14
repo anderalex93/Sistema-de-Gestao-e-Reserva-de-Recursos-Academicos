@@ -8,7 +8,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Verifica se a API e o banco estão respondendo */
+    /**
+     * Verifica se a API e o banco estão respondendo
+     * @description Público, para o monitoramento e o health check do deploy. Faz uma consulta mínima ao banco.
+     */
     get: operations['health_api_v1_health_get'];
     put?: never;
     post?: never;
@@ -27,7 +30,10 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Cria a própria conta (perfil Aluno) */
+    /**
+     * Cria a própria conta (perfil Aluno)
+     * @description O perfil é sempre `ALUNO`; professor e administrador são criados pela administração. Quando o servidor restringe domínios, o e-mail precisa ser institucional (ex.: `@umj.edu.br`). O aceite do Aviso de Privacidade e dos Termos de Uso (`aceite_termos: true`) é obrigatório e fica registrado com data. Senha com 8 a 128 caracteres, com letras e números; matrícula opcional. Limite de 10 cadastros por minuto por IP.
+     */
     post: operations['signup_api_v1_auth_cadastro_post'];
     delete?: never;
     options?: never;
@@ -44,7 +50,10 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Entra com e-mail e senha e recebe o token de acesso */
+    /**
+     * Entra com e-mail e senha e recebe o token de acesso
+     * @description Devolve um token Bearer (JWT) válido por `expires_in` segundos e os dados da conta. Envie-o no cabeçalho `Authorization: Bearer <token>`. E-mail inexistente e senha errada dão a mesma resposta. Limite de 20 tentativas por minuto por IP.
+     */
     post: operations['login_api_v1_auth_login_post'];
     delete?: never;
     options?: never;
@@ -59,7 +68,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Dados de quem está logado */
+    /**
+     * Dados de quem está logado
+     * @description Usado para restaurar a sessão. `aceite_termos_em` vazio indica conta criada pelo administrador que ainda precisa aceitar os termos.
+     */
     get: operations['me_api_v1_auth_me_get'];
     put?: never;
     post?: never;
@@ -80,7 +92,7 @@ export interface paths {
     put?: never;
     /**
      * Registra o aceite do Aviso de Privacidade e dos Termos de Uso
-     * @description Para contas criadas pelo administrador, no primeiro acesso.
+     * @description Para contas criadas pelo administrador, no primeiro acesso (`aceite_termos_em` vazio). Chamar de novo não altera nada: a data do primeiro aceite é a prova do consentimento.
      */
     post: operations['accept_terms_api_v1_auth_me_aceite_termos_post'];
     delete?: never;
@@ -96,7 +108,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Exporta todos os meus dados em JSON (LGPD, Art. 18) */
+    /**
+     * Exporta todos os meus dados em JSON (LGPD, Art. 18)
+     * @description Dados da conta e todas as reservas feitas por ela, de qualquer status, com recurso, bloco, horários, finalidade e motivo de cancelamento. Atende aos direitos de acesso e portabilidade do titular.
+     */
     get: operations['export_my_data_api_v1_auth_me_dados_get'];
     put?: never;
     post?: never;
@@ -117,7 +132,7 @@ export interface paths {
     put?: never;
     /**
      * Exclui a minha conta (LGPD, Art. 18, VI)
-     * @description Pede a senha atual. A conta é anonimizada e desativada: nome, e-mail e matrícula somem, as reservas antigas ficam no histórico do espaço sem identificar ninguém e as futuras são canceladas. Administradores não podem se excluir por aqui.
+     * @description Pede a senha atual. A conta é anonimizada e desativada: nome, e-mail e matrícula somem, as reservas antigas ficam no histórico do espaço sem identificar ninguém e as futuras são canceladas. Administradores não podem se excluir por aqui. Limite de 20 tentativas por minuto por IP.
      */
     post: operations['delete_my_account_api_v1_auth_me_exclusao_post'];
     delete?: never;
@@ -133,7 +148,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Horário de funcionamento e regras de reserva (público) */
+    /**
+     * Horário de funcionamento e regras de reserva (público)
+     * @description Sem login. Fuso, tamanho do intervalo da grade, horário de cada dia da semana, duração máxima, antecedência máxima e limite de reservas ativas por perfil, como estão configurados no servidor. O front usa estes valores para montar a grade e validar o formulário antes de chamar `POST /api/v1/reservas`.
+     */
     get: operations['get_rules_api_v1_config_regras_get'];
     put?: never;
     post?: never;
@@ -150,7 +168,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Lista os blocos do campus */
+    /**
+     * Lista os blocos do campus
+     * @description Só os blocos ativos, em ordem de nome, para o filtro da busca.
+     */
     get: operations['list_buildings_api_v1_blocos_get'];
     put?: never;
     post?: never;
@@ -167,7 +188,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Lista as características usadas nos filtros */
+    /**
+     * Lista as características usadas nos filtros
+     * @description Todas as características cadastradas, em ordem de nome.
+     */
     get: operations['list_features_api_v1_caracteristicas_get'];
     put?: never;
     post?: never;
@@ -184,7 +208,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Busca recursos para reservar, com filtros e horário livre */
+    /**
+     * Busca recursos para reservar, com filtros e horário livre
+     * @description Só recursos ativos de blocos ativos, paginados. Os filtros se combinam com E e `caracteristicas` exige todas as informadas. Com `inicio` e `fim` (sempre juntos, com fuso), traz só recursos sem reserva confirmada que se sobreponha ao intervalo; o intervalo não pode ter começado.
+     */
     get: operations['search_resources_api_v1_recursos_get'];
     put?: never;
     post?: never;
@@ -201,7 +228,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Detalhe de um recurso */
+    /**
+     * Detalhe de um recurso
+     * @description Recurso desativado, ou de bloco desativado, responde 404 como se não existisse.
+     */
     get: operations['get_resource_api_v1_recursos__resource_id__get'];
     put?: never;
     post?: never;
@@ -220,7 +250,7 @@ export interface paths {
     };
     /**
      * Grade de horários de 30 minutos de um recurso num dia
-     * @description Dia no fuso do campus (America/Maceio). Dia em que o campus não abre volta sem horários. Quem reservou só é identificado para administradores.
+     * @description Dia no fuso do campus (America/Maceio). Cada horário vem `LIVRE`, `OCUPADO` ou `PASSADO`. Dia em que o campus não abre volta sem horários. Quem reservou só é identificado para administradores.
      */
     get: operations['get_availability_api_v1_recursos__resource_id__disponibilidade_get'];
     put?: never;
@@ -240,7 +270,18 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Reserva um recurso num intervalo livre */
+    /**
+     * Reserva um recurso num intervalo livre
+     * @description Regras, com os valores atuais em `GET /api/v1/config/regras`:
+     *
+     *     - `inicio` e `fim` com fuso, em blocos de 30 minutos alinhados (horas cheias ou meias horas), dentro do horário de funcionamento do campus e sem ter começado;
+     *     - duração máxima por reserva (padrão 4 horas);
+     *     - antecedência máxima em dias (padrão 14);
+     *     - limite de reservas ativas (confirmadas e não terminadas) por perfil: padrão 3 para aluno e 10 para professor; administrador não tem limite;
+     *     - `qtd_participantes`, se informada, não passa da capacidade do espaço.
+     *
+     *     O banco impede duas reservas confirmadas sobrepostas no mesmo recurso: quem chega depois recebe `409 RESERVA_CONFLITO`. A resposta traz o `codigo` do comprovante.
+     */
     post: operations['create_reservation_api_v1_reservas_post'];
     delete?: never;
     options?: never;
@@ -255,7 +296,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Minhas reservas: próximas ou histórico */
+    /**
+     * Minhas reservas: próximas ou histórico
+     * @description `escopo=proximas` (padrão): confirmadas que ainda não terminaram, da mais cedo para a mais tarde. `escopo=historico`: canceladas ou já terminadas, da mais recente para a mais antiga. Cada item diz se ainda pode ser cancelado (`pode_cancelar`).
+     */
     get: operations['list_my_reservations_api_v1_reservas_minhas_get'];
     put?: never;
     post?: never;
@@ -272,7 +316,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Verificação pública de um comprovante (sem login) */
+    /**
+     * Verificação pública de um comprovante (sem login)
+     * @description Para conferir a reserva na entrada do espaço, pelo código ou QR Code do comprovante. Mostra recurso, horário e situação, e de quem reservou só o primeiro nome (LGPD, minimização). Limite de 60 consultas por minuto por IP, contra varredura de códigos.
+     */
     get: operations['get_receipt_api_v1_reservas_comprovante__codigo__get'];
     put?: never;
     post?: never;
@@ -289,7 +336,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Detalhe de uma reserva (dono ou administrador) */
+    /**
+     * Detalhe de uma reserva (dono ou administrador)
+     * @description Para qualquer outra pessoa a reserva responde 404, sem revelar que existe.
+     */
     get: operations['get_reservation_api_v1_reservas__reservation_id__get'];
     put?: never;
     post?: never;
@@ -308,7 +358,10 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Cancela uma reserva (até 30 minutos antes do início) */
+    /**
+     * Cancela uma reserva (até 30 minutos antes do início)
+     * @description Nada é apagado: a reserva fica `CANCELADA` e o horário volta a ficar livre. Quem reservou cancela até 30 minutos antes do início, pelo relógio do servidor; o administrador cancela as próprias a qualquer momento. Reserva de outra pessoa a administração cancela por `POST /api/v1/admin/reservas/{id}/cancelar`, com motivo.
+     */
     post: operations['cancel_reservation_api_v1_reservas__reservation_id__cancelar_post'];
     delete?: never;
     options?: never;
@@ -325,7 +378,7 @@ export interface paths {
     };
     /**
      * Ocupação de todos os recursos num dia
-     * @description Para cada recurso ativo, os intervalos já reservados no dia (fuso do campus). Quem reservou só é identificado para administradores.
+     * @description Para cada recurso ativo, os intervalos já reservados no dia (fuso do campus), com filtro opcional por bloco e tipo. Dia em que o campus não abre volta sem horário e sem linhas. Quem reservou só é identificado para administradores.
      */
     get: operations['get_board_api_v1_quadro_get'];
     put?: never;
@@ -343,10 +396,16 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Lista e busca usuários */
+    /**
+     * Lista e busca usuários
+     * @description Paginada e em ordem de nome, com contas ativas e desativadas. `busca` procura por trecho do nome, do e-mail ou da matrícula.
+     */
     get: operations['list_users_api_v1_admin_usuarios_get'];
     put?: never;
-    /** Cria a conta de um aluno, professor ou administrador */
+    /**
+     * Cria a conta de um aluno, professor ou administrador
+     * @description O administrador escolhe o perfil (padrão `ALUNO`) e não há restrição de domínio de e-mail. A pessoa aceita o Aviso de Privacidade e os Termos de Uso no primeiro acesso (`POST /api/v1/auth/me/aceite-termos`): o administrador não consente por ela. Senha com 8 a 128 caracteres, com letras e números.
+     */
     post: operations['create_user_api_v1_admin_usuarios_post'];
     delete?: never;
     options?: never;
@@ -381,10 +440,16 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Lista todos os blocos, ativos e desativados */
+    /**
+     * Lista todos os blocos, ativos e desativados
+     * @description Ativos primeiro, cada um com o total de recursos cadastrados (ativos ou não). Quem reserva usa `GET /api/v1/blocos`, que traz só os ativos.
+     */
     get: operations['list_buildings_api_v1_admin_blocos_get'];
     put?: never;
-    /** Cria um bloco */
+    /**
+     * Cria um bloco
+     * @description O nome é único entre todos os blocos, inclusive os desativados. Descrição em branco é gravada como nula.
+     */
     post: operations['create_building_api_v1_admin_blocos_post'];
     delete?: never;
     options?: never;
@@ -400,7 +465,10 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    /** Altera nome e descrição de um bloco */
+    /**
+     * Altera nome e descrição de um bloco
+     * @description Substitui os dois campos. Desativar e reativar têm rotas próprias (`DELETE` e `/reativar`).
+     */
     put: operations['update_building_api_v1_admin_blocos__building_id__put'];
     post?: never;
     /**
@@ -422,7 +490,10 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Reativa um bloco desativado */
+    /**
+     * Reativa um bloco desativado
+     * @description O bloco volta para a busca com os recursos que estavam ativos nele. Recursos desativados um a um continuam desativados.
+     */
     post: operations['reactivate_building_api_v1_admin_blocos__building_id__reativar_post'];
     delete?: never;
     options?: never;
@@ -437,10 +508,16 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Lista recursos ativos e desativados, com busca e filtros */
+    /**
+     * Lista recursos ativos e desativados, com busca e filtros
+     * @description Paginada. `busca` procura no nome; sem o filtro `ativo`, traz ativos e desativados, inclusive os de blocos desativados.
+     */
     get: operations['list_resources_api_v1_admin_recursos_get'];
     put?: never;
-    /** Cria um recurso, que aparece na busca na hora */
+    /**
+     * Cria um recurso, que aparece na busca na hora
+     * @description Só em bloco ativo. Sala, laboratório e auditório exigem `capacidade`; só equipamento pode ficar sem. O nome é único dentro do bloco e as características precisam existir.
+     */
     post: operations['create_resource_api_v1_admin_recursos_post'];
     delete?: never;
     options?: never;
@@ -455,9 +532,15 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Detalhe de um recurso, mesmo desativado */
+    /**
+     * Detalhe de um recurso, mesmo desativado
+     * @description Traz a situação do recurso e a do bloco, para a tela de edição.
+     */
     get: operations['get_resource_api_v1_admin_recursos__resource_id__get'];
-    /** Altera todos os dados de um recurso */
+    /**
+     * Altera todos os dados de um recurso
+     * @description Substitui todos os campos, inclusive a lista de características. Mudar de bloco só para um bloco ativo; recurso que já está num bloco desativado pode ser editado sem sair dele. As reservas existentes não mudam.
+     */
     put: operations['update_resource_api_v1_admin_recursos__resource_id__put'];
     post?: never;
     /**
@@ -479,7 +562,10 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Reativa um recurso desativado */
+    /**
+     * Reativa um recurso desativado
+     * @description O recurso volta para a busca, desde que o bloco dele também esteja ativo. Reservas canceladas na desativação não voltam.
+     */
     post: operations['reactivate_resource_api_v1_admin_recursos__resource_id__reativar_post'];
     delete?: never;
     options?: never;
@@ -494,10 +580,16 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Lista as características com quantos recursos usam cada uma */
+    /**
+     * Lista as características com quantos recursos usam cada uma
+     * @description Ordem alfabética. O total ajuda a decidir se vale renomear ou excluir.
+     */
     get: operations['list_features_api_v1_admin_caracteristicas_get'];
     put?: never;
-    /** Cria uma característica */
+    /**
+     * Cria uma característica
+     * @description Atributo usado no filtro da busca (projetor, ar-condicionado...). O nome é único e tem de 2 a 60 caracteres.
+     */
     post: operations['create_feature_api_v1_admin_caracteristicas_post'];
     delete?: never;
     options?: never;
@@ -513,10 +605,16 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
-    /** Renomeia uma característica */
+    /**
+     * Renomeia uma característica
+     * @description O novo nome passa a valer em todos os recursos que já a usam.
+     */
     put: operations['update_feature_api_v1_admin_caracteristicas__feature_id__put'];
     post?: never;
-    /** Exclui uma característica e a retira dos recursos que a usam */
+    /**
+     * Exclui uma característica e a retira dos recursos que a usam
+     * @description É só um atributo de busca: os recursos continuam cadastrados, apenas sem ela. Não há como desfazer.
+     */
     delete: operations['remove_feature_api_v1_admin_caracteristicas__feature_id__delete'];
     options?: never;
     head?: never;
@@ -554,7 +652,7 @@ export interface paths {
     put?: never;
     /**
      * Cancela qualquer reserva que ainda não terminou, com motivo
-     * @description Sem o prazo de 30 minutos. O motivo aparece no histórico de quem reservou.
+     * @description Sem o prazo de 30 minutos, para manutenção ou evento institucional. Vale para reservas de qualquer pessoa enquanto não terminaram. O motivo (5 a 300 caracteres) aparece no histórico de quem reservou.
      */
     post: operations['cancel_reservation_api_v1_admin_reservas__reservation_id__cancelar_post'];
     delete?: never;
@@ -575,7 +673,12 @@ export interface components {
        */
       senha: string;
     };
-    /** AdminCancellation */
+    /**
+     * AdminCancellation
+     * @example {
+     *       "motivo": "Manutenção do ar-condicionado da sala."
+     *     }
+     */
     AdminCancellation: {
       /**
        * Motivo
@@ -683,7 +786,13 @@ export interface components {
        */
       total_recursos: number;
     };
-    /** BuildingCreate */
+    /**
+     * BuildingCreate
+     * @example {
+     *       "descricao": "Laboratórios e salas de estudo",
+     *       "nome": "Bloco C"
+     *     }
+     */
     BuildingCreate: {
       /** Nome */
       nome: string;
@@ -713,6 +822,10 @@ export interface components {
     /**
      * BuildingUpdate
      * @description PUT substitui todos os campos editáveis. Ativar e desativar têm endpoints próprios.
+     * @example {
+     *       "descricao": "Laboratórios e salas de estudo",
+     *       "nome": "Bloco C"
+     *     }
      */
     BuildingUpdate: {
       /** Nome */
@@ -760,7 +873,12 @@ export interface components {
        */
       total_recursos: number;
     };
-    /** FeatureCreate */
+    /**
+     * FeatureCreate
+     * @example {
+     *       "nome": "Projetor"
+     *     }
+     */
     FeatureCreate: {
       /** Nome */
       nome: string;
@@ -772,7 +890,12 @@ export interface components {
       /** Nome */
       nome: string;
     };
-    /** FeatureUpdate */
+    /**
+     * FeatureUpdate
+     * @example {
+     *       "nome": "Projetor"
+     *     }
+     */
     FeatureUpdate: {
       /** Nome */
       nome: string;
@@ -795,7 +918,13 @@ export interface components {
        */
       db: 'ok';
     };
-    /** LoginRequest */
+    /**
+     * LoginRequest
+     * @example {
+     *       "email": "ana.exemplo@umj.edu.br",
+     *       "senha": "Estudo2026"
+     *     }
+     */
     LoginRequest: {
       /**
        * Email
@@ -1008,7 +1137,16 @@ export interface components {
        */
       reservas_canceladas: number;
     };
-    /** ReservationCreate */
+    /**
+     * ReservationCreate
+     * @example {
+     *       "fim": "2026-11-20T16:00:00-03:00",
+     *       "finalidade": "Estudo em grupo para a prova de Cálculo II",
+     *       "inicio": "2026-11-20T14:00:00-03:00",
+     *       "qtd_participantes": 4,
+     *       "recurso_id": 1
+     *     }
+     */
     ReservationCreate: {
       /** Recurso Id */
       recurso_id: number;
@@ -1139,7 +1277,21 @@ export interface components {
       /** Ativo */
       ativo: boolean;
     };
-    /** ResourceCreate */
+    /**
+     * ResourceCreate
+     * @example {
+     *       "andar": "2º andar",
+     *       "bloco_id": 1,
+     *       "capacidade": 30,
+     *       "caracteristica_ids": [
+     *         1,
+     *         2
+     *       ],
+     *       "descricao": "Computadores com IDE e acesso à rede do campus",
+     *       "nome": "Laboratório de Informática 2",
+     *       "tipo": "LABORATORIO"
+     *     }
+     */
     ResourceCreate: {
       /** Bloco Id */
       bloco_id: number;
@@ -1180,6 +1332,18 @@ export interface components {
     /**
      * ResourceUpdate
      * @description PUT substitui todos os campos editáveis, inclusive a lista de características.
+     * @example {
+     *       "andar": "2º andar",
+     *       "bloco_id": 1,
+     *       "capacidade": 30,
+     *       "caracteristica_ids": [
+     *         1,
+     *         2
+     *       ],
+     *       "descricao": "Computadores com IDE e acesso à rede do campus",
+     *       "nome": "Laboratório de Informática 2",
+     *       "tipo": "LABORATORIO"
+     *     }
      */
     ResourceUpdate: {
       /** Bloco Id */
@@ -1273,6 +1437,12 @@ export interface components {
      * UserAdminCreate
      * @description Conta criada pelo administrador, que escolhe o perfil. A pessoa aceita os termos no
      *     primeiro acesso: o admin não pode consentir por ela.
+     * @example {
+     *       "email": "carlos.exemplo@umj.edu.br",
+     *       "nome": "Carlos Exemplo Lima",
+     *       "perfil": "PROFESSOR",
+     *       "senha": "Docente2026"
+     *     }
      */
     UserAdminCreate: {
       /** Nome */
@@ -1330,6 +1500,13 @@ export interface components {
     /**
      * UserSignup
      * @description Autocadastro: o perfil é sempre ALUNO e o aceite é obrigatório (LGPD, Art. 8º e 9º).
+     * @example {
+     *       "aceite_termos": true,
+     *       "email": "ana.exemplo@umj.edu.br",
+     *       "matricula": "20261001",
+     *       "nome": "Ana Exemplo Souza",
+     *       "senha": "Estudo2026"
+     *     }
      */
     UserSignup: {
       /** Nome */
@@ -1389,7 +1566,7 @@ export interface operations {
           'application/json': components['schemas']['HealthRead'];
         };
       };
-      /** @description Banco de dados indisponível */
+      /** @description Banco de dados indisponível (`BANCO_INDISPONIVEL`) */
       503: {
         headers: {
           [name: string]: unknown;
@@ -1422,7 +1599,7 @@ export interface operations {
           'application/json': components['schemas']['UserRead'];
         };
       };
-      /** @description E-mail ou matrícula já cadastrados */
+      /** @description E-mail (`EMAIL_JA_CADASTRADO`) ou matrícula (`MATRICULA_JA_CADASTRADA`) já cadastrados */
       409: {
         headers: {
           [name: string]: unknown;
@@ -1431,16 +1608,16 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Validation Error */
+      /** @description E-mail fora do domínio institucional (`DOMINIO_NAO_PERMITIDO`). Campos inválidos, como aceite ausente ou senha fraca, voltam no formato de validação do FastAPI, com `detail` em lista */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['HTTPValidationError'];
+          'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Muitas tentativas seguidas */
+      /** @description Muitas tentativas seguidas do mesmo IP (`MUITAS_TENTATIVAS`) */
       429: {
         headers: {
           [name: string]: unknown;
@@ -1473,7 +1650,7 @@ export interface operations {
           'application/json': components['schemas']['TokenRead'];
         };
       };
-      /** @description E-mail ou senha incorretos */
+      /** @description E-mail ou senha incorretos (`CREDENCIAIS_INVALIDAS`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1482,7 +1659,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Conta desativada */
+      /** @description Conta desativada (`USUARIO_INATIVO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -1500,7 +1677,7 @@ export interface operations {
           'application/json': components['schemas']['HTTPValidationError'];
         };
       };
-      /** @description Muitas tentativas seguidas */
+      /** @description Muitas tentativas seguidas do mesmo IP (`MUITAS_TENTATIVAS`) */
       429: {
         headers: {
           [name: string]: unknown;
@@ -1529,7 +1706,7 @@ export interface operations {
           'application/json': components['schemas']['UserRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1558,7 +1735,7 @@ export interface operations {
           'application/json': components['schemas']['UserRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1587,7 +1764,7 @@ export interface operations {
           'application/json': components['schemas']['MyDataExport'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1618,7 +1795,7 @@ export interface operations {
         };
         content?: never;
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1627,7 +1804,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Senha incorreta ou conta de administrador */
+      /** @description Senha incorreta (`SENHA_INCORRETA`) ou conta de administrador (`OPERACAO_NAO_PERMITIDA`) */
       422: {
         headers: {
           [name: string]: unknown;
@@ -1636,7 +1813,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Muitas tentativas seguidas */
+      /** @description Muitas tentativas seguidas do mesmo IP (`MUITAS_TENTATIVAS`) */
       429: {
         headers: {
           [name: string]: unknown;
@@ -1685,7 +1862,7 @@ export interface operations {
           'application/json': components['schemas']['BuildingRead'][];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1714,7 +1891,7 @@ export interface operations {
           'application/json': components['schemas']['FeatureRead'][];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1756,7 +1933,7 @@ export interface operations {
           'application/json': components['schemas']['Page_ResourceRead_'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1765,7 +1942,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Intervalo inválido ou no passado */
+      /** @description Intervalo no passado (`INTERVALO_NO_PASSADO`), incompleto ou com o fim antes do início */
       422: {
         headers: {
           [name: string]: unknown;
@@ -1796,7 +1973,7 @@ export interface operations {
           'application/json': components['schemas']['ResourceRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1848,7 +2025,7 @@ export interface operations {
           'application/json': components['schemas']['AvailabilityRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1899,7 +2076,7 @@ export interface operations {
           'application/json': components['schemas']['ReservationRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1917,7 +2094,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Horário ocupado (RESERVA_CONFLITO) */
+      /** @description Horário já ocupado por outra reserva (`RESERVA_CONFLITO`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -1926,7 +2103,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Horário ou participantes fora das regras */
+      /** @description Fora das regras: `INTERVALO_NO_PASSADO`, `HORARIO_FORA_DA_GRADE`, `FORA_DO_FUNCIONAMENTO`, `CAPACIDADE_EXCEDIDA`, `DURACAO_EXCEDIDA`, `ANTECEDENCIA_EXCEDIDA` ou `LIMITE_RESERVAS_ATIVAS`. Campos inválidos, como fim antes do início, voltam no formato de validação do FastAPI */
       422: {
         headers: {
           [name: string]: unknown;
@@ -1959,7 +2136,7 @@ export interface operations {
           'application/json': components['schemas']['Page_MyReservationRead_'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -1999,16 +2176,7 @@ export interface operations {
           'application/json': components['schemas']['ReceiptRead'];
         };
       };
-      /** @description Sem sessão válida */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponse'];
-        };
-      };
-      /** @description Código inexistente */
+      /** @description Código inexistente (`COMPROVANTE_NAO_ENCONTRADO`) */
       404: {
         headers: {
           [name: string]: unknown;
@@ -2026,7 +2194,7 @@ export interface operations {
           'application/json': components['schemas']['HTTPValidationError'];
         };
       };
-      /** @description Muitas consultas seguidas */
+      /** @description Muitas tentativas seguidas do mesmo IP (`MUITAS_TENTATIVAS`) */
       429: {
         headers: {
           [name: string]: unknown;
@@ -2057,7 +2225,7 @@ export interface operations {
           'application/json': components['schemas']['ReservationRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2106,7 +2274,7 @@ export interface operations {
           'application/json': components['schemas']['MyReservationRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2115,7 +2283,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description A reserva é de outra pessoa */
+      /** @description A reserva é de outra pessoa (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2133,7 +2301,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Reserva já cancelada */
+      /** @description Reserva já cancelada (`RESERVA_JA_CANCELADA`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -2142,7 +2310,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Fora do prazo de cancelamento */
+      /** @description Fora do prazo de cancelamento (`PRAZO_CANCELAMENTO_EXPIRADO`) */
       422: {
         headers: {
           [name: string]: unknown;
@@ -2176,7 +2344,7 @@ export interface operations {
           'application/json': components['schemas']['BoardRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2219,7 +2387,7 @@ export interface operations {
           'application/json': components['schemas']['Page_UserRead_'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2228,7 +2396,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2270,7 +2438,7 @@ export interface operations {
           'application/json': components['schemas']['UserRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2279,7 +2447,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2288,7 +2456,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description E-mail ou matrícula já cadastrados */
+      /** @description E-mail (`EMAIL_JA_CADASTRADO`) ou matrícula (`MATRICULA_JA_CADASTRADA`) já cadastrados */
       409: {
         headers: {
           [name: string]: unknown;
@@ -2332,7 +2500,7 @@ export interface operations {
           'application/json': components['schemas']['UserRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2341,7 +2509,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2359,7 +2527,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Admin tentando se rebaixar ou se desativar */
+      /** @description Admin tentando se rebaixar ou se desativar (`OPERACAO_NAO_PERMITIDA`) ou nenhum campo informado */
       422: {
         headers: {
           [name: string]: unknown;
@@ -2388,7 +2556,7 @@ export interface operations {
           'application/json': components['schemas']['BuildingAdminRead'][];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2397,7 +2565,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2430,7 +2598,7 @@ export interface operations {
           'application/json': components['schemas']['BuildingAdminRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2439,7 +2607,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2448,7 +2616,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Já existe um bloco com este nome */
+      /** @description Já existe um bloco com este nome (`BLOCO_JA_EXISTE`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -2492,7 +2660,7 @@ export interface operations {
           'application/json': components['schemas']['BuildingAdminRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2501,7 +2669,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2519,7 +2687,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Já existe um bloco com este nome */
+      /** @description Já existe um bloco com este nome (`BLOCO_JA_EXISTE`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -2562,7 +2730,7 @@ export interface operations {
           'application/json': components['schemas']['RemovalRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2571,7 +2739,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2589,7 +2757,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Há reservas futuras e `forcar` é falso */
+      /** @description Há reservas futuras e `forcar` é falso (`RESERVAS_FUTURAS`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -2629,7 +2797,7 @@ export interface operations {
           'application/json': components['schemas']['BuildingAdminRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2638,7 +2806,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2694,7 +2862,7 @@ export interface operations {
           'application/json': components['schemas']['Page_ResourceAdminRead_'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2703,7 +2871,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2745,7 +2913,7 @@ export interface operations {
           'application/json': components['schemas']['ResourceAdminRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2754,7 +2922,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2763,7 +2931,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Já existe um recurso com este nome no bloco */
+      /** @description Já existe um recurso com este nome no bloco (`RECURSO_JA_EXISTE`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -2772,7 +2940,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Bloco desativado ou característica inexistente */
+      /** @description Bloco inexistente ou desativado (`BLOCO_INVALIDO`), característica inexistente (`CARACTERISTICA_INVALIDA`) ou campos inválidos, como capacidade ausente */
       422: {
         headers: {
           [name: string]: unknown;
@@ -2803,7 +2971,7 @@ export interface operations {
           'application/json': components['schemas']['ResourceAdminRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2812,7 +2980,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2865,7 +3033,7 @@ export interface operations {
           'application/json': components['schemas']['ResourceAdminRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2874,7 +3042,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2892,7 +3060,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Já existe um recurso com este nome no bloco */
+      /** @description Já existe um recurso com este nome no bloco (`RECURSO_JA_EXISTE`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -2901,7 +3069,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Bloco desativado ou característica inexistente */
+      /** @description Bloco inexistente ou desativado (`BLOCO_INVALIDO`), característica inexistente (`CARACTERISTICA_INVALIDA`) ou campos inválidos, como capacidade ausente */
       422: {
         headers: {
           [name: string]: unknown;
@@ -2935,7 +3103,7 @@ export interface operations {
           'application/json': components['schemas']['RemovalRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -2944,7 +3112,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -2962,7 +3130,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Há reservas futuras e `forcar` é falso */
+      /** @description Há reservas futuras e `forcar` é falso (`RESERVAS_FUTURAS`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -3002,7 +3170,7 @@ export interface operations {
           'application/json': components['schemas']['ResourceAdminRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -3011,7 +3179,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -3058,7 +3226,7 @@ export interface operations {
           'application/json': components['schemas']['FeatureAdminRead'][];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -3067,7 +3235,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -3100,7 +3268,7 @@ export interface operations {
           'application/json': components['schemas']['FeatureAdminRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -3109,7 +3277,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -3118,7 +3286,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Já existe uma característica com este nome */
+      /** @description Já existe uma característica com este nome (`CARACTERISTICA_JA_EXISTE`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -3162,7 +3330,7 @@ export interface operations {
           'application/json': components['schemas']['FeatureAdminRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -3171,7 +3339,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -3189,7 +3357,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Já existe uma característica com este nome */
+      /** @description Já existe uma característica com este nome (`CARACTERISTICA_JA_EXISTE`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -3227,7 +3395,7 @@ export interface operations {
         };
         content?: never;
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -3236,7 +3404,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -3291,7 +3459,7 @@ export interface operations {
           'application/json': components['schemas']['Page_AdminReservationRead_'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -3300,7 +3468,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -3344,7 +3512,7 @@ export interface operations {
           'application/json': components['schemas']['AdminReservationRead'];
         };
       };
-      /** @description Sem sessão válida */
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
       401: {
         headers: {
           [name: string]: unknown;
@@ -3353,7 +3521,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Apenas administradores */
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
       403: {
         headers: {
           [name: string]: unknown;
@@ -3371,7 +3539,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Reserva já cancelada */
+      /** @description Reserva já cancelada (`RESERVA_JA_CANCELADA`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -3380,7 +3548,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Reserva já terminou ou motivo inválido */
+      /** @description Reserva já terminou (`RESERVA_ENCERRADA`) ou motivo inválido */
       422: {
         headers: {
           [name: string]: unknown;

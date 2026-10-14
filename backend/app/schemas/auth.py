@@ -6,7 +6,12 @@ from app.schemas.user import Email, UserRead
 
 
 class LoginRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [{"email": "ana.exemplo@umj.edu.br", "senha": "Estudo2026"}]
+        },
+    )
 
     email: Email
     senha: str = Field(min_length=1, max_length=128)

@@ -18,7 +18,20 @@ Purpose = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, 
 
 
 class ReservationCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "recurso_id": 1,
+                    "inicio": "2026-11-20T14:00:00-03:00",
+                    "fim": "2026-11-20T16:00:00-03:00",
+                    "finalidade": "Estudo em grupo para a prova de Cálculo II",
+                    "qtd_participantes": 4,
+                }
+            ]
+        },
+    )
 
     recurso_id: int = Field(ge=1)
     inicio: AwareDatetime
@@ -94,7 +107,10 @@ Reason = Annotated[str, StringConstraints(strip_whitespace=True, min_length=5, m
 
 
 class AdminCancellation(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"examples": [{"motivo": "Manutenção do ar-condicionado da sala."}]},
+    )
 
     motivo: Reason = Field(description="Aparece para o dono da reserva no histórico")
 

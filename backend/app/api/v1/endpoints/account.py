@@ -4,20 +4,19 @@ from app.api.dependencies import AccountServiceDep, CurrentUserDep
 from app.core.rate_limit import LOGIN_LIMIT, limiter
 from app.models.user import User
 from app.schemas.account import AccountDeletion, MyDataExport
-from app.schemas.errors import ErrorResponse
+from app.schemas.errors import TOO_MANY_ATTEMPTS, UNAUTHORIZED, ErrorResponse
 from app.schemas.user import UserRead
 
-router = APIRouter(
-    prefix="/auth/me",
-    tags=["Minha conta"],
-    responses={401: {"model": ErrorResponse, "description": "Sem sessão válida"}},
-)
+router = APIRouter(prefix="/auth/me", tags=["Minha conta"], responses=UNAUTHORIZED)
 
 
 @router.post(
     "/aceite-termos",
     summary="Registra o aceite do Aviso de Privacidade e dos Termos de Uso",
-    description="Para contas criadas pelo administrador, no primeiro acesso.",
+    description=(
+        "Para contas criadas pelo administrador, no primeiro acesso (`aceite_termos_em` vazio). "
+        "Chamar de novo não altera nada: a data do primeiro aceite é a prova do consentimento."
+    ),
     response_model=UserRead,
 )
 def accept_terms(user: CurrentUserDep, service: AccountServiceDep) -> User:
@@ -27,6 +26,11 @@ def accept_terms(user: CurrentUserDep, service: AccountServiceDep) -> User:
 @router.get(
     "/dados",
     summary="Exporta todos os meus dados em JSON (LGPD, Art. 18)",
+    description=(
+        "Dados da conta e todas as reservas feitas por ela, de qualquer status, com recurso, "
+        "bloco, horários, finalidade e motivo de cancelamento. Atende aos direitos de acesso e "
+        "portabilidade do titular."
+    ),
     response_model=MyDataExport,
 )
 def export_my_data(user: CurrentUserDep, service: AccountServiceDep) -> MyDataExport:
@@ -40,11 +44,18 @@ def export_my_data(user: CurrentUserDep, service: AccountServiceDep) -> MyDataEx
     description=(
         "Pede a senha atual. A conta é anonimizada e desativada: nome, e-mail e matrícula somem, "
         "as reservas antigas ficam no histórico do espaço sem identificar ninguém e as futuras "
-        "são canceladas. Administradores não podem se excluir por aqui."
+        "são canceladas. Administradores não podem se excluir por aqui. Limite de 20 tentativas "
+        "por minuto por IP."
     ),
     responses={
-        422: {"model": ErrorResponse, "description": "Senha incorreta ou conta de administrador"},
-        429: {"model": ErrorResponse, "description": "Muitas tentativas seguidas"},
+        422: {
+            "model": ErrorResponse,
+            "description": (
+                "Senha incorreta (`SENHA_INCORRETA`) ou conta de administrador "
+                "(`OPERACAO_NAO_PERMITIDA`)"
+            ),
+        },
+        **TOO_MANY_ATTEMPTS,
     },
 )
 @limiter.limit(LOGIN_LIMIT)

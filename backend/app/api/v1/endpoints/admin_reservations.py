@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 
 from app.api.dependencies import AdminDep, ReservationServiceDep, require_admin
 from app.models.reservation import Reservation
-from app.schemas.errors import ErrorResponse
+from app.schemas.errors import ADMIN_ONLY, ErrorResponse
 from app.schemas.pagination import Page
 from app.schemas.reservation import AdminAgendaParams, AdminCancellation, AdminReservationRead
 
@@ -12,10 +12,7 @@ router = APIRouter(
     prefix="/admin/reservas",
     tags=["Administração"],
     dependencies=[Depends(require_admin)],
-    responses={
-        401: {"model": ErrorResponse, "description": "Sem sessão válida"},
-        403: {"model": ErrorResponse, "description": "Apenas administradores"},
-    },
+    responses=ADMIN_ONLY,
 )
 
 
@@ -37,12 +34,22 @@ def list_agenda(
 @router.post(
     "/{reservation_id}/cancelar",
     summary="Cancela qualquer reserva que ainda não terminou, com motivo",
-    description="Sem o prazo de 30 minutos. O motivo aparece no histórico de quem reservou.",
+    description=(
+        "Sem o prazo de 30 minutos, para manutenção ou evento institucional. Vale para reservas "
+        "de qualquer pessoa enquanto não terminaram. O motivo (5 a 300 caracteres) aparece no "
+        "histórico de quem reservou."
+    ),
     response_model=AdminReservationRead,
     responses={
         404: {"model": ErrorResponse, "description": "Reserva inexistente"},
-        409: {"model": ErrorResponse, "description": "Reserva já cancelada"},
-        422: {"model": ErrorResponse, "description": "Reserva já terminou ou motivo inválido"},
+        409: {
+            "model": ErrorResponse,
+            "description": "Reserva já cancelada (`RESERVA_JA_CANCELADA`)",
+        },
+        422: {
+            "model": ErrorResponse,
+            "description": "Reserva já terminou (`RESERVA_ENCERRADA`) ou motivo inválido",
+        },
     },
 )
 def cancel_reservation(

@@ -62,6 +62,20 @@ def _require_acceptance(value: bool) -> bool:
 class UserSignup(AccountData):
     """Autocadastro: o perfil é sempre ALUNO e o aceite é obrigatório (LGPD, Art. 8º e 9º)."""
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "nome": "Ana Exemplo Souza",
+                    "email": "ana.exemplo@umj.edu.br",
+                    "senha": "Estudo2026",
+                    "matricula": "20261001",
+                    "aceite_termos": True,
+                }
+            ]
+        }
+    )
+
     aceite_termos: Annotated[bool, AfterValidator(_require_acceptance)] = Field(
         description="Li e concordo com o Aviso de Privacidade e os Termos de Uso"
     )
@@ -70,6 +84,20 @@ class UserSignup(AccountData):
 class UserAdminCreate(AccountData):
     """Conta criada pelo administrador, que escolhe o perfil. A pessoa aceita os termos no
     primeiro acesso: o admin não pode consentir por ela."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "nome": "Carlos Exemplo Lima",
+                    "email": "carlos.exemplo@umj.edu.br",
+                    "senha": "Docente2026",
+                    "matricula": None,
+                    "perfil": "PROFESSOR",
+                }
+            ]
+        }
+    )
 
     perfil: UserRole = UserRole.ALUNO
 
