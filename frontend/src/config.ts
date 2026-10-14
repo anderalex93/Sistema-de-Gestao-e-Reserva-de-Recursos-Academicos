@@ -23,4 +23,6 @@ export const config = {
   gaMeasurementId: optional(import.meta.env.VITE_GA_MEASUREMENT_ID),
   /** Canal de suporte da página Ajuda (#47). Sem ele, a Ajuda orienta procurar a administração. */
   supportEmail: optional(import.meta.env.VITE_SUPPORT_EMAIL),
+  /** Endereço público do site, para o canonical (#48). Também usado no build (sitemap, Open Graph). */
+  siteUrl: optional(import.meta.env.VITE_SITE_URL)?.replace(/\/+$/, '') ?? null,
 } as const;

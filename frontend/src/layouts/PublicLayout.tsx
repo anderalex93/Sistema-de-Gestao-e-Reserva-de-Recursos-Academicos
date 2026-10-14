@@ -9,6 +9,7 @@ import { Outlet, Link as RouterLink, useLocation, useMatches } from 'react-route
 import { BrandMark } from '@/components/BrandMark';
 import { CookieBanner } from '@/components/legal/CookieBanner';
 import { PageSkeleton } from '@/components/PageSkeleton';
+import { PublicPageMeta } from '@/components/PublicPageMeta';
 import { institution } from '@/content/public-content';
 import { useAuth } from '@/hooks/useAuth';
 import { useConsent } from '@/hooks/useConsent';
@@ -126,8 +127,10 @@ function Footer() {
  */
 export default function PublicLayout() {
   const width = usePageWidth();
+  const { pathname } = useLocation();
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      <PublicPageMeta pathname={pathname} />
       <Box
         component="header"
         sx={{

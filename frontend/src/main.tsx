@@ -15,6 +15,11 @@ if (!container) {
   throw new Error('Elemento #root não encontrado no index.html.');
 }
 
+// Título, descrição e canonical do HTML servem aos robôs que não executam JavaScript (#48).
+// Com o app no ar, o React cuida deles a cada página; sem esta limpeza, o título fixo do HTML
+// venceria o da página (o navegador usa o primeiro <title> do documento).
+for (const element of document.head.querySelectorAll('[data-seo]')) element.remove();
+
 createRoot(container).render(
   <StrictMode>
     <App />

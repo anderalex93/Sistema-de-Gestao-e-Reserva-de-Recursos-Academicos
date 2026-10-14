@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { helpFaq, institution, mainFaq, team } from '@/content/public-content';
+import { fullTitle, SEO_PAGES } from '@/seo/public-seo';
 import { renderRoute } from '@/test/render';
 
 describe('landing page', () => {
@@ -107,6 +108,43 @@ describe('help page', () => {
     const support = screen.getByRole('region', { name: 'Fale com o suporte' });
     await waitFor(() =>
       expect(within(support).getByText(/Procure a administração do campus/)).toBeVisible(),
+    );
+  });
+});
+
+describe('search engine tags (#48)', () => {
+  it.each(SEO_PAGES.map((item) => [item.path, item] as const))(
+    '%s has the title and the description of the SEO table',
+    async (path, item) => {
+      renderRoute(path, { user: null });
+
+      await waitFor(() => expect(document.title).toBe(fullTitle(item.title)));
+      expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
+        'content',
+        item.description,
+      );
+      expect(document.head.querySelector('meta[name="robots"]')).toBeNull();
+    },
+  );
+
+  it('keeps the logged area out of search engines', async () => {
+    renderRoute('/inicio');
+
+    await screen.findByRole('heading', { level: 1, name: 'Início' });
+    expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex',
+    );
+  });
+
+  it('keeps receipts out of search engines', async () => {
+    renderRoute('/comprovantes/EDU-7K3F9Q', { user: null });
+
+    await waitFor(() =>
+      expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
+        'content',
+        'noindex',
+      ),
     );
   });
 });

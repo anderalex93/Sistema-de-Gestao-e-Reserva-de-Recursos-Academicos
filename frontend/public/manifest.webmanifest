@@ -1,0 +1,16 @@
+{
+  "name": "EduSpace: reserva de espaços da UMJ",
+  "short_name": "EduSpace",
+  "description": "Reserve salas de estudo, laboratórios, auditório e equipamentos do campus da UMJ.",
+  "lang": "pt-BR",
+  "start_url": "/inicio",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F5F7FA",
+  "theme_color": "#F5F7FA",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -160,6 +160,8 @@ function BottomNav() {
 export default function AppLayout() {
   return (
     <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
+      {/* Telas de quem está logado não têm o que indexar (#48). */}
+      <meta name="robots" content="noindex" />
       <Link
         href={`#${MAIN_ID}`}
         sx={{

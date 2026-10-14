@@ -9,9 +9,9 @@ import { Link as RouterLink } from 'react-router';
 import receiptCapture from '@/assets/landing/comprovante.png';
 import gridCapture from '@/assets/landing/grade.png';
 import { FaqList } from '@/components/public/FaqList';
-import { config } from '@/config';
 import { mainFaq, product, steps } from '@/content/public-content';
 import { paths } from '@/router/paths';
+import { fullTitle, seoPageFor } from '@/seo/public-seo';
 import { touchTarget } from '@/theme/patterns';
 import { colors, fonts, layout, zIndex } from '@/theme/tokens';
 
@@ -21,6 +21,7 @@ const GRID = { width: 480, height: 345 };
 const RECEIPT = { width: 358, height: 777 };
 
 const CTA_LABEL = 'Entrar com e-mail institucional';
+const LANDING_TITLE = seoPageFor('/')?.title ?? 'Início';
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
@@ -79,7 +80,7 @@ function Capture({
 export default function LandingPage() {
   return (
     <>
-      <title>{`Reserva de salas e equipamentos da UMJ · ${config.appName}`}</title>
+      <title>{fullTitle(LANDING_TITLE)}</title>
 
       <Box
         component="section"

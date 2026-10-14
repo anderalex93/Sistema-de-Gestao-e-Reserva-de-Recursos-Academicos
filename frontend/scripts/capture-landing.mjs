@@ -105,4 +105,11 @@ console.log(
     comprovante: await receipt.boundingBox(),
   }),
 );
+
+// Imagem de compartilhamento (#48): o topo da página inicial, com a marca e a grade.
+const share = await browser.newPage({ viewport: { width: 1200, height: 630 } });
+await share.goto(`${WEB}/`);
+await share.getByRole('img', { name: /Grade de horários/ }).waitFor();
+await share.waitForTimeout(500);
+await share.screenshot({ path: 'public/og-image.png' });
 await browser.close();
