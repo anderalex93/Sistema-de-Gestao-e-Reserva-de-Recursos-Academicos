@@ -713,6 +713,56 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/ocupacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Painel de ocupação: uso dos espaços, cancelamentos e não comparecimentos
+     * @description Período em dias do fuso do campus, `inicio` e `fim` inclusivos (AAAA-MM-DD). Sem datas, os últimos 30 dias até hoje; só com `fim`, os 30 dias que terminam nele; só com `inicio`, até hoje. No máximo 92 dias. `bloco_id` restringe aos recursos do bloco. Considera os recursos ativos em blocos ativos. Antes de calcular, libera as reservas vencidas sem check-in.
+     *
+     *     - `horas_disponiveis`: horas de funcionamento de cada dia do período, somadas por recurso.
+     *     - `horas_reservadas` e `taxa_ocupacao`: só reservas `CONFIRMADA`, recortadas ao período e ao funcionamento. Canceladas e não comparecimentos não ocupam.
+     *     - `reservas` (`CONFIRMADA` e `NAO_COMPARECEU`) e `cancelamentos` contam as que começam no período; `checkins`, só as que já começaram.
+     *     - `taxa_comparecimento` é nula quando não há check-in nem não comparecimento.
+     *     - `horas_devolvidas`: da liberação ao fim de cada `NAO_COMPARECEU`, horas que voltaram a ficar livres.
+     *     - `mapa_calor`: ocupação por dia da semana (1 = segunda) e hora local, só nas horas em que o campus abre.
+     *     - `recursos`: da maior para a menor ocupação, depois por nome.
+     */
+    get: operations['get_occupancy_api_v1_admin_ocupacao_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/admin/ocupacao.csv': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Planilha do painel de ocupação, uma linha por recurso
+     * @description Período em dias do fuso do campus, `inicio` e `fim` inclusivos (AAAA-MM-DD). Sem datas, os últimos 30 dias até hoje; só com `fim`, os 30 dias que terminam nele; só com `inicio`, até hoje. No máximo 92 dias. `bloco_id` restringe aos recursos do bloco. Considera os recursos ativos em blocos ativos. Antes de calcular, libera as reservas vencidas sem check-in.
+     *
+     *     CSV para o Excel em pt-BR: UTF-8 com BOM, colunas separadas por `;` e vírgula decimal. Colunas: Recurso, Bloco, Tipo, Horas disponíveis, Horas reservadas, Ocupação (%), Reservas, Cancelamentos, Não comparecimentos e Horas devolvidas, na ordem do painel. Sem dados pessoais. Vem como anexo `ocupacao-AAAA-MM-DD-a-AAAA-MM-DD.csv`.
+     */
+    get: operations['export_occupancy_csv_api_v1_admin_ocupacao_csv_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1013,6 +1063,24 @@ export interface components {
        */
       db: 'ok';
     };
+    /** HeatmapCellRead */
+    HeatmapCellRead: {
+      /**
+       * Dia Semana
+       * @description ISO 8601: 1 = segunda, 7 = domingo
+       */
+      dia_semana: number;
+      /**
+       * Hora
+       * @description Início da hora no fuso do campus
+       */
+      hora: number;
+      /**
+       * Taxa
+       * @description Minutos reservados naquela hora daquele dia da semana / minutos disponíveis (recursos x dias x minutos de funcionamento na hora). De 0 a 1
+       */
+      taxa: number;
+    };
     /**
      * LoginRequest
      * @example {
@@ -1094,6 +1162,130 @@ export interface components {
        * @description Confirmada e com pelo menos 30 minutos até o início (RF04)
        */
       pode_cancelar: boolean;
+    };
+    /** OccupancyPeriodRead */
+    OccupancyPeriodRead: {
+      /**
+       * Inicio
+       * Format: date
+       */
+      inicio: string;
+      /**
+       * Fim
+       * Format: date
+       * @description Inclusive
+       */
+      fim: string;
+    };
+    /**
+     * OccupancyRead
+     * @example {
+     *       "mapa_calor": [
+     *         {
+     *           "dia_semana": 1,
+     *           "hora": 8,
+     *           "taxa": 0.35
+     *         }
+     *       ],
+     *       "periodo": {
+     *         "fim": "2026-10-30",
+     *         "inicio": "2026-10-01"
+     *       },
+     *       "recursos": [
+     *         {
+     *           "bloco": "Bloco B",
+     *           "cancelamentos": 5,
+     *           "horas_devolvidas": 4.5,
+     *           "horas_disponiveis": 338,
+     *           "horas_reservadas": 250,
+     *           "id": 3,
+     *           "nao_comparecimentos": 3,
+     *           "nome": "Laboratório de Informática 1",
+     *           "reservas": 96,
+     *           "taxa_ocupacao": 0.74,
+     *           "tipo": "LABORATORIO"
+     *         }
+     *       ],
+     *       "resumo": {
+     *         "cancelamentos": 64,
+     *         "checkins": 690,
+     *         "horas_devolvidas": 52.5,
+     *         "horas_disponiveis": 3380,
+     *         "horas_reservadas": 1622.5,
+     *         "nao_comparecimentos": 41,
+     *         "reservas": 812,
+     *         "taxa_cancelamento": 0.073,
+     *         "taxa_comparecimento": 0.944,
+     *         "taxa_ocupacao": 0.48
+     *       }
+     *     }
+     */
+    OccupancyRead: {
+      periodo: components['schemas']['OccupancyPeriodRead'];
+      resumo: components['schemas']['OccupancySummaryRead'];
+      /**
+       * Mapa Calor
+       * @description Só horas em que o campus abre naquele dia da semana, por dia e hora
+       */
+      mapa_calor: components['schemas']['HeatmapCellRead'][];
+      /**
+       * Recursos
+       * @description Recursos ativos do filtro, da maior para a menor ocupação, depois por nome
+       */
+      recursos: components['schemas']['ResourceOccupancyRead'][];
+    };
+    /** OccupancySummaryRead */
+    OccupancySummaryRead: {
+      /**
+       * Horas Disponiveis
+       * @description Horas de funcionamento do período somadas por recurso ativo
+       */
+      horas_disponiveis: number;
+      /**
+       * Horas Reservadas
+       * @description Horas de reservas `CONFIRMADA` dentro do período e do funcionamento
+       */
+      horas_reservadas: number;
+      /**
+       * Taxa Ocupacao
+       * @description Reservadas / disponíveis. De 0 a 1
+       */
+      taxa_ocupacao: number;
+      /**
+       * Reservas
+       * @description `CONFIRMADA` ou `NAO_COMPARECEU` que começam no período (sem canceladas)
+       */
+      reservas: number;
+      /**
+       * Cancelamentos
+       * @description `CANCELADA` que começariam no período
+       */
+      cancelamentos: number;
+      /**
+       * Taxa Cancelamento
+       * @description Cancelamentos / (reservas + cancelamentos). De 0 a 1; 0 sem reservas
+       */
+      taxa_cancelamento: number;
+      /**
+       * Checkins
+       * @description Reservas do período que já começaram e tiveram check-in
+       */
+      checkins: number;
+      /**
+       * Nao Comparecimentos
+       * @description `NAO_COMPARECEU`: sem check-in a tempo, horário liberado
+       */
+      nao_comparecimentos: number;
+      /**
+       * Taxa Comparecimento
+       * @description Check-ins / (check-ins + não comparecimentos). De 0 a 1; nulo quando não há nenhum
+       */
+      taxa_comparecimento: number | null;
+      /**
+       * Horas Devolvidas
+       * @description Horas liberadas por não comparecimento (da liberação ao fim da reserva)
+       */
+      horas_devolvidas: number;
     };
     /** OccupationRead */
     OccupationRead: {
@@ -1431,6 +1623,45 @@ export interface components {
       descricao?: string | null;
       /** Caracteristica Ids */
       caracteristica_ids?: number[];
+    };
+    /** ResourceOccupancyRead */
+    ResourceOccupancyRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      tipo: components['schemas']['ResourceType'];
+      /**
+       * Bloco
+       * @description Nome do bloco
+       */
+      bloco: string;
+      /**
+       * Horas Disponiveis
+       * @description Horas com uma casa decimal
+       */
+      horas_disponiveis: number;
+      /**
+       * Horas Reservadas
+       * @description Horas com uma casa decimal
+       */
+      horas_reservadas: number;
+      /**
+       * Taxa Ocupacao
+       * @description De 0 a 1
+       */
+      taxa_ocupacao: number;
+      /** Reservas */
+      reservas: number;
+      /** Cancelamentos */
+      cancelamentos: number;
+      /** Nao Comparecimentos */
+      nao_comparecimentos: number;
+      /**
+       * Horas Devolvidas
+       * @description Horas com uma casa decimal
+       */
+      horas_devolvidas: number;
     };
     /** ResourceRead */
     ResourceRead: {
@@ -3851,6 +4082,114 @@ export interface operations {
         };
       };
       /** @description Reserva já terminou (`RESERVA_ENCERRADA`) ou motivo inválido */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  get_occupancy_api_v1_admin_ocupacao_get: {
+    parameters: {
+      query?: {
+        /** @description Primeiro dia (AAAA-MM-DD, fuso do campus); padrão: 29 dias antes do fim */
+        inicio?: string | null;
+        /** @description Último dia, inclusive (AAAA-MM-DD); padrão: hoje */
+        fim?: string | null;
+        /** @description Só os recursos deste bloco */
+        bloco_id?: number | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OccupancyRead'];
+        };
+      };
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Período inválido (`PERIODO_INVALIDO`): data final antes da inicial ou mais de 92 dias. Data fora do formato AAAA-MM-DD volta no formato de validação do FastAPI */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  export_occupancy_csv_api_v1_admin_ocupacao_csv_get: {
+    parameters: {
+      query?: {
+        /** @description Primeiro dia (AAAA-MM-DD, fuso do campus); padrão: 29 dias antes do fim */
+        inicio?: string | null;
+        /** @description Último dia, inclusive (AAAA-MM-DD); padrão: hoje */
+        fim?: string | null;
+        /** @description Só os recursos deste bloco */
+        bloco_id?: number | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Planilha CSV (anexo) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'text/csv': string;
+        };
+      };
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Período inválido (`PERIODO_INVALIDO`): data final antes da inicial ou mais de 92 dias. Data fora do formato AAAA-MM-DD volta no formato de validação do FastAPI */
       422: {
         headers: {
           [name: string]: unknown;

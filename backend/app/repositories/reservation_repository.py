@@ -10,6 +10,7 @@ from app.models.reservation import Reservation
 from app.models.resource import Resource
 from app.repositories.agenda_filters import AgendaFilters
 from app.repositories.base import BaseRepository, PageResult
+from app.repositories.occupancy_rows import ReservationSpan
 from app.repositories.overlap import overlaps_confirmed
 from app.repositories.resource_filters import TimeRange
 
@@ -188,6 +189,32 @@ class ReservationRepository(BaseRepository[Reservation]):
                 populate_existing=True
             )
         return self._session.scalars(statement).all()
+
+    def spans_touching(
+        self, resource_ids: Sequence[int], window: TimeRange
+    ) -> list[ReservationSpan]:
+        """#44. Reservas de qualquer status dos recursos que tocam a janela, numa consulta só e
+        só com as colunas que o painel de ocupação agrega (sem carregar entidades)."""
+        if not resource_ids:
+            return []
+        rows = self._session.execute(
+            select(
+                Reservation.recurso_id,
+                Reservation.inicio,
+                Reservation.fim,
+                Reservation.status,
+                Reservation.checkin_em,
+                Reservation.liberada_em,
+            ).where(
+                Reservation.recurso_id.in_(resource_ids),
+                Reservation.inicio < window.fim,
+                Reservation.fim > window.inicio,
+            )
+        )
+        return [
+            ReservationSpan(recurso_id, inicio, fim, status, checkin_em, liberada_em)
+            for recurso_id, inicio, fim, status, checkin_em, liberada_em in rows
+        ]
 
     def all_for_user(self, user_id: int) -> Sequence[Reservation]:
         """Histórico completo de uma pessoa, da mais recente para a mais antiga (exportação)."""

@@ -34,6 +34,8 @@ from app.services.feature_admin_service import FeatureAdminService
 from app.services.future_reservation_canceller import FutureReservationCanceller
 from app.services.health_service import HealthService
 from app.services.no_show_service import NoShowService
+from app.services.occupancy_csv_writer import OccupancyCsvWriter
+from app.services.occupancy_service import OccupancyService
 from app.services.reservation_service import ReservationService
 from app.services.resource_admin_service import ResourceAdminService
 from app.services.rules_service import RulesService
@@ -232,6 +234,18 @@ def get_checkin_service(
     )
 
 
+def get_occupancy_service(
+    session: SessionDep, schedule: CampusScheduleDep, clock: ClockDep
+) -> OccupancyService:
+    return OccupancyService(
+        resources=ResourceRepository(session),
+        reservations=ReservationRepository(session),
+        schedule=schedule,
+        clock=clock,
+        csv_writer=OccupancyCsvWriter(),
+    )
+
+
 def get_rules_service(schedule: CampusScheduleDep, rules: ReservationRulesDep) -> RulesService:
     return RulesService(schedule, rules)
 
@@ -287,6 +301,7 @@ BoardServiceDep = Annotated[BoardService, Depends(get_board_service)]
 BuildingAdminServiceDep = Annotated[BuildingAdminService, Depends(get_building_admin_service)]
 FeatureAdminServiceDep = Annotated[FeatureAdminService, Depends(get_feature_admin_service)]
 ResourceAdminServiceDep = Annotated[ResourceAdminService, Depends(get_resource_admin_service)]
+OccupancyServiceDep = Annotated[OccupancyService, Depends(get_occupancy_service)]
 
 
 def get_current_user(

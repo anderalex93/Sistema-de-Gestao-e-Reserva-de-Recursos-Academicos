@@ -9,6 +9,7 @@ from app.models.building import Building
 from app.models.reservation import Reservation
 from app.models.resource import Resource, resource_feature
 from app.repositories.base import BaseRepository, PageResult
+from app.repositories.occupancy_rows import ResourceRow
 from app.repositories.overlap import overlaps_confirmed
 from app.repositories.resource_filters import ResourceFilters, TimeRange
 
@@ -31,6 +32,22 @@ class ResourceRepository(BaseRepository[Resource]):
     def list_matching(self, filters: ResourceFilters) -> Sequence[Resource]:
         """Todos os recursos reserváveis que atendem aos filtros, na ordem da busca."""
         return self._session.scalars(_apply(_active_resources(), filters)).all()
+
+    def reservable_rows(self, bloco_id: int | None = None) -> list[ResourceRow]:
+        """#44. Recursos reserváveis (ativos, em bloco ativo), só com o que o painel de ocupação
+        mostra, numa consulta e sem carregar características."""
+        statement = (
+            select(Resource.id, Resource.nome, Resource.tipo, Building.nome)
+            .join(Resource.bloco)
+            .where(Resource.ativo, Building.ativo)
+            .order_by(Building.nome, TYPE_ORDER, Resource.nome, Resource.id)
+        )
+        if bloco_id is not None:
+            statement = statement.where(Resource.bloco_id == bloco_id)
+        return [
+            ResourceRow(resource_id, nome, tipo, bloco)
+            for resource_id, nome, tipo, bloco in self._session.execute(statement)
+        ]
 
     def get_active_or_raise(self, resource_id: int) -> Resource:
         resource = self.get(resource_id)

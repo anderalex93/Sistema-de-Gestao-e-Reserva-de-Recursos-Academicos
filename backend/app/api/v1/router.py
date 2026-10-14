@@ -4,6 +4,7 @@ from app.api.v1.endpoints import (
     account,
     admin_buildings,
     admin_features,
+    admin_occupancy,
     admin_reservations,
     admin_resources,
     admin_users,
@@ -30,3 +31,4 @@ api_router.include_router(admin_buildings.router)
 api_router.include_router(admin_resources.router)
 api_router.include_router(admin_features.router)
 api_router.include_router(admin_reservations.router)
+api_router.include_router(admin_occupancy.router)
