@@ -103,3 +103,22 @@ def test_get_settings_reads_environment_once(monkeypatch: pytest.MonkeyPatch) ->
         assert get_settings() is get_settings()
     finally:
         get_settings.cache_clear()
+
+
+@pytest.mark.parametrize(
+    ("given", "expected"),
+    [
+        # Formato que Neon, Render e Heroku entregam: o SQLAlchemy precisa do driver explícito.
+        (
+            "postgresql://u:p@ep-x.us-east-1.aws.neon.tech/eduspace?sslmode=require",
+            "postgresql+psycopg://u:p@ep-x.us-east-1.aws.neon.tech/eduspace?sslmode=require",
+        ),
+        ("postgres://u:p@db:5432/eduspace", "postgresql+psycopg://u:p@db:5432/eduspace"),
+        (
+            "postgresql+psycopg://u:p@localhost:5433/eduspace",
+            "postgresql+psycopg://u:p@localhost:5433/eduspace",
+        ),
+    ],
+)
+def test_database_url_gets_the_psycopg_driver(given: str, expected: str) -> None:
+    assert build(database_url=given).database_url == expected

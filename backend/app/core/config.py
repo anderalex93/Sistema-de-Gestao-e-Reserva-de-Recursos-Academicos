@@ -67,6 +67,17 @@ class Settings(BaseSettings):
         default=10, ge=1, le=100, validation_alias="RESERVAS_ATIVAS_MAX_PROFESSOR"
     )
 
+    @field_validator("database_url", "test_database_url")
+    @classmethod
+    def _use_psycopg_driver(cls, value: str | None) -> str | None:
+        """Neon e Render entregam `postgresql://`; o SQLAlchemy precisa do driver explícito."""
+        if value is None:
+            return None
+        for scheme in ("postgresql://", "postgres://"):
+            if value.startswith(scheme):
+                return f"postgresql+psycopg://{value.removeprefix(scheme)}"
+        return value
+
     @field_validator("allowed_email_domains", "cors_origins", mode="before")
     @classmethod
     def _split_comma_separated(cls, value: object) -> object:
