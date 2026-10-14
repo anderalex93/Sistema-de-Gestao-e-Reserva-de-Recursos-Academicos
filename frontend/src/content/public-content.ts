@@ -39,6 +39,38 @@ export const product = {
     'com grade de horários, comprovante com QR code e cancelamento pelo celular.',
 } as const;
 
+/** Trecho do título destacado em itálico na página inicial. */
+export const headlineEmphasis = 'em poucos toques.';
+
+/** Regras de uso em números, na abertura da página inicial (valores padrão do back). */
+export const facts = [
+  { valor: '30 min', rotulo: 'por bloco de horário' },
+  { valor: '14 dias', rotulo: 'de antecedência' },
+  { valor: '15 min', rotulo: 'para o check-in' },
+] as const;
+
+/** Check-in pelo QR da porta (#43), contado com uma reserva de exemplo. */
+export const checkinStory = {
+  titulo: 'Reservou e não veio? A sala volta para o campus.',
+  texto:
+    'Cada sala tem um QR fixado na porta. Quem reservou lê o código ao chegar. Sem essa ' +
+    'confirmação, o horário fica livre para outra pessoa reservar.',
+  exemplo: 'Exemplo: reserva das 14:00 às 16:00',
+  marcos: [
+    { hora: '13:45', titulo: 'A janela abre', detalhe: 'Quem reservou já pode ler o QR da porta.' },
+    {
+      hora: '14:00',
+      titulo: 'A reserva começa',
+      detalhe: 'A presença pode ser confirmada até 14:15.',
+    },
+    {
+      hora: '14:15',
+      titulo: 'A sala é liberada',
+      detalhe: 'Sem check-in, a reserva vira "Não compareceu" e o horário aparece livre na busca.',
+    },
+  ],
+} as const;
+
 /** "Como funciona": a jornada do relatório, do login ao comprovante. */
 export const steps = [
   { titulo: 'Entre com o e-mail da UMJ.', detalhe: 'A conta fica pronta na hora.' },

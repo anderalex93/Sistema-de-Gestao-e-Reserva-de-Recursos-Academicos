@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { helpFaq, institution, mainFaq, team } from '@/content/public-content';
+import { checkinStory, helpFaq, institution, mainFaq, team } from '@/content/public-content';
 import { fullTitle, SEO_PAGES } from '@/seo/public-seo';
 import { renderRoute } from '@/test/render';
 
@@ -41,6 +41,16 @@ describe('landing page', () => {
     const faq = screen.getByRole('region', { name: 'Perguntas frequentes' });
     for (const item of mainFaq) expect(within(faq).getByText(item.pergunta)).toBeInTheDocument();
     expect(within(faq).getByRole('link', { name: /Ajuda/ })).toHaveAttribute('href', '/ajuda');
+  });
+
+  it('tells the check-in story in time order', async () => {
+    renderRoute('/', { user: null });
+
+    const checkin = await screen.findByRole('region', { name: checkinStory.titulo });
+    const times = within(checkin)
+      .getAllByRole('listitem')
+      .map((item) => item.textContent?.slice(0, 5));
+    expect(times).toEqual(checkinStory.marcos.map((marco) => marco.hora));
   });
 
   it('sends a signed-in person straight to the dashboard', async () => {
@@ -102,7 +112,7 @@ describe('help page', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Ajuda' })).toBeVisible();
     for (const item of helpFaq) expect(screen.getByText(item.resposta)).toBeVisible();
-    const support = screen.getByRole('region', { name: 'Fale com o suporte' });
+    const support = screen.getByRole('region', { name: 'Ainda com dúvida?' });
     await waitFor(() =>
       expect(within(support).getByText(/Procure a administração do campus/)).toBeVisible(),
     );

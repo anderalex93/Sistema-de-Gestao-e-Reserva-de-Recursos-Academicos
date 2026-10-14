@@ -14,7 +14,7 @@ export default function HelpPage() {
     <>
       <PageHeader
         title="Ajuda"
-        description="Respostas rápidas sobre reservas e como falar com o suporte."
+        description="Respostas rápidas sobre reservas, prazos e o comprovante."
       />
       <Box component="section" aria-labelledby="ajuda-perguntas" sx={{ mb: 4 }}>
         <Typography id="ajuda-perguntas" variant="h2" sx={{ mb: 1.5 }}>
@@ -24,7 +24,7 @@ export default function HelpPage() {
       </Box>
       <Box component="section" aria-labelledby="ajuda-suporte" sx={panelSx}>
         <Typography id="ajuda-suporte" variant="h3" component="h2" sx={{ mb: 1 }}>
-          Fale com o suporte
+          {config.supportEmail ? 'Fale com o suporte' : 'Ainda com dúvida?'}
         </Typography>
         {config.supportEmail ? (
           <>

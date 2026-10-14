@@ -106,7 +106,7 @@ export const SEO_PAGES: readonly SeoPage[] = [
     title: 'Ajuda',
     description:
       'Quem pode reservar, até quando cancelar, quanto tempo dura uma reserva, como usar o ' +
-      'comprovante e como falar com o suporte do EduSpace.',
+      'comprovante do EduSpace e a quem recorrer em caso de dúvida.',
     inSitemap: true,
     jsonLd: () => [faqPage(helpFaq)],
   },
