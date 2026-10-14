@@ -107,8 +107,8 @@ Pessoa que usa o sistema: aluno, professor ou administrador.
 | `senha_hash` | `VARCHAR(255)` | não | Hash argon2. A senha em texto nunca é gravada |
 | `perfil` | `VARCHAR(20)` | não | `ALUNO`, `PROFESSOR` ou `ADMIN` (`CHECK`). Padrão `ALUNO` |
 | `matricula` | `VARCHAR(20)` | sim | Única quando informada |
-| `ativo` | `BOOLEAN` | não | Padrão `true`. Usuário inativo não faz login |
-| `aceite_termos_em` | `TIMESTAMPTZ` | sim | Momento do aceite dos Termos de Uso e da Política de Privacidade. Obrigatório no cadastro a partir da #34; nulo só em contas criadas antes disso ou pela CLI |
+| `ativo` | `BOOLEAN` | não | Padrão `true`. Usuário inativo não faz login. Fica `false` quando o admin desativa a conta (#50) ou quando a pessoa exclui a própria conta (#34) |
+| `aceite_termos_em` | `TIMESTAMPTZ` | sim | Momento do aceite dos Termos de Uso e do Aviso de Privacidade. Gravado no autocadastro, onde é obrigatório (#34). Nulo em conta criada pelo admin ou pelo seed até o primeiro acesso, quando a pessoa aceita (`POST /auth/me/aceite-termos`). Aceitar de novo mantém a data original |
 
 ### `bloco`
 
@@ -168,8 +168,8 @@ Ocupação de um recurso por um usuário num intervalo de tempo.
 | `finalidade` | `VARCHAR(200)` | sim | Ex.: "Reunião do Projeto Integrador" |
 | `qtd_participantes` | `SMALLINT` | sim | `CHECK (qtd_participantes > 0)`. Não pode passar da capacidade do recurso (service) |
 | `cancelada_em` | `TIMESTAMPTZ` | sim | Preenchido ao cancelar |
-| `cancelada_por_id` | `BIGINT` | sim | FK `usuario(id)`. Dono da reserva ou admin |
-| `motivo_cancelamento` | `VARCHAR(300)` | sim | Obrigatório quando um admin cancela (#30) |
+| `cancelada_por_id` | `BIGINT` | sim | FK `usuario(id)` `ON DELETE RESTRICT`. Dono da reserva ou admin |
+| `motivo_cancelamento` | `VARCHAR(300)` | sim | Obrigatório quando um admin cancela pela agenda (#30). O sistema preenche um motivo fixo quando o cancelamento vem da desativação de recurso ou bloco (ADR 0002), da desativação da conta pelo admin (#50) ou da exclusão da conta pelo titular (#34). Nulo quando o próprio dono cancela |
 
 Restrições da tabela:
 
@@ -192,7 +192,8 @@ Requer a extensão `btree_gist`, habilitada na primeira migração (#10).
 | Índice | Atende |
 |---|---|
 | GiST da exclusion constraint `(recurso_id, tstzrange(inicio, fim))` | Verificação de sobreposição, disponibilidade do dia e busca por horário livre |
-| `reserva (usuario_id, inicio DESC)` | Minhas reservas, próximas e histórico |
+| `reserva (usuario_id, inicio)` | Minhas reservas, próximas e histórico (o histórico lê o índice de trás para a frente) |
+| `reserva (recurso_id, inicio)` | Consultas por recurso que incluem reservas canceladas, como agenda e histórico. Criado na #33 (migração `096bf8b78ba4`), porque o GiST da constraint é parcial (só `CONFIRMADA`) |
 | `reserva (inicio)` | Agenda do dia do admin |
 | `recurso (bloco_id)` e `recurso (tipo)` | Filtros da busca |
 | `recurso_caracteristica (caracteristica_id)` | Filtro por característica |
@@ -220,8 +221,12 @@ Requer a extensão `btree_gist`, habilitada na primeira migração (#10).
 | Hábitos de uso | `reserva` | Gestão dos espaços | Só para o dono e admin; relatórios agregados |
 | Credencial | `usuario.senha_hash` | Autenticação | Nunca sai da API |
 
-Retenção e eliminação (direito do titular, Art. 18) ficam definidas na Política de Privacidade
-(#34). A auditoria LGPD completa acontece na implementação do cadastro (#15).
+Retenção e direitos do titular (Art. 18) estão no Aviso de Privacidade (#34). A exclusão da conta
+pelo titular anonimiza a linha de `usuario` em vez de apagá-la: `nome` vira "Conta excluída",
+`email` vira `excluida-{id}@eduspace.invalid`, `matricula` fica nula, a senha é trocada por uma
+aleatória e `ativo` fica `false`. As reservas que ainda não começaram são canceladas; as passadas
+continuam no histórico do espaço sem identificar ninguém (Art. 16, IV). A revisão de cada
+endpoint está em [`docs/lgpd/revisao-endpoints.md`](../lgpd/revisao-endpoints.md).
 
 ## Como validar este modelo
 

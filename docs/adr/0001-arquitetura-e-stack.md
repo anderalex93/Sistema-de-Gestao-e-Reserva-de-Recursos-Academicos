@@ -4,6 +4,7 @@
 - **Data:** 13/10/2026
 - **Decisores:** Anderson Alex (PO), José Amaral (SM), Ramon Albuquerque (Dev Full Stack)
 - **Issue:** #8
+- **Revisão:** 13/10/2026, ajustes pontuais para refletir o código implementado (#37)
 
 ## Contexto
 
@@ -41,7 +42,7 @@ hospedagem gratuita.
 | Dependências do back | `uv` com `pyproject.toml` + `uv.lock` |
 | Tipagem do back | **mypy `--strict`** com plugin do Pydantic |
 | Autenticação | JWT (PyJWT, HS256) + hash de senha argon2 (`pwdlib[argon2]`) |
-| Rate limit | `slowapi` em login e cadastro |
+| Rate limit | `slowapi` em login, cadastro e comprovante público |
 | Testes do back | pytest + `TestClient` (httpx2) contra **PostgreSQL real** |
 | Lint/format do back | ruff |
 | Front | React 19 + TypeScript (`strict` + `noUncheckedIndexedAccess`) + Vite |
@@ -51,7 +52,7 @@ hospedagem gratuita.
 | Formulários | react-hook-form + zod (tipos inferidos com `z.infer`) |
 | Roteamento | React Router |
 | Testes do front | Vitest + Testing Library + MSW; Playwright no E2E |
-| Ambiente local | Docker Compose apenas para o PostgreSQL; back e front rodam nativos (hot reload) |
+| Ambiente local | `docker compose up --build` sobe banco, API e front prontos (#37); no desenvolvimento, `make db-up` sobe só o PostgreSQL e back e front rodam nativos (hot reload) |
 | CI | GitHub Actions |
 | Hospedagem | API no Render, banco no Neon, front na Vercel |
 
@@ -66,7 +67,7 @@ hospedagem gratuita.
 │   │   │   ├── dependencies.py    # providers de sessão, repositórios, services e usuário atual
 │   │   │   └── v1/
 │   │   │       ├── router.py      # agrega os routers da v1
-│   │   │       └── endpoints/     # auth.py, resources.py, reservations.py, admin/…
+│   │   │       └── endpoints/     # auth.py, account.py, catalog.py, reservations.py, board.py, admin_*.py…
 │   │   ├── core/
 │   │   │   ├── config.py          # Settings (pydantic-settings)
 │   │   │   ├── enums.py           # StrEnum do domínio
@@ -78,10 +79,9 @@ hospedagem gratuita.
 │   │   ├── schemas/               # DTOs Pydantic de entrada e saída
 │   │   ├── repositories/          # BaseRepository[ModelT] + um repositório por entidade
 │   │   ├── services/              # regras de negócio (uma classe por caso de uso/domínio)
-│   │   ├── cli.py                 # comandos administrativos (ex.: criar-admin)
 │   │   └── seed.py                # dados de demonstração
 │   ├── alembic/
-│   ├── tests/                     # conftest.py, api/, services/, repositories/, load/
+│   ├── tests/                     # conftest.py, api/, core/, models/, services/, repositories/, load/
 │   ├── Makefile
 │   ├── pyproject.toml
 │   └── .env.example
@@ -92,7 +92,7 @@ hospedagem gratuita.
 │   │   │   ├── schema.d.ts        # GERADO pelo openapi-typescript — não editar à mão
 │   │   │   ├── types.ts           # aliases legíveis sobre o schema gerado
 │   │   │   ├── http-client.ts     # classe HttpClient (fetch, token, ApiError)
-│   │   │   └── *.api.ts           # uma classe por domínio (ReservationApi, ResourceApi…)
+│   │   │   └── *.api.ts           # uma classe por domínio (ReservationsApi, CatalogApi…)
 │   │   ├── domain/                # enums, labels e regras puras de apresentação
 │   │   ├── schemas/forms/         # schemas zod
 │   │   ├── router/                # rotas e guards
@@ -102,7 +102,7 @@ hospedagem gratuita.
 │   ├── e2e/
 │   ├── package.json
 │   └── .env.example
-├── docs/                          # adr/, modelagem/, design/, sprints/, qualidade/
+├── docs/                          # adr/, modelagem/, design/, qualidade/, lgpd/
 ├── docker-compose.yml
 └── .github/workflows/
 ```
@@ -209,7 +209,7 @@ de domínio sem conhecer HTTP, e os endpoints ficam sem `try/except`.
 - `src/lib/api/types.ts` expõe aliases legíveis
   (`export type Reservation = components["schemas"]["ReservationRead"]`).
 - Classe `HttpClient` encapsula o `fetch`, token e conversão de erros em `ApiError`. Cada domínio
-  tem sua classe (`ReservationApi`, `ResourceApi`, `AuthApi`) recebendo o `HttpClient` no
+  tem sua classe (`ReservationsApi`, `CatalogApi`, `AuthApi`) recebendo o `HttpClient` no
   construtor, com instâncias únicas exportadas.
 - Componentes e hooks continuam **funcionais**, que é o padrão idiomático do React. A orientação
   a objetos fica na camada de acesso a dados e no domínio.
@@ -218,8 +218,11 @@ de domínio sem conhecer HTTP, e os endpoints ficam sem `try/except`.
 ### 5. Camadas do frontend
 
 **Page → Layout → Component.** Páginas orquestram dados e estado; layouts só estruturam;
-componentes são apresentacionais, com props tipadas e sem chamadas de rede. Toda chamada HTTP
-passa pelas classes de `src/lib/api/`, consumidas por hooks do TanStack Query em `src/hooks/`.
+componentes são apresentacionais, com props tipadas. A exceção são os diálogos de formulário e
+de confirmação (reserva, cancelamento, cadastros da administração, exclusão de conta) e algumas
+seções autocontidas (`AvailabilitySection`, `AcceptTermsGate`), que executam a própria consulta
+ou mutação com o TanStack Query. Nenhum componente usa `fetch` direto: toda chamada HTTP passa
+pelas classes de `src/lib/api/`, quase sempre por hooks de `src/hooks/`.
 Estado global de cliente só em `contexts` (ex.: `AuthContext`).
 
 ### 6. Nomenclatura e idioma
@@ -265,17 +268,20 @@ ALTER TABLE reserva ADD CONSTRAINT reserva_sem_sobreposicao
   WHERE (status = 'CONFIRMADA');
 ```
 
-`ReservationService` faz uma verificação prévia (`has_overlap`) para dar resposta rápida, mas a
-garantia real é a constraint: se duas requisições simultâneas passarem pela verificação, o banco
-recusa a segunda, o repositório converte o `IntegrityError` em `ReservationConflictError` e a API
-devolve `409 RESERVA_CONFLITO`. O intervalo `[)` permite reservas adjacentes (19:00–20:00 e
+`ReservationService` faz uma verificação prévia (`ReservationRepository.confirmed_overlapping`)
+para dar resposta rápida, mas a garantia real é a constraint: se duas requisições simultâneas
+passarem pela verificação, o banco recusa a segunda. O service grava dentro de um savepoint
+(`UnitOfWork.savepoint`), reconhece a constraint violada pelo nome, converte o `IntegrityError` em
+`ReservationConflictError` e a API devolve `409 RESERVA_CONFLITO`. O intervalo `[)` permite
+reservas adjacentes (19:00–20:00 e
 20:00–21:00). Reservas canceladas não bloqueiam horário.
 
 ### 9. Autenticação e sessão
 
 - Contas nascem de dois jeitos: **autocadastro** (sempre perfil `ALUNO`) ou **criação pelo admin**
   (escolhe o perfil). O cadastro aceita qualquer e-mail; a restrição ao e-mail institucional existe,
-  desligada, e liga preenchendo `ALLOWED_EMAIL_DOMAINS` (decisão da equipe em 13/10/2026).
+  desligada, e liga preenchendo `ALLOWED_EMAIL_DOMAINS` (decisão da equipe em 13/10/2026). Em
+  produção o `render.yaml` liga a restrição com `umj.edu.br`.
 - Login devolve um **access token JWT** (`sub` = id do usuário, `perfil`, `exp`) válido por
   **8 horas**. Sem refresh token no MVP: expirou, o usuário faz login de novo.
 - No front, o token fica no `localStorage`, acessado **somente** pelo `HttpClient` e pelo
@@ -283,13 +289,16 @@ devolve `409 RESERVA_CONFLITO`. O intervalo `[)` permite reservas adjacentes (19
   `dangerouslySetInnerHTML`, expiração curta.
 - Perfis (`UserRole`): `ALUNO` (padrão no cadastro), `PROFESSOR` e `ADMIN`. O primeiro admin é
   criado pelo seed (`make seed`, com `SEED_ADMIN_*` no `.env`), sem endpoint público.
-- Rate limit com `slowapi`: login 5/min por IP, cadastro 3/min por IP.
+- Rate limit com `slowapi`, por IP: login e exclusão de conta 20/min, cadastro 10/min,
+  comprovante público 60/min (`core/rate_limit.py`). Os valores são folgados porque o campus sai
+  para a internet por poucos IPs (NAT).
 - Logs nunca contêm senha, token ou e-mail completo.
 
 ### 10. "Tempo real" (RF03)
 
-TanStack Query com `refetchInterval` de 10–15 s nas telas de disponibilidade e busca (só com
-a aba visível), `refetchOnWindowFocus` e invalidação imediata após criar ou cancelar. SSE fica
+TanStack Query com `refetchInterval` de 10 s (`LIVE_REFRESH_MS` em `src/lib/live-query.ts`) nas
+telas de disponibilidade, busca, quadro e agenda (só com a aba visível), `refetchOnWindowFocus`
+e invalidação imediata após criar ou cancelar. SSE fica
 como evolução opcional.
 
 ### 11. Testes e qualidade
@@ -300,10 +309,12 @@ como evolução opcional.
   repositórios reais e `Clock` controlado.
 - **Front:** testes co-localizados (`Foo.tsx` ↔ `Foo.test.tsx`) com Vitest, Testing Library e
   MSW; mocks de listagem usam o envelope paginado real.
-- **E2E:** Playwright cobrindo o fluxo principal antes da apresentação.
+- **E2E:** Playwright cobrindo o fluxo principal, no desktop e num Pixel 7, no workflow `E2E` a
+  cada push na `main`.
 - **Gates locais:**
-  - backend `make ci`: `ruff check`, `ruff format --check`, `mypy --strict`, `pytest`
-  - frontend `npm run ci`: `lint`, `typecheck`, `test`, `build`
+  - backend `make ci`: `ruff check`, `ruff format --check`, `mypy --strict`, `pytest` (cobertura
+    mínima de 90%) e `alembic check` (models e migrações em dia)
+  - frontend `npm run ci`: `lint` (oxlint), `format:check` (prettier), `typecheck`, `test`, `build`
 
 ### 12. Fluxo de trabalho
 
