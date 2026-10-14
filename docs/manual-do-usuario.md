@@ -27,6 +27,9 @@ fuso de Maceió.
 
 O sistema não deixa duas pessoas reservarem o mesmo espaço no mesmo horário.
 
+Esses são os valores padrão. A administração pode mudar o horário de funcionamento, a duração, a
+antecedência, os limites e os prazos do check-in em **Administração > Configurações**.
+
 ## Para quem reserva
 
 No celular, a barra de baixo leva a **Início**, **Reservar**, **Reservas** e **Conta**. No
@@ -158,9 +161,11 @@ ali mesmo.
 ### 10. Quadro de horários
 
 O **Quadro de horários** mostra o que já está reservado em cada espaço e equipamento num dia.
-Escolha o dia, o bloco e o tipo. Cada espaço lista os intervalos livres e ocupados, e as suas
-reservas aparecem marcadas como **Sua reserva**. Toque no nome do espaço para abrir a grade e
-reservar.
+Escolha o dia, o bloco e o tipo. Os espaços aparecem agrupados por bloco: toque no nome do
+bloco para abrir ou fechar a lista dele, ou em **Expandir todos os blocos**. Cada espaço mostra os
+intervalos livres e ocupados, e as suas reservas aparecem marcadas como **Sua reserva**. Toque
+num horário livre para abrir a grade com uma hora já marcada, ou no nome do espaço para escolher
+o horário.
 
 No celular, abra o quadro pelo botão **Quadro de horários** na tela **Reservar**.
 
@@ -279,6 +284,20 @@ datas escolhidas), para todos os blocos ou um só:
 **Baixar CSV** gera uma planilha com os números de cada espaço, que abre direto no Excel.
 
 ![Painel de ocupação dos últimos 30 dias com 28% de ocupação, 92% de comparecimento, 188,5 horas devolvidas, 7% de cancelamentos e o mapa de calor da semana](manual/18-admin-ocupacao.png)
+
+### 8. Configurações
+
+Em **Configurações** a administração ajusta as regras que valem para todo o campus:
+
+- **Horário de funcionamento**: para cada dia da semana, se o campus abre e o horário de abertura
+  e de fechamento, de meia em meia hora.
+- **Reservas**: duração máxima de uma reserva, até quantos dias à frente dá para reservar e
+  quantas reservas futuras cada aluno e cada professor podem ter ao mesmo tempo.
+- **Check-in pela porta**: o prazo depois do início para confirmar presença (ou **Desligado**,
+  para o check-in ser opcional) e quanto antes do início a leitura do QR já é aceita.
+
+**Salvar configurações** vale na hora para novas reservas, sem reiniciar o sistema. Reservas já
+confirmadas continuam como estão. A tela mostra quem fez a última alteração e quando.
 
 ## Problemas comuns
 
