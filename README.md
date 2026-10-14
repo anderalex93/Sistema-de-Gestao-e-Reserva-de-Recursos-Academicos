@@ -70,6 +70,10 @@ Para trabalhar no código, com recarga automática:
 
 - Pré-requisitos extras: [Python 3.13](https://www.python.org/) com [uv](https://docs.astral.sh/uv/),
   [Node.js 24](https://nodejs.org/) e `make` (no Windows, use o Git Bash).
+- Tudo de uma vez, na raiz: `make run` instala o que faltar, sobe o PostgreSQL, aplica as
+  migrações e o catálogo e roda a API (<http://localhost:8000/docs>) e o front
+  (<http://localhost:5173>) juntos. `make run DEMO=1` também refaz as contas da demonstração
+  (`SEED_DEMO_SENHA` no `backend/.env`); `make help` lista os outros atalhos.
 - Backend: [backend/README.md](backend/README.md) (`make install db-up migrate seed dev`).
 - Frontend: [frontend/README.md](frontend/README.md) (`npm install && npm run dev`, em
   <http://localhost:5173>).
