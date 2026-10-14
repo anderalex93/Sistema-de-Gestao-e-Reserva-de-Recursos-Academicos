@@ -16,12 +16,15 @@ import { useSearchParams } from 'react-router';
 import { AdminCancelDialog } from '@/components/admin/AdminCancelDialog';
 import { LoadError } from '@/components/LoadError';
 import { PageHeader } from '@/components/PageHeader';
+import { CheckinNoteLine } from '@/components/reservation/CheckinNoteLine';
 import { StatusLabel } from '@/components/reservation/StatusLabel';
+import { checkinNote, type CheckinNote } from '@/domain/checkin';
 import { displayStatus } from '@/domain/reservation-status';
 import { locationLabel } from '@/domain/resource-types';
 import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
 import { useAdminAgenda } from '@/hooks/useAdminAgenda';
 import { useAdminBuildings } from '@/hooks/useAdminCatalog';
+import { useRules } from '@/hooks/useRules';
 import type { AgendaParams } from '@/lib/api/admin-reservations.api';
 import type { AdminReservationRead, ReservationStatus } from '@/lib/api/types';
 import { loadFailure } from '@/lib/load-failure';
@@ -31,7 +34,7 @@ import { fonts } from '@/theme/tokens';
 const PER_PAGE = 100;
 const ANY = '';
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const STATUSES: readonly ReservationStatus[] = ['CONFIRMADA', 'CANCELADA'];
+const STATUSES: readonly ReservationStatus[] = ['CONFIRMADA', 'CANCELADA', 'NAO_COMPARECEU'];
 const labelSx = { mb: 0.75, fontWeight: 700, fontSize: '0.875rem', color: 'text.primary' };
 
 interface Group {
@@ -81,9 +84,11 @@ function Filter({ id, label, children }: { id: string; label: string; children: 
 
 function AgendaRow({
   reservation,
+  checkin,
   onCancel,
 }: {
   reservation: AdminReservationRead;
+  checkin: CheckinNote | null;
   onCancel: (reservation: AdminReservationRead) => void;
 }) {
   const status = displayStatus(reservation.status, reservation.fim);
@@ -106,6 +111,7 @@ function AgendaRow({
         <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
           {reservation.usuario.email} · {reservation.codigo}
         </Typography>
+        {checkin && <CheckinNoteLine note={checkin} />}
         {reservation.finalidade && (
           <Typography variant="body2" sx={{ mt: 0.25, overflowWrap: 'anywhere' }}>
             {reservation.finalidade}
@@ -151,6 +157,7 @@ export default function AdminAgendaPage() {
   const query = useAdminAgenda(params);
   const buildings = useAdminBuildings();
   const [cancelling, setCancelling] = useState<AdminReservationRead | null>(null);
+  const rules = useRules();
   const data = query.data;
 
   const update = (patch: Record<string, string | null>) =>
@@ -217,6 +224,7 @@ export default function AdminAgendaPage() {
             <MenuItem value={ANY}>Todas</MenuItem>
             <MenuItem value="CONFIRMADA">Confirmadas</MenuItem>
             <MenuItem value="CANCELADA">Canceladas</MenuItem>
+            <MenuItem value="NAO_COMPARECEU">Não compareceram</MenuItem>
           </Select>
         </Filter>
       </Box>
@@ -272,7 +280,11 @@ export default function AdminAgendaPage() {
                   <Fragment key={reservation.id}>
                     {index > 0 && <Divider component="li" aria-hidden />}
                     <li>
-                      <AgendaRow reservation={reservation} onCancel={setCancelling} />
+                      <AgendaRow
+                        reservation={reservation}
+                        checkin={checkinNote(reservation, rules)}
+                        onCancel={setCancelling}
+                      />
                     </li>
                   </Fragment>
                 ))}

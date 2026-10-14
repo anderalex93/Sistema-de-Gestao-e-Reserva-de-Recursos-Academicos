@@ -132,11 +132,19 @@ export default function ReceiptPage() {
                 value: `${campusTime(receipt.inicio)} às ${campusTime(receipt.fim)}`,
               },
               { label: 'Responsável', value: receipt.responsavel },
+              ...(receipt.checkin_em
+                ? [{ label: 'Presença', value: `Confirmada às ${campusTime(receipt.checkin_em)}` }]
+                : []),
             ]}
           />
           {status === 'CANCELADA' && (
             <Typography sx={{ color: colors.error, fontWeight: 500 }}>
               Esta reserva foi cancelada e não dá mais direito ao uso do espaço.
+            </Typography>
+          )}
+          {status === 'NAO_COMPARECEU' && (
+            <Typography sx={{ color: colors.warning, fontWeight: 500 }}>
+              Não houve check-in no prazo e o espaço foi liberado para outras pessoas.
             </Typography>
           )}
         </Stack>

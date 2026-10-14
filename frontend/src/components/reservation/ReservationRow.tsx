@@ -7,7 +7,9 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { Link as RouterLink } from 'react-router';
 
+import { CheckinNoteLine } from '@/components/reservation/CheckinNoteLine';
 import { StatusLabel } from '@/components/reservation/StatusLabel';
+import type { CheckinNote } from '@/domain/checkin';
 import { displayStatus } from '@/domain/reservation-status';
 import { locationLabel } from '@/domain/resource-types';
 import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
@@ -18,6 +20,8 @@ import { fonts } from '@/theme/tokens';
 
 interface ReservationRowProps {
   reservation: MyReservationRead;
+  /** Situação do check-in (#43), calculada pela página com as regras do campus. */
+  checkin?: CheckinNote | null;
   onCancel: (reservation: MyReservationRead) => void;
 }
 
@@ -25,7 +29,7 @@ interface ReservationRowProps {
  * Linha da lista de reservas (design system, seção 8): data à esquerda, espaço e horário,
  * status e ações à direita. No celular empilha.
  */
-export function ReservationRow({ reservation, onCancel }: ReservationRowProps) {
+export function ReservationRow({ reservation, checkin = null, onCancel }: ReservationRowProps) {
   const status = displayStatus(reservation.status, reservation.fim);
   const date = campusToday(new Date(reservation.inicio));
 
@@ -53,6 +57,7 @@ export function ReservationRow({ reservation, onCancel }: ReservationRowProps) {
           {campusTime(reservation.inicio)} às {campusTime(reservation.fim)} ·{' '}
           {locationLabel(reservation.recurso)}
         </Typography>
+        {checkin && <CheckinNoteLine note={checkin} />}
         {reservation.finalidade && (
           <Typography variant="body2" sx={{ mt: 0.25, overflowWrap: 'anywhere' }}>
             {reservation.finalidade}

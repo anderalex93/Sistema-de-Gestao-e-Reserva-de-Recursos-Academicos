@@ -12,7 +12,9 @@ import { LoadError } from '@/components/LoadError';
 import { PageHeader } from '@/components/PageHeader';
 import { CancelReservationDialog } from '@/components/reservation/CancelReservationDialog';
 import { ReservationRow, ReservationRowSkeleton } from '@/components/reservation/ReservationRow';
+import { checkinNote } from '@/domain/checkin';
 import { useMyReservations } from '@/hooks/useReservations';
+import { useRules } from '@/hooks/useRules';
 import type { MyReservationRead, ReservationScope } from '@/lib/api/types';
 import { loadFailure } from '@/lib/load-failure';
 import { paths } from '@/router/paths';
@@ -30,6 +32,7 @@ export default function MyReservationsPage() {
   const page = Math.max(1, Number(params.get('page')) || 1);
   const query = useMyReservations({ escopo, page, per_page: PER_PAGE });
   const [cancelling, setCancelling] = useState<MyReservationRead | null>(null);
+  const rules = useRules();
   const data = query.data;
 
   return (
@@ -94,7 +97,11 @@ export default function MyReservationsPage() {
                   <Fragment key={reservation.id}>
                     {index > 0 && <Divider component="li" aria-hidden />}
                     <li>
-                      <ReservationRow reservation={reservation} onCancel={setCancelling} />
+                      <ReservationRow
+                        reservation={reservation}
+                        checkin={checkinNote(reservation, rules)}
+                        onCancel={setCancelling}
+                      />
                     </li>
                   </Fragment>
                 ))

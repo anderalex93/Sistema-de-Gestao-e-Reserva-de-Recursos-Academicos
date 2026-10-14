@@ -34,6 +34,7 @@ export const PRIVATE_PREFIXES = [
   '/recursos',
   '/minhas-reservas',
   '/comprovantes',
+  '/checkin',
   '/conta',
   '/admin',
 ] as const;

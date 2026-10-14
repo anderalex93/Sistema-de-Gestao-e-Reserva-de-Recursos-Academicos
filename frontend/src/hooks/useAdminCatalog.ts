@@ -18,6 +18,14 @@ export function useAdminResources(params: AdminResourceListParams) {
   });
 }
 
+export function useAdminResource(id: number) {
+  return useQuery({
+    queryKey: queryKeys.adminResource(id),
+    queryFn: () => adminCatalogApi.getResource(id),
+    enabled: Number.isInteger(id) && id > 0,
+  });
+}
+
 export function useAdminBuildings() {
   return useQuery({
     queryKey: queryKeys.adminBuildings,

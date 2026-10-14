@@ -13,6 +13,7 @@ export const queryKeys = {
   adminCatalog: ['admin', 'catalogo'] as const,
   adminResourceList: (params: AdminResourceListParams) =>
     ['admin', 'catalogo', 'recursos', params] as const,
+  adminResource: (id: number) => ['admin', 'catalogo', 'recursos', 'detalhe', id] as const,
   adminBuildings: ['admin', 'catalogo', 'blocos'] as const,
   adminFeatures: ['admin', 'catalogo', 'caracteristicas'] as const,
   resources: ['recursos'] as const,
@@ -26,6 +27,7 @@ export const queryKeys = {
   myReservations: (params: MyReservationsParams) => ['reservas', 'minhas', params] as const,
   receipt: (codigo: string) => ['reservas', 'comprovante', codigo.toUpperCase()] as const,
   rules: ['config', 'regras'] as const,
+  checkin: (token: string) => ['reservas', 'checkin', token] as const,
   availability: (resourceId: number, date: string) =>
     ['recursos', 'disponibilidade', resourceId, date] as const,
 };

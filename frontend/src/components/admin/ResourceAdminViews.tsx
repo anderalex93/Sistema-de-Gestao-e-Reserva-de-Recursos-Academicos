@@ -11,10 +11,12 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import { Fragment } from 'react';
+import { Link as RouterLink } from 'react-router';
 
 import { resourceSituation, situationLabels } from '@/domain/catalog-admin';
 import { capacityLabel, locationLabel, resourceTypeLabels } from '@/domain/resource-types';
 import type { ResourceAdminRead } from '@/lib/api/types';
+import { paths } from '@/router/paths';
 import { colors } from '@/theme/tokens';
 
 export interface ResourceActions {
@@ -65,6 +67,16 @@ function RowActions({
       >
         Editar
       </Button>
+      {resource.ativo && (
+        <Button
+          component={RouterLink}
+          to={paths.adminResourceQr(resource.id)}
+          variant="outlined"
+          aria-label={`QR da porta de ${resource.nome}`}
+        >
+          QR da porta
+        </Button>
+      )}
       {resource.ativo ? (
         <Button
           variant="outlined"

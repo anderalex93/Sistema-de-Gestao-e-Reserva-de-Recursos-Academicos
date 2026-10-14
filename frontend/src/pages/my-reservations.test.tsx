@@ -218,3 +218,35 @@ describe('dashboard', () => {
     expect(screen.getAllByRole('link', { name: 'Nova reserva' }).length).toBeGreaterThan(0);
   });
 });
+
+describe('check-in in my reservations (#43)', () => {
+  it('tells when to read the door QR and shows confirmed and released reservations', async () => {
+    serveMine({
+      proximas: [mine()],
+      historico: [
+        mine({
+          id: 11,
+          codigo: 'EDU-AAAAAA',
+          status: 'NAO_COMPARECEU',
+          liberada_em: campusToUtcIso(day, '19:15'),
+          pode_cancelar: false,
+        }),
+        mine({ id: 12, codigo: 'EDU-BBBBBB', checkin_em: campusToUtcIso(day, '18:55') }),
+      ],
+    });
+    const { user } = renderRoute('/minhas-reservas');
+
+    const upcoming = await screen.findByRole('list', { name: 'Próximas reservas' });
+    expect(
+      await within(upcoming).findByText('Check-in pelo QR da porta entre 18:45 e 19:15'),
+    ).toBeVisible();
+
+    await user.click(screen.getByRole('tab', { name: 'Histórico' }));
+    const history = await screen.findByRole('list', { name: 'Histórico de reservas' });
+    expect(await within(history).findByText('Não compareceu')).toBeVisible();
+    expect(
+      within(history).getByText('Liberada às 19:15: não houve check-in no prazo'),
+    ).toBeVisible();
+    expect(within(history).getByText('Presença confirmada às 18:55')).toBeVisible();
+  });
+});

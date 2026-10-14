@@ -1,6 +1,7 @@
 import EventAvailableSharp from '@mui/icons-material/EventAvailableSharp';
 import EventBusySharp from '@mui/icons-material/EventBusySharp';
 import HistorySharp from '@mui/icons-material/HistorySharp';
+import PersonOffSharp from '@mui/icons-material/PersonOffSharp';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -11,6 +12,8 @@ const STYLES = {
   CONFIRMADA: { label: 'Confirmada', color: colors.success, Icon: EventAvailableSharp },
   CANCELADA: { label: 'Cancelada', color: colors.error, Icon: EventBusySharp },
   CONCLUIDA: { label: 'Concluída', color: colors.inkMuted, Icon: HistorySharp },
+  // #43: sem check-in no prazo, o horário foi devolvido ao campus.
+  NAO_COMPARECEU: { label: 'Não compareceu', color: colors.warning, Icon: PersonOffSharp },
 } as const;
 
 /** Rótulo de status do design system: caixa alta, ícone e cor, sem fundo cheio. */

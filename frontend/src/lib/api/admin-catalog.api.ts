@@ -48,6 +48,15 @@ export class AdminCatalogApi {
     return this.#http.delete<RemovalRead>(`/admin/recursos/${id}`, forceParams(force));
   }
 
+  getResource(id: number): Promise<ResourceAdminRead> {
+    return this.#http.get<ResourceAdminRead>(`/admin/recursos/${id}`);
+  }
+
+  /** Novo código para o QR da porta: os QRs impressos antes deixam de valer (#43). */
+  renewCheckinToken(id: number): Promise<ResourceAdminRead> {
+    return this.#http.post<ResourceAdminRead>(`/admin/recursos/${id}/checkin/renovar`);
+  }
+
   reactivateResource(id: number): Promise<ResourceAdminRead> {
     return this.#http.post<ResourceAdminRead>(`/admin/recursos/${id}/reativar`);
   }

@@ -9,10 +9,13 @@ import { Link as RouterLink } from 'react-router';
 import { DetailList } from '@/components/DetailList';
 import { LoadError } from '@/components/LoadError';
 import { PageHeader } from '@/components/PageHeader';
+import { CheckinNoteLine } from '@/components/reservation/CheckinNoteLine';
+import { checkinNote } from '@/domain/checkin';
 import { locationLabel } from '@/domain/resource-types';
 import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyReservations } from '@/hooks/useReservations';
+import { useRules } from '@/hooks/useRules';
 import { loadFailure } from '@/lib/load-failure';
 import { paths } from '@/router/paths';
 import { fonts } from '@/theme/tokens';
@@ -28,6 +31,7 @@ const panelSx = {
 function NextReservation() {
   const query = useMyReservations({ escopo: 'proximas', page: 1, per_page: 1 });
   const next = query.data?.items[0];
+  const rules = useRules();
 
   const failure = loadFailure(query);
   if (failure) return <LoadError error={failure} onRetry={() => void query.refetch()} />;
@@ -59,6 +63,7 @@ function NextReservation() {
   }
 
   const total = query.data?.total ?? 1;
+  const checkin = checkinNote(next, rules);
   return (
     <Box component="section" aria-labelledby="proxima-reserva-titulo" sx={panelSx}>
       <Typography id="proxima-reserva-titulo" variant="overline" component="h2">
@@ -82,6 +87,7 @@ function NextReservation() {
           { label: 'Código', value: next.codigo },
         ]}
       />
+      {checkin && <CheckinNoteLine note={checkin} />}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 2.5 }}>
         <Button component={RouterLink} to={paths.receipt(next.codigo)} variant="outlined">
           Ver comprovante
