@@ -116,9 +116,11 @@ class CheckinService:
         não terminou e a próxima confirmada do dia."""
         now = self._clock.now()
         today = self._schedule.local_date(now)
+        # Até o fim de hoje mais a antecedência: a janela de uma reserva que começa logo depois da
+        # meia-noite já está aberta na véspera.
         window = TimeRange(
             self._schedule.at(today, time.min),
-            self._schedule.at(today + timedelta(days=1), time.min),
+            self._schedule.at(today + timedelta(days=1), time.min) + self._rules.checkin_lead,
         )
         reservations = self._reservations.for_user_on_resource(
             user.id, resource.id, window, lock=lock

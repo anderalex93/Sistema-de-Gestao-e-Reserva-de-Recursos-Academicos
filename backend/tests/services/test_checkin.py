@@ -433,3 +433,16 @@ def test_receipt_shows_when_the_check_in_happened(
     receipt = build_service(db_session).receipt(reservation.codigo)
 
     assert receipt.checkin_em == at(13, 50)
+
+
+def test_window_that_opens_the_day_before_finds_the_midnight_reservation(
+    db_session: Session, room: Resource, lucas: User, add: Callable[..., Reservation]
+) -> None:
+    """A janela abre antes do início: uma reserva às 00:00 já aceita check-in às 23:50 da
+    véspera, mesmo sendo de outro dia no calendário do campus."""
+    midnight = at(0) + timedelta(days=1)
+    add(lucas, start=midnight, end=midnight + timedelta(minutes=30))
+    checkin = service(db_session, midnight - timedelta(minutes=10))
+
+    assert checkin.status(room.checkin_token, lucas).situacao is CheckinSituation.DISPONIVEL
+    assert checkin.check_in(room.checkin_token, lucas).checkin_em is not None
