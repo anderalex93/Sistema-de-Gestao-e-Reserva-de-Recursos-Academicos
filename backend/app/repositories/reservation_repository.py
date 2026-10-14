@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from datetime import datetime
 
-from sqlalchemy import exists, func, or_, select
+from sqlalchemy import exists, func, or_, select, update
 from sqlalchemy.orm import contains_eager, joinedload
 
 from app.core.enums import ReservationScope, ReservationStatus
@@ -59,7 +59,8 @@ class ReservationRepository(BaseRepository[Reservation]):
         self, user_id: int, scope: ReservationScope, now: datetime, page: int, per_page: int
     ) -> PageResult[Reservation]:
         """Próximas: confirmadas que ainda não terminaram, da mais cedo para a mais tarde.
-        Histórico: canceladas ou já terminadas, da mais recente para a mais antiga."""
+        Histórico: não confirmadas (canceladas ou liberadas por não comparecimento) ou já
+        terminadas, da mais recente para a mais antiga."""
         statement = select(Reservation).where(Reservation.usuario_id == user_id)
         if scope is ReservationScope.PROXIMAS:
             statement = statement.where(
@@ -67,7 +68,7 @@ class ReservationRepository(BaseRepository[Reservation]):
             ).order_by(Reservation.inicio, Reservation.id)
         else:
             statement = statement.where(
-                or_(Reservation.status == ReservationStatus.CANCELADA, Reservation.fim <= now)
+                or_(Reservation.status != ReservationStatus.CONFIRMADA, Reservation.fim <= now)
             ).order_by(Reservation.inicio.desc(), Reservation.id.desc())
         return self.paginate(statement, page, per_page)
 
@@ -146,6 +147,47 @@ class ReservationRepository(BaseRepository[Reservation]):
         if filters.status is not None:
             statement = statement.where(Reservation.status == filters.status)
         return self.paginate(statement, page, per_page)
+
+    def release_no_shows(self, started_before: datetime, now: datetime) -> int:
+        """#43. Confirmadas sem check-in que começaram até `started_before` viram
+        `NAO_COMPARECEU`, num UPDATE só (índice parcial `ix_reserva_inicio_sem_checkin`). Fora
+        da exclusion constraint, o horário fica livre. Devolve quantas foram liberadas."""
+        released = self._session.scalars(
+            update(Reservation)
+            .where(
+                Reservation.status == ReservationStatus.CONFIRMADA,
+                Reservation.checkin_em.is_(None),
+                Reservation.inicio <= started_before,
+            )
+            .values(status=ReservationStatus.NAO_COMPARECEU, liberada_em=now)
+            .returning(Reservation.id)
+        ).all()
+        return len(released)
+
+    def for_user_on_resource(
+        self, user_id: int, resource_id: int, window: TimeRange, *, lock: bool = False
+    ) -> Sequence[Reservation]:
+        """Reservas não canceladas de uma pessoa num recurso que tocam a janela, por início.
+
+        Com `lock`, trava as linhas (e relê o estado atual delas) até o fim da transação, para
+        o check-in não disputar com a liberação por não comparecimento.
+        """
+        statement = (
+            select(Reservation)
+            .where(
+                Reservation.usuario_id == user_id,
+                Reservation.recurso_id == resource_id,
+                Reservation.status != ReservationStatus.CANCELADA,
+                Reservation.inicio < window.fim,
+                Reservation.fim > window.inicio,
+            )
+            .order_by(Reservation.inicio, Reservation.id)
+        )
+        if lock:
+            statement = statement.with_for_update(of=Reservation).execution_options(
+                populate_existing=True
+            )
+        return self._session.scalars(statement).all()
 
     def all_for_user(self, user_id: int) -> Sequence[Reservation]:
         """Histórico completo de uma pessoa, da mais recente para a mais antiga (exportação)."""

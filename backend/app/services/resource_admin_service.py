@@ -1,5 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 
+from app.core.checkin_tokens import new_checkin_token
 from app.core.enums import RemovalOutcome
 from app.core.exceptions import BusinessRuleError, ConflictError
 from app.db.unit_of_work import UnitOfWork
@@ -116,6 +117,13 @@ class ResourceAdminService:
     def reactivate(self, resource_id: int) -> Resource:
         resource = self._resources.get_or_raise(resource_id)
         resource.ativo = True
+        self._uow.commit()
+        return resource
+
+    def renew_checkin_token(self, resource_id: int) -> Resource:
+        """#43. Token novo para o QR Code de check-in: os QR Codes já impressos param de valer."""
+        resource = self._resources.get_or_raise(resource_id)
+        resource.checkin_token = new_checkin_token()
         self._uow.commit()
         return resource
 

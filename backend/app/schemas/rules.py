@@ -22,3 +22,12 @@ class RulesRead(BaseModel):
     limite_reservas_ativas: dict[UserRole, int | None] = Field(
         description="Reservas confirmadas e não terminadas por perfil; nulo = sem limite"
     )
+    checkin_tolerancia_min: int = Field(
+        description=(
+            "Minutos depois do início para fazer check-in; sem check-in, a reserva vira "
+            "`NAO_COMPARECEU` e o horário é liberado. 0 = check-in opcional, sem liberação"
+        )
+    )
+    checkin_antecedencia_min: int = Field(
+        description="Minutos antes do início em que a janela de check-in abre"
+    )

@@ -1,12 +1,17 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
-from app.api.dependencies import BoardServiceDep, CurrentUserDep
+from app.api.dependencies import BoardServiceDep, CurrentUserDep, release_no_shows
 from app.schemas.board import BoardParams, BoardRead
 from app.schemas.errors import UNAUTHORIZED
 
-router = APIRouter(prefix="/quadro", tags=["Quadro de horários"], responses=UNAUTHORIZED)
+router = APIRouter(
+    prefix="/quadro",
+    tags=["Quadro de horários"],
+    dependencies=[Depends(release_no_shows)],
+    responses=UNAUTHORIZED,
+)
 
 
 @router.get(

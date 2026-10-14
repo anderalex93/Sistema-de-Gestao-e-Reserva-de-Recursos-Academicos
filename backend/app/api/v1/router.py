@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     auth,
     board,
     catalog,
+    checkin,
     config,
     health,
     reservations,
@@ -23,6 +24,7 @@ api_router.include_router(config.router)
 api_router.include_router(catalog.router)
 api_router.include_router(reservations.router)
 api_router.include_router(board.router)
+api_router.include_router(checkin.router)
 api_router.include_router(admin_users.router)
 api_router.include_router(admin_buildings.router)
 api_router.include_router(admin_resources.router)

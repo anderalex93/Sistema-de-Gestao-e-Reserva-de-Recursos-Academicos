@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import time, timedelta
 from typing import Any
 
 import pytest
@@ -6,6 +6,7 @@ from pydantic import ValidationError
 
 from app.core.config import Settings, get_settings
 from app.core.opening_hours import DayHours
+from app.core.reservation_rules import ReservationRules
 
 REQUIRED: dict[str, Any] = {
     "database_url": "postgresql+psycopg://user:pass@localhost:5433/eduspace",
@@ -122,3 +123,27 @@ def test_get_settings_reads_environment_once(monkeypatch: pytest.MonkeyPatch) ->
 )
 def test_database_url_gets_the_psycopg_driver(given: str, expected: str) -> None:
     assert build(database_url=given).database_url == expected
+
+
+def test_check_in_window_defaults_and_portuguese_names(monkeypatch: pytest.MonkeyPatch) -> None:
+    default = ReservationRules.from_settings(build())
+    monkeypatch.setenv("CHECKIN_TOLERANCIA_MIN", "0")
+    monkeypatch.setenv("CHECKIN_ANTECEDENCIA_MIN", "10")
+    disabled = ReservationRules.from_settings(build())
+
+    assert (default.checkin_tolerance, default.checkin_lead) == (
+        timedelta(minutes=15),
+        timedelta(minutes=15),
+    )
+    assert default.checkin_required
+    assert (disabled.checkin_tolerance, disabled.checkin_lead) == (
+        timedelta(0),
+        timedelta(minutes=10),
+    )
+    assert not disabled.checkin_required
+
+
+@pytest.mark.parametrize("field", ["checkin_tolerance_minutes", "checkin_lead_minutes"])
+def test_rejects_negative_check_in_minutes(field: str) -> None:
+    with pytest.raises(ValidationError):
+        build(**{field: -1})

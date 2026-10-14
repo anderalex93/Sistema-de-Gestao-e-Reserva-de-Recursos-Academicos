@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from app.core.campus_schedule import SLOT, CampusSchedule
 from app.core.reservation_rules import ReservationRules
 from app.schemas.rules import DayHoursRead, RulesRead
@@ -21,4 +23,10 @@ class RulesService:
             duracao_max_minutos=int(self._rules.max_duration.total_seconds() // 60),
             antecedencia_max_dias=self._rules.max_days_ahead,
             limite_reservas_ativas=dict(self._rules.active_limits),
+            checkin_tolerancia_min=_minutes(self._rules.checkin_tolerance),
+            checkin_antecedencia_min=_minutes(self._rules.checkin_lead),
         )
+
+
+def _minutes(duration: timedelta) -> int:
+    return int(duration.total_seconds() // 60)

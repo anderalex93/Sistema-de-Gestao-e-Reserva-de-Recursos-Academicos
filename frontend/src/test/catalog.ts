@@ -32,6 +32,8 @@ export const rules: RulesRead = {
   duracao_max_minutos: 240,
   antecedencia_max_dias: 14,
   limite_reservas_ativas: { ALUNO: 3, PROFESSOR: 10, ADMIN: null },
+  checkin_tolerancia_min: 15,
+  checkin_antecedencia_min: 15,
 };
 
 /** Próximo dia útil depois de hoje (segunda a sexta, 08:00 às 21:00). */

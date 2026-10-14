@@ -15,6 +15,7 @@ class Reservation(IdMixin, TimestampMixin, Base):
     """Ocupação de um recurso por um usuário num intervalo `[inicio, fim)`.
 
     O banco garante o RNF03: duas reservas confirmadas do mesmo recurso nunca se sobrepõem.
+    Canceladas e `NAO_COMPARECEU` (#43) não ocupam o horário.
     Regras que dependem de configuração (múltiplo de 30 min, funcionamento) ficam no service.
     """
 
@@ -23,6 +24,9 @@ class Reservation(IdMixin, TimestampMixin, Base):
         CheckConstraint("fim > inicio", name="fim_depois_do_inicio"),
         CheckConstraint(
             "(status = 'CANCELADA') = (cancelada_em IS NOT NULL)", name="cancelamento_coerente"
+        ),
+        CheckConstraint(
+            "(status = 'NAO_COMPARECEU') = (liberada_em IS NOT NULL)", name="liberacao_coerente"
         ),
         CheckConstraint("qtd_participantes > 0", name="participantes_positivo"),
         ExcludeConstraint(
@@ -36,6 +40,12 @@ class Reservation(IdMixin, TimestampMixin, Base):
         # Disponibilidade, quadro e agenda filtram por recurso e janela de horário.
         Index("ix_reserva_recurso_id_inicio", "recurso_id", "inicio"),
         Index("ix_reserva_inicio", "inicio"),
+        # Liberação por não comparecimento (#43): só as confirmadas ainda sem check-in.
+        Index(
+            "ix_reserva_inicio_sem_checkin",
+            "inicio",
+            postgresql_where=text("status = 'CONFIRMADA' AND checkin_em IS NULL"),
+        ),
     )
 
     codigo: Mapped[str] = mapped_column(String(10), unique=True)
@@ -59,6 +69,10 @@ class Reservation(IdMixin, TimestampMixin, Base):
         BigInteger, ForeignKey("usuario.id", ondelete="RESTRICT")
     )
     motivo_cancelamento: Mapped[str | None] = mapped_column(String(300))
+    # Presença confirmada pelo QR Code do espaço (#43).
+    checkin_em: Mapped[datetime | None]
+    # Quando virou NAO_COMPARECEU e o horário voltou a ficar livre.
+    liberada_em: Mapped[datetime | None]
 
     recurso: Mapped[Resource] = relationship(lazy="joined", innerjoin=True)
     usuario: Mapped[User] = relationship(foreign_keys=[usuario_id])

@@ -17,6 +17,7 @@ export function buildReceipt(overrides: Partial<ReceiptRead> = {}): ReceiptRead 
     },
     responsavel: 'Lucas',
     cancelada_em: null,
+    checkin_em: null,
     ...overrides,
   };
 }

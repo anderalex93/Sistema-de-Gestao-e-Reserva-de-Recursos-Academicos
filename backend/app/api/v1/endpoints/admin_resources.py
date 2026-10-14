@@ -133,3 +133,17 @@ def remove_resource(
 )
 def reactivate_resource(resource_id: int, service: ResourceAdminServiceDep) -> Resource:
     return service.reactivate(resource_id)
+
+
+@router.post(
+    "/{resource_id}/checkin/renovar",
+    summary="Gera um novo QR Code de check-in para o recurso",
+    description=(
+        "Troca o `checkin_token` do recurso. Os QR Codes já impressos param de valer na hora "
+        "(`QR_INVALIDO`): use quando um código vazar ou for copiado para fora do espaço."
+    ),
+    response_model=ResourceAdminRead,
+    responses=NOT_FOUND,
+)
+def renew_checkin_token(resource_id: int, service: ResourceAdminServiceDep) -> Resource:
+    return service.renew_checkin_token(resource_id)

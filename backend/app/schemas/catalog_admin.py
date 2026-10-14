@@ -108,6 +108,12 @@ class ResourceUpdate(ResourceCreate):
 class ResourceAdminRead(ResourceRead):
     bloco: BuildingStatusRead
     ativo: bool
+    checkin_token: str = Field(
+        description=(
+            "Vai no QR Code de check-in afixado no espaço e é lido por "
+            "`/api/v1/checkin/{token}`. Renovar invalida os QR Codes já impressos"
+        )
+    )
 
 
 class ResourceAdminSearchParams(PageParams):

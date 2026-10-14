@@ -11,6 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.checkin_tokens import new_checkin_token
 from app.core.enums import ResourceType
 from app.db.base import Base, IdMixin, TimestampMixin
 from app.db.types import str_enum
@@ -54,6 +55,8 @@ class Resource(IdMixin, TimestampMixin, Base):
     andar: Mapped[str | None] = mapped_column(String(20))
     descricao: Mapped[str | None] = mapped_column(Text)
     ativo: Mapped[bool] = mapped_column(default=True, server_default="true")
+    # Vai no QR Code afixado no espaço (#43). Renovar invalida os QR Codes já impressos.
+    checkin_token: Mapped[str] = mapped_column(String(32), unique=True, default=new_checkin_token)
 
     # Sempre exibidos junto com o recurso: carregados na mesma consulta (bloco) ou logo em seguida.
     bloco: Mapped[Building] = relationship(lazy="joined", innerjoin=True)

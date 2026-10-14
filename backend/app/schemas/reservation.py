@@ -64,6 +64,12 @@ class ReservationRead(BaseModel):
     motivo_cancelamento: str | None = Field(
         description="Preenchido quando a administração cancela a reserva"
     )
+    checkin_em: datetime | None = Field(
+        description="Quando quem reservou fez check-in pelo QR Code do espaço"
+    )
+    liberada_em: datetime | None = Field(
+        description="Quando a reserva virou `NAO_COMPARECEU` e o horário foi liberado"
+    )
 
 
 class MyReservationRead(ReservationRead):
@@ -101,6 +107,7 @@ class ReceiptRead(BaseModel):
     recurso: ReceiptResourceRead
     responsavel: str = Field(description="Só o primeiro nome de quem reservou")
     cancelada_em: datetime | None
+    checkin_em: datetime | None = Field(description="Quando quem reservou fez check-in")
 
 
 Reason = Annotated[str, StringConstraints(strip_whitespace=True, min_length=5, max_length=300)]

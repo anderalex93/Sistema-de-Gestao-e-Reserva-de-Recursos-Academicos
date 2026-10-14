@@ -250,7 +250,7 @@ export interface paths {
     };
     /**
      * Grade de horários de 30 minutos de um recurso num dia
-     * @description Dia no fuso do campus (America/Maceio). Cada horário vem `LIVRE`, `OCUPADO` ou `PASSADO`. Dia em que o campus não abre volta sem horários. Quem reservou só é identificado para administradores.
+     * @description Dia no fuso do campus (America/Maceio). Cada horário vem `LIVRE`, `OCUPADO` ou `PASSADO`. Dia em que o campus não abre volta sem horários. Quem reservou só é identificado para administradores. Reserva sem check-in até o fim da tolerância é liberada antes de montar a grade, e o horário restante volta a aparecer `LIVRE`.
      */
     get: operations['get_availability_api_v1_recursos__resource_id__disponibilidade_get'];
     put?: never;
@@ -298,7 +298,7 @@ export interface paths {
     };
     /**
      * Minhas reservas: próximas ou histórico
-     * @description `escopo=proximas` (padrão): confirmadas que ainda não terminaram, da mais cedo para a mais tarde. `escopo=historico`: canceladas ou já terminadas, da mais recente para a mais antiga. Cada item diz se ainda pode ser cancelado (`pode_cancelar`).
+     * @description `escopo=proximas` (padrão): confirmadas que ainda não terminaram, da mais cedo para a mais tarde. `escopo=historico`: canceladas, liberadas por não comparecimento (`NAO_COMPARECEU`) ou já terminadas, da mais recente para a mais antiga. Cada item diz se ainda pode ser cancelado (`pode_cancelar`).
      */
     get: operations['list_my_reservations_api_v1_reservas_minhas_get'];
     put?: never;
@@ -383,6 +383,38 @@ export interface paths {
     get: operations['get_board_api_v1_quadro_get'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/checkin/{token}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * O que a leitura do QR Code de um espaço encontra para quem leu
+     * @description Não registra nada: mostra o espaço e a situação da reserva de quem leu nele hoje (fuso do campus). A janela de check-in vai de `checkin_antecedencia_min` antes do início até `checkin_tolerancia_min` depois (`GET /api/v1/config/regras`). Situações:
+     *
+     *     - `DISPONIVEL`: dentro da janela e sem check-in;
+     *     - `FEITO`: check-in já feito numa reserva que não terminou;
+     *     - `CEDO`: há reserva confirmada mais tarde hoje; `abre_em` diz quando a janela abre;
+     *     - `LIBERADA`: a reserva virou `NAO_COMPARECEU` e ainda não terminou;
+     *     - `SEM_RESERVA`: nenhuma das anteriores (`reserva` nula).
+     *
+     *     Antes de responder, libera as reservas vencidas sem check-in.
+     */
+    get: operations['get_checkin_status_api_v1_checkin__token__get'];
+    put?: never;
+    /**
+     * Faz check-in na reserva de agora neste espaço
+     * @description Registra `checkin_em` na reserva de quem leu o QR Code, se ela está na janela de check-in. Repetir depois do check-in devolve a mesma reserva, sem mudar nada. Sem check-in até `checkin_tolerancia_min` depois do início, a reserva vira `NAO_COMPARECEU` e o horário volta a ficar livre para outras pessoas.
+     */
+    post: operations['check_in_api_v1_checkin__token__post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -573,6 +605,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/recursos/{resource_id}/checkin/renovar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Gera um novo QR Code de check-in para o recurso
+     * @description Troca o `checkin_token` do recurso. Os QR Codes já impressos param de valer na hora (`QR_INVALIDO`): use quando um código vazar ou for copiado para fora do espaço.
+     */
+    post: operations['renew_checkin_token_api_v1_admin_recursos__resource_id__checkin_renovar_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/admin/caracteristicas': {
     parameters: {
       query?: never;
@@ -630,7 +682,7 @@ export interface paths {
     };
     /**
      * Agenda do dia: todas as reservas, com quem reservou
-     * @description Reservas que tocam o dia no fuso do campus, de qualquer status, ordenadas por bloco, recurso e horário. Sem `data`, usa o dia de hoje.
+     * @description Reservas que tocam o dia no fuso do campus, de qualquer status, ordenadas por bloco, recurso e horário. Sem `data`, usa o dia de hoje. `status=NAO_COMPARECEU` lista as reservas liberadas porque ninguém fez check-in a tempo.
      */
     get: operations['list_agenda_api_v1_admin_reservas_get'];
     put?: never;
@@ -722,6 +774,16 @@ export interface components {
        * @description Preenchido quando a administração cancela a reserva
        */
       motivo_cancelamento: string | null;
+      /**
+       * Checkin Em
+       * @description Quando quem reservou fez check-in pelo QR Code do espaço
+       */
+      checkin_em: string | null;
+      /**
+       * Liberada Em
+       * @description Quando a reserva virou `NAO_COMPARECEU` e o horário foi liberado
+       */
+      liberada_em: string | null;
       usuario: components['schemas']['ReservationHolderRead'];
     };
     /** AvailabilityRead */
@@ -832,6 +894,39 @@ export interface components {
       nome: string;
       /** Descricao */
       descricao?: string | null;
+    };
+    /**
+     * CheckinResourceRead
+     * @description O espaço do QR Code, para a pessoa conferir que está no lugar certo.
+     */
+    CheckinResourceRead: {
+      /** Id */
+      id: number;
+      /** Nome */
+      nome: string;
+      tipo: components['schemas']['ResourceType'];
+      /** Andar */
+      andar: string | null;
+      bloco: components['schemas']['BuildingRead'];
+    };
+    /**
+     * CheckinSituation
+     * @description O que a leitura do QR Code de um espaço encontra para quem leu (#43).
+     * @enum {string}
+     */
+    CheckinSituation: 'DISPONIVEL' | 'FEITO' | 'CEDO' | 'LIBERADA' | 'SEM_RESERVA';
+    /** CheckinStatusRead */
+    CheckinStatusRead: {
+      recurso: components['schemas']['CheckinResourceRead'];
+      /** @description `DISPONIVEL`: dá para fazer check-in agora. `FEITO`: check-in já feito numa reserva que não terminou. `CEDO`: há reserva confirmada mais tarde hoje; a janela abre em `abre_em`. `LIBERADA`: a reserva de agora virou `NAO_COMPARECEU`. `SEM_RESERVA`: nenhuma reserva de quem leu neste espaço para hoje */
+      situacao: components['schemas']['CheckinSituation'];
+      /** @description A reserva de quem leu neste espaço hoje a que a situação se refere */
+      reserva: components['schemas']['ReservationRead'] | null;
+      /**
+       * Abre Em
+       * @description Quando a janela de check-in abre; só na situação `CEDO`
+       */
+      abre_em: string | null;
     };
     /** DayHoursRead */
     DayHoursRead: {
@@ -985,6 +1080,16 @@ export interface components {
        */
       motivo_cancelamento: string | null;
       /**
+       * Checkin Em
+       * @description Quando quem reservou fez check-in pelo QR Code do espaço
+       */
+      checkin_em: string | null;
+      /**
+       * Liberada Em
+       * @description Quando a reserva virou `NAO_COMPARECEU` e o horário foi liberado
+       */
+      liberada_em: string | null;
+      /**
        * Pode Cancelar
        * @description Confirmada e com pelo menos 30 minutos até o início (RF04)
        */
@@ -1109,6 +1214,11 @@ export interface components {
       responsavel: string;
       /** Cancelada Em */
       cancelada_em: string | null;
+      /**
+       * Checkin Em
+       * @description Quando quem reservou fez check-in
+       */
+      checkin_em: string | null;
     };
     /** ReceiptResourceRead */
     ReceiptResourceRead: {
@@ -1246,6 +1356,16 @@ export interface components {
        * @description Preenchido quando a administração cancela a reserva
        */
       motivo_cancelamento: string | null;
+      /**
+       * Checkin Em
+       * @description Quando quem reservou fez check-in pelo QR Code do espaço
+       */
+      checkin_em: string | null;
+      /**
+       * Liberada Em
+       * @description Quando a reserva virou `NAO_COMPARECEU` e o horário foi liberado
+       */
+      liberada_em: string | null;
     };
     /**
      * ReservationScope
@@ -1257,7 +1377,7 @@ export interface components {
      * ReservationStatus
      * @enum {string}
      */
-    ReservationStatus: 'CONFIRMADA' | 'CANCELADA';
+    ReservationStatus: 'CONFIRMADA' | 'CANCELADA' | 'NAO_COMPARECEU';
     /** ResourceAdminRead */
     ResourceAdminRead: {
       /** Id */
@@ -1276,6 +1396,11 @@ export interface components {
       caracteristicas: components['schemas']['FeatureRead'][];
       /** Ativo */
       ativo: boolean;
+      /**
+       * Checkin Token
+       * @description Vai no QR Code de check-in afixado no espaço e é lido por `/api/v1/checkin/{token}`. Renovar invalida os QR Codes já impressos
+       */
+      checkin_token: string;
     };
     /**
      * ResourceCreate
@@ -1385,6 +1510,16 @@ export interface components {
       limite_reservas_ativas: {
         [key: string]: number | null;
       };
+      /**
+       * Checkin Tolerancia Min
+       * @description Minutos depois do início para fazer check-in; sem check-in, a reserva vira `NAO_COMPARECEU` e o horário é liberado. 0 = check-in opcional, sem liberação
+       */
+      checkin_tolerancia_min: number;
+      /**
+       * Checkin Antecedencia Min
+       * @description Minutos antes do início em que a janela de check-in abre
+       */
+      checkin_antecedencia_min: number;
     };
     /** SlotRead */
     SlotRead: {
@@ -2301,7 +2436,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Reserva já cancelada (`RESERVA_JA_CANCELADA`) */
+      /** @description Reserva já cancelada (`RESERVA_JA_CANCELADA`) ou liberada por não comparecimento (`RESERVA_LIBERADA`) */
       409: {
         headers: {
           [name: string]: unknown;
@@ -2360,6 +2495,115 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_checkin_status_api_v1_checkin__token__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Token do QR Code afixado no espaço */
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CheckinStatusRead'];
+        };
+      };
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Token inexistente ou de recurso desativado (`QR_INVALIDO`) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  check_in_api_v1_checkin__token__post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Token do QR Code afixado no espaço */
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ReservationRead'];
+        };
+      };
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Token inexistente ou de recurso desativado (`QR_INVALIDO`), ou nenhuma reserva de quem leu neste espaço para agora (`SEM_RESERVA_AGORA`) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description A reserva foi liberada por falta de check-in no prazo (`RESERVA_LIBERADA`) */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description A janela de check-in ainda não abriu (`CHECKIN_FORA_DA_JANELA`); a mensagem diz a hora em que abre */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
         };
       };
     };
@@ -3208,6 +3452,64 @@ export interface operations {
       };
     };
   };
+  renew_checkin_token_api_v1_admin_recursos__resource_id__checkin_renovar_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        resource_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ResourceAdminRead'];
+        };
+      };
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Recurso inexistente */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   list_features_api_v1_admin_caracteristicas_get: {
     parameters: {
       query?: never;
@@ -3539,7 +3841,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorResponse'];
         };
       };
-      /** @description Reserva já cancelada (`RESERVA_JA_CANCELADA`) */
+      /** @description Reserva já cancelada (`RESERVA_JA_CANCELADA`) ou liberada por não comparecimento (`RESERVA_LIBERADA`) */
       409: {
         headers: {
           [name: string]: unknown;

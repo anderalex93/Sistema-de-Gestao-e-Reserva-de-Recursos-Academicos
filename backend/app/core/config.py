@@ -66,6 +66,14 @@ class Settings(BaseSettings):
     active_limit_teacher: int = Field(
         default=10, ge=1, le=100, validation_alias="RESERVAS_ATIVAS_MAX_PROFESSOR"
     )
+    # Check-in por QR Code (#43). Tolerância 0 desliga o check-in obrigatório e a liberação.
+    checkin_tolerance_minutes: int = Field(
+        default=15, ge=0, le=120, validation_alias="CHECKIN_TOLERANCIA_MIN"
+    )
+    # A janela de check-in abre este tanto antes do início da reserva.
+    checkin_lead_minutes: int = Field(
+        default=15, ge=0, le=120, validation_alias="CHECKIN_ANTECEDENCIA_MIN"
+    )
 
     @field_validator("database_url", "test_database_url")
     @classmethod

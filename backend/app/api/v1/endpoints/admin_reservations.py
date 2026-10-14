@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from app.api.dependencies import AdminDep, ReservationServiceDep, require_admin
+from app.api.dependencies import AdminDep, ReservationServiceDep, release_no_shows, require_admin
 from app.models.reservation import Reservation
 from app.schemas.errors import ADMIN_ONLY, ErrorResponse
 from app.schemas.pagination import Page
@@ -11,7 +11,7 @@ from app.schemas.reservation import AdminAgendaParams, AdminCancellation, AdminR
 router = APIRouter(
     prefix="/admin/reservas",
     tags=["Administração"],
-    dependencies=[Depends(require_admin)],
+    dependencies=[Depends(require_admin), Depends(release_no_shows)],
     responses=ADMIN_ONLY,
 )
 
@@ -21,7 +21,8 @@ router = APIRouter(
     summary="Agenda do dia: todas as reservas, com quem reservou",
     description=(
         "Reservas que tocam o dia no fuso do campus, de qualquer status, ordenadas por bloco, "
-        "recurso e horário. Sem `data`, usa o dia de hoje."
+        "recurso e horário. Sem `data`, usa o dia de hoje. `status=NAO_COMPARECEU` lista as "
+        "reservas liberadas porque ninguém fez check-in a tempo."
     ),
     response_model=Page[AdminReservationRead],
 )
@@ -44,7 +45,10 @@ def list_agenda(
         404: {"model": ErrorResponse, "description": "Reserva inexistente"},
         409: {
             "model": ErrorResponse,
-            "description": "Reserva já cancelada (`RESERVA_JA_CANCELADA`)",
+            "description": (
+                "Reserva já cancelada (`RESERVA_JA_CANCELADA`) ou liberada por não "
+                "comparecimento (`RESERVA_LIBERADA`)"
+            ),
         },
         422: {
             "model": ErrorResponse,

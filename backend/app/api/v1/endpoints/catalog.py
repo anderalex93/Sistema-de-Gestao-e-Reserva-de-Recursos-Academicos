@@ -9,6 +9,7 @@ from app.api.dependencies import (
     CatalogServiceDep,
     CurrentUserDep,
     get_current_user,
+    release_no_shows,
 )
 from app.models.building import Building
 from app.models.feature import Feature
@@ -59,6 +60,7 @@ def list_features(service: CatalogServiceDep) -> Sequence[Feature]:
         "intervalo não pode ter começado."
     ),
     response_model=Page[ResourceRead],
+    dependencies=[Depends(release_no_shows)],
     responses={
         422: {
             "model": ErrorResponse,
@@ -92,10 +94,12 @@ def get_resource(resource_id: int, service: CatalogServiceDep) -> Resource:
     description=(
         "Dia no fuso do campus (America/Maceio). Cada horário vem `LIVRE`, `OCUPADO` ou "
         "`PASSADO`. Dia em que o campus não abre volta sem horários. Quem reservou só é "
-        "identificado para administradores."
+        "identificado para administradores. Reserva sem check-in até o fim da tolerância é "
+        "liberada antes de montar a grade, e o horário restante volta a aparecer `LIVRE`."
     ),
     response_model=AvailabilityRead,
     responses=RESOURCE_NOT_FOUND,
+    dependencies=[Depends(release_no_shows)],
 )
 def get_availability(
     resource_id: int,

@@ -66,6 +66,14 @@ class AlreadyCancelledError(ConflictError):
     default_detail = "Esta reserva já estava cancelada."
 
 
+class ReservationReleasedError(ConflictError):
+    code = "RESERVA_LIBERADA"
+    default_detail = (
+        "Esta reserva foi liberada porque o check-in não foi feito a tempo, e o horário voltou "
+        "a ficar livre para outras pessoas."
+    )
+
+
 class NotReservationOwnerError(ForbiddenError):
     default_detail = (
         "Só quem fez a reserva pode cancelá-la aqui. A administração cancela pela agenda, "
@@ -196,8 +204,7 @@ class ReservationService:
         is_admin = user.perfil is UserRole.ADMIN
         if reservation.usuario_id != user.id:
             raise NotReservationOwnerError
-        if reservation.status is ReservationStatus.CANCELADA:
-            raise AlreadyCancelledError
+        self._ensure_not_closed(reservation)
         if not is_admin and not self.can_cancel(reservation):
             raise CancellationDeadlineError
         reservation.status = ReservationStatus.CANCELADA
@@ -223,8 +230,7 @@ class ReservationService:
         reservation = self._reservations.get(reservation_id)
         if reservation is None:
             raise ReservationNotFoundError
-        if reservation.status is ReservationStatus.CANCELADA:
-            raise AlreadyCancelledError
+        self._ensure_not_closed(reservation)
         now = self._clock.now()
         if reservation.fim <= now:
             raise ReservationAlreadyEndedError
@@ -234,6 +240,14 @@ class ReservationService:
         reservation.motivo_cancelamento = motivo
         self._uow.commit()
         return reservation
+
+    @staticmethod
+    def _ensure_not_closed(reservation: Reservation) -> None:
+        """Cancelada ou liberada por não comparecimento (#43) já não ocupa o horário."""
+        if reservation.status is ReservationStatus.CANCELADA:
+            raise AlreadyCancelledError
+        if reservation.status is ReservationStatus.NAO_COMPARECEU:
+            raise ReservationReleasedError
 
     def can_cancel(self, reservation: Reservation) -> bool:
         return (
@@ -255,6 +269,7 @@ class ReservationService:
             recurso=ReceiptResourceRead.model_validate(reservation.recurso),
             responsavel=first_name,
             cancelada_em=reservation.cancelada_em,
+            checkin_em=reservation.checkin_em,
         )
 
     def _enforce_usage_rules(self, data: ReservationCreate, user: User) -> None:

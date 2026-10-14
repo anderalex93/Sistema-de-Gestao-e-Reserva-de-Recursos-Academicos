@@ -160,6 +160,8 @@ class VolumeSeeder:
         self, number: int, resource: Resource, user: User, start: datetime, end: datetime
     ) -> Reservation:
         cancelled = self._rng.random() < CANCELLED_SHARE
+        # As que já começaram tiveram check-in (#43); senão a primeira leitura liberaria todas.
+        attended = not cancelled and start <= self._clock.now()
         return Reservation(
             codigo=CODE_TEMPLATE.format(number),
             recurso=resource,
@@ -170,4 +172,5 @@ class VolumeSeeder:
             cancelada_em=start - timedelta(days=1) if cancelled else None,
             cancelada_por_id=user.id if cancelled else None,
             qtd_participantes=self._rng.randint(1, 4),
+            checkin_em=start if attended else None,
         )

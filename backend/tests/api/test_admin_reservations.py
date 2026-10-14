@@ -204,7 +204,10 @@ def test_cannot_cancel_ended_cancelled_or_missing_reservations(
     reserve: Callable[..., Reservation],
 ) -> None:
     ended = reserve(rooms["a1"], lucas, datetime.now(UTC) - timedelta(hours=3))
+    # Com check-in: sem ele, a reserva teria sido liberada por não comparecimento (#43).
+    ended.checkin_em = ended.inicio
     cancelled = reserve(rooms["a2"], lucas, at(DAY, 9), status=ReservationStatus.CANCELADA)
+    released = reserve(rooms["b1"], lucas, datetime.now(UTC) - timedelta(minutes=30))
     reason = {"motivo": "Evento institucional"}
 
     ended_response = client.post(
@@ -213,12 +216,19 @@ def test_cannot_cancel_ended_cancelled_or_missing_reservations(
     cancelled_response = client.post(
         f"{AGENDA}/{cancelled.id}/cancelar", headers=admin_headers, json=reason
     )
+    released_response = client.post(
+        f"{AGENDA}/{released.id}/cancelar", headers=admin_headers, json=reason
+    )
     missing = client.post(f"{AGENDA}/999999/cancelar", headers=admin_headers, json=reason)
 
     assert (ended_response.status_code, ended_response.json()["code"]) == (422, "RESERVA_ENCERRADA")
     assert (cancelled_response.status_code, cancelled_response.json()["code"]) == (
         409,
         "RESERVA_JA_CANCELADA",
+    )
+    assert (released_response.status_code, released_response.json()["code"]) == (
+        409,
+        "RESERVA_LIBERADA",
     )
     assert missing.status_code == 404
 

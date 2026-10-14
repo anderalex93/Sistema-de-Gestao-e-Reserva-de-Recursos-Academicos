@@ -16,6 +16,9 @@ class ReservationRules:
     max_days_ahead: int
     # `None` = sem limite (administrador).
     active_limits: Mapping[UserRole, int | None]
+    # Check-in (#43): prazo depois do início (zero = opcional) e abertura antes dele.
+    checkin_tolerance: timedelta = timedelta(minutes=15)
+    checkin_lead: timedelta = timedelta(minutes=15)
 
     @classmethod
     def from_settings(cls, settings: Settings) -> Self:
@@ -29,10 +32,17 @@ class ReservationRules:
                     UserRole.ADMIN: None,
                 }
             ),
+            checkin_tolerance=timedelta(minutes=settings.checkin_tolerance_minutes),
+            checkin_lead=timedelta(minutes=settings.checkin_lead_minutes),
         )
 
     def active_limit_for(self, role: UserRole) -> int | None:
         return self.active_limits.get(role)
+
+    @property
+    def checkin_required(self) -> bool:
+        """Com tolerância zero o check-in é opcional e nenhuma reserva é liberada sozinha."""
+        return self.checkin_tolerance > timedelta(0)
 
 
 def duration_label(duration: timedelta) -> str:

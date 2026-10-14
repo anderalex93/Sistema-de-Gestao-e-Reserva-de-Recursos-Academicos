@@ -1,8 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Query, Request
+from fastapi import APIRouter, Depends, Path, Query, Request
 
-from app.api.dependencies import CurrentUserDep, ReservationServiceDep
+from app.api.dependencies import CurrentUserDep, ReservationServiceDep, release_no_shows
 from app.core.rate_limit import RECEIPT_LIMIT, limiter
 from app.models.reservation import Reservation
 from app.schemas.errors import TOO_MANY_ATTEMPTS, UNAUTHORIZED, ErrorResponse
@@ -15,7 +15,8 @@ from app.schemas.reservation import (
     ReservationRead,
 )
 
-router = APIRouter(prefix="/reservas", tags=["Reservas"])
+# Toda rota de reservas enxerga a ocupação já sem as reservas vencidas sem check-in (#43).
+router = APIRouter(prefix="/reservas", tags=["Reservas"], dependencies=[Depends(release_no_shows)])
 
 
 @router.post(
@@ -64,8 +65,9 @@ def create_reservation(
     summary="Minhas reservas: próximas ou histórico",
     description=(
         "`escopo=proximas` (padrão): confirmadas que ainda não terminaram, da mais cedo para a "
-        "mais tarde. `escopo=historico`: canceladas ou já terminadas, da mais recente para a "
-        "mais antiga. Cada item diz se ainda pode ser cancelado (`pode_cancelar`)."
+        "mais tarde. `escopo=historico`: canceladas, liberadas por não comparecimento "
+        "(`NAO_COMPARECEU`) ou já terminadas, da mais recente para a mais antiga. Cada item diz "
+        "se ainda pode ser cancelado (`pode_cancelar`)."
     ),
     response_model=Page[MyReservationRead],
     responses=UNAUTHORIZED,
@@ -140,7 +142,10 @@ def get_reservation(
         404: {"model": ErrorResponse, "description": "Reserva inexistente"},
         409: {
             "model": ErrorResponse,
-            "description": "Reserva já cancelada (`RESERVA_JA_CANCELADA`)",
+            "description": (
+                "Reserva já cancelada (`RESERVA_JA_CANCELADA`) ou liberada por não "
+                "comparecimento (`RESERVA_LIBERADA`)"
+            ),
         },
         422: {
             "model": ErrorResponse,

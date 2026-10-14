@@ -29,9 +29,11 @@ from app.services.availability_service import AvailabilityService
 from app.services.board_service import BoardService
 from app.services.building_admin_service import BuildingAdminService
 from app.services.catalog_service import CatalogService
+from app.services.checkin_service import CheckinService
 from app.services.feature_admin_service import FeatureAdminService
 from app.services.future_reservation_canceller import FutureReservationCanceller
 from app.services.health_service import HealthService
+from app.services.no_show_service import NoShowService
 from app.services.reservation_service import ReservationService
 from app.services.resource_admin_service import ResourceAdminService
 from app.services.rules_service import RulesService
@@ -190,6 +192,46 @@ def get_reservation_service(
     )
 
 
+def get_no_show_service(
+    session: SessionDep, clock: ClockDep, rules: ReservationRulesDep
+) -> NoShowService:
+    return NoShowService(
+        reservations=ReservationRepository(session),
+        uow=UnitOfWork(session),
+        clock=clock,
+        rules=rules,
+    )
+
+
+NoShowServiceDep = Annotated[NoShowService, Depends(get_no_show_service)]
+
+
+def release_no_shows(service: NoShowServiceDep) -> None:
+    """Liberação preguiçosa por não comparecimento (#43), sem worker: roda antes de cada rota
+    que lê ou grava ocupação, então a reserva vencida é liberada na primeira leitura depois do
+    prazo. O front consulta a grade a cada 10 s, então o horário aparece livre logo em seguida.
+    """
+    service.release_expired()
+
+
+def get_checkin_service(
+    session: SessionDep,
+    no_shows: NoShowServiceDep,
+    schedule: CampusScheduleDep,
+    clock: ClockDep,
+    rules: ReservationRulesDep,
+) -> CheckinService:
+    return CheckinService(
+        resources=ResourceRepository(session),
+        reservations=ReservationRepository(session),
+        no_shows=no_shows,
+        uow=UnitOfWork(session),
+        schedule=schedule,
+        clock=clock,
+        rules=rules,
+    )
+
+
 def get_rules_service(schedule: CampusScheduleDep, rules: ReservationRulesDep) -> RulesService:
     return RulesService(schedule, rules)
 
@@ -240,6 +282,7 @@ CatalogServiceDep = Annotated[CatalogService, Depends(get_catalog_service)]
 AvailabilityServiceDep = Annotated[AvailabilityService, Depends(get_availability_service)]
 RulesServiceDep = Annotated[RulesService, Depends(get_rules_service)]
 ReservationServiceDep = Annotated[ReservationService, Depends(get_reservation_service)]
+CheckinServiceDep = Annotated[CheckinService, Depends(get_checkin_service)]
 BoardServiceDep = Annotated[BoardService, Depends(get_board_service)]
 BuildingAdminServiceDep = Annotated[BuildingAdminService, Depends(get_building_admin_service)]
 FeatureAdminServiceDep = Annotated[FeatureAdminService, Depends(get_feature_admin_service)]

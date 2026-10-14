@@ -34,6 +34,7 @@ function buildResource(overrides: Partial<ResourceAdminRead> = {}): ResourceAdmi
     ativo: true,
     bloco: { id: 1, nome: 'Bloco A', descricao: 'Entrada principal', ativo: true },
     caracteristicas: [{ id: 1, nome: 'Projetor' }],
+    checkin_token: 'qr-sala-204',
     ...overrides,
   };
 }

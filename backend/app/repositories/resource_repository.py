@@ -38,6 +38,9 @@ class ResourceRepository(BaseRepository[Resource]):
             raise NotFoundError(self.not_found_message)
         return resource
 
+    def get_by_checkin_token(self, token: str) -> Resource | None:
+        return self._session.scalar(select(Resource).where(Resource.checkin_token == token))
+
     def search_all(
         self, filters: ResourceFilters, ativo: bool | None, page: int, per_page: int
     ) -> PageResult[Resource]:

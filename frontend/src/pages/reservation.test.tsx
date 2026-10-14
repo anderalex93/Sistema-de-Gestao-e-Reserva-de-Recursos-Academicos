@@ -25,6 +25,8 @@ function reservation(overrides: Partial<ReservationRead> = {}): ReservationRead 
     criado_em: '2026-10-13T12:00:00Z',
     cancelada_em: null,
     motivo_cancelamento: null,
+    checkin_em: null,
+    liberada_em: null,
     ...overrides,
   };
 }
