@@ -88,7 +88,7 @@ function RowList({ label, rows }: { label: string; rows: readonly Row[] | undefi
             </Fragment>
           ))
         : Array.from({ length: 3 }, (_, index) => (
-            <Stack component="li" key={index} spacing={1} sx={{ p: 2 }}>
+            <Stack component="li" key={`esqueleto-${index}`} spacing={1} sx={{ p: 2 }}>
               <Skeleton width="40%" />
               <Skeleton width="60%" />
             </Stack>

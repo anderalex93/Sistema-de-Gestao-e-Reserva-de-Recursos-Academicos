@@ -76,6 +76,9 @@ export function createAppTheme() {
       },
     },
     components: {
+      // SPA sem SSR: a media query é lida já no primeiro render. Com o padrão do MUI ela começa
+      // falsa e o celular desenhava a versão de desktop antes de trocar (deslocamento, CLS).
+      MuiUseMediaQuery: { defaultProps: { noSsr: true } },
       MuiCssBaseline: {
         styleOverrides: {
           body: { backgroundColor: colors.paper, color: colors.ink },
@@ -112,6 +115,9 @@ export function createAppTheme() {
       MuiIconButton: {
         styleOverrides: {
           root: {
+            // Alvo de toque de 44px também nos botões só com ícone (design system, seção 12).
+            minWidth: 44,
+            minHeight: 44,
             borderRadius: 2,
             transition: 'none',
             '&:hover': { backgroundColor: colors.sunken },
@@ -145,11 +151,30 @@ export function createAppTheme() {
         styleOverrides: {
           root: { borderRadius: 2, transition: 'none' },
           outlined: { borderColor: colors.line, color: colors.ink },
+          // Chip que liga e desliga filtro: área de toque de 44px no celular, 36px no desktop.
+          clickable: ({ theme }) => ({
+            height: 44,
+            [theme.breakpoints.up('md')]: { height: 36 },
+          }),
         },
       },
       MuiPaginationItem: {
         styleOverrides: {
           root: { borderRadius: 2, minWidth: 44, height: 44, transition: 'none' },
+        },
+      },
+      MuiTablePagination: {
+        styleOverrides: {
+          // "Linhas por página" com a mesma área de toque dos outros controles. O seletor
+          // composto vence a altura que o Select aplica ao campo.
+          root: {
+            '& .MuiTablePagination-select.MuiSelect-select': {
+              minHeight: 44,
+              display: 'flex',
+              alignItems: 'center',
+              boxSizing: 'border-box',
+            },
+          },
         },
       },
       MuiSkeleton: {

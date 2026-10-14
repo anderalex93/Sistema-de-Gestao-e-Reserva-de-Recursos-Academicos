@@ -99,7 +99,7 @@ export default function MyReservationsPage() {
                   </Fragment>
                 ))
               : Array.from({ length: 3 }, (_, index) => (
-                  <li key={index}>
+                  <li key={`esqueleto-${index}`}>
                     <ReservationRowSkeleton />
                   </li>
                 ))}

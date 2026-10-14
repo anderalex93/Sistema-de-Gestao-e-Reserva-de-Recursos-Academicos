@@ -3,6 +3,7 @@ import Link from '@mui/material/Link';
 import { Link as RouterLink } from 'react-router';
 
 import { paths } from '@/router/paths';
+import { touchTarget } from '@/theme/patterns';
 import { colors, fonts } from '@/theme/tokens';
 
 export function BrandMark() {
@@ -11,7 +12,7 @@ export function BrandMark() {
       component={RouterLink}
       to={paths.home}
       underline="none"
-      sx={{ display: 'inline-flex', alignItems: 'center', gap: 1.25, color: 'text.primary' }}
+      sx={{ ...touchTarget, gap: 1.25, color: 'text.primary' }}
     >
       <Box
         aria-hidden
@@ -23,7 +24,7 @@ export function BrandMark() {
           backgroundColor: colors.ink,
           color: colors.brandAccent,
           fontFamily: fonts.display,
-          fontWeight: 600,
+          fontWeight: 500,
         }}
       >
         E

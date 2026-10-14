@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { Link as RouterLink } from 'react-router';
 
 import { config } from '@/config';
+import { touchTarget } from '@/theme/patterns';
 
 export interface Crumb {
   label: string;
@@ -35,7 +36,13 @@ export function PageHeader({
         <Breadcrumbs aria-label="Você está em" sx={{ fontSize: '0.875rem' }}>
           {breadcrumbs.map((crumb) =>
             crumb.to ? (
-              <Link key={crumb.label} component={RouterLink} to={crumb.to} color="text.secondary">
+              <Link
+                key={crumb.label}
+                component={RouterLink}
+                to={crumb.to}
+                color="text.secondary"
+                sx={touchTarget}
+              >
                 {crumb.label}
               </Link>
             ) : (

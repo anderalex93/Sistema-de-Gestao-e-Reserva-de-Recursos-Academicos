@@ -274,7 +274,6 @@ export function ResourceFormDialog({
                             variant={selected ? 'filled' : 'outlined'}
                             color={selected ? 'primary' : 'default'}
                             sx={{
-                              height: 36,
                               ...(selected
                                 ? {}
                                 : {

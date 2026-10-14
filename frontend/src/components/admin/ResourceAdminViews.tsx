@@ -109,7 +109,7 @@ export function ResourceTable({ items, ...actions }: ResourceViewProps) {
         <TableBody>
           {!items &&
             Array.from({ length: 5 }, (_, row) => (
-              <TableRow key={row}>
+              <TableRow key={`esqueleto-${row}`}>
                 {COLUMNS.map((column) => (
                   <TableCell key={column}>
                     <Skeleton variant="rectangular" height={16} />
@@ -189,7 +189,7 @@ export function ResourceList({ items, ...actions }: ResourceViewProps) {
             </Fragment>
           ))
         : Array.from({ length: 3 }, (_, index) => (
-            <Stack component="li" key={index} spacing={1} sx={{ p: 2 }}>
+            <Stack component="li" key={`esqueleto-${index}`} spacing={1} sx={{ p: 2 }}>
               <Skeleton width="50%" />
               <Skeleton width="80%" />
               <Skeleton variant="rectangular" height={44} width={180} />

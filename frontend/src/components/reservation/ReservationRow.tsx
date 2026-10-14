@@ -13,6 +13,7 @@ import { locationLabel } from '@/domain/resource-types';
 import { campusTime, campusToday, dayLabel } from '@/domain/schedule';
 import type { MyReservationRead } from '@/lib/api/types';
 import { paths } from '@/router/paths';
+import { touchTarget } from '@/theme/patterns';
 import { fonts } from '@/theme/tokens';
 
 interface ReservationRowProps {
@@ -44,7 +45,7 @@ export function ReservationRow({ reservation, onCancel }: ReservationRowProps) {
         <Link
           component={RouterLink}
           to={`${paths.resource(reservation.recurso.id)}?data=${date}`}
-          sx={{ fontWeight: 700 }}
+          sx={{ ...touchTarget, fontWeight: 700 }}
         >
           {reservation.recurso.nome}
         </Link>

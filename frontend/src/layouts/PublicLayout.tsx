@@ -7,6 +7,7 @@ import { Outlet, Link as RouterLink } from 'react-router';
 import { BrandMark } from '@/components/BrandMark';
 import { PageSkeleton } from '@/components/PageSkeleton';
 import { paths } from '@/router/paths';
+import { touchTarget } from '@/theme/patterns';
 import { colors, layout } from '@/theme/tokens';
 
 /** Páginas sem navegação do app: login, cadastro, comprovante público e textos legais. */
@@ -50,10 +51,10 @@ export default function PublicLayout() {
           spacing={3}
           sx={{ justifyContent: 'center', fontSize: '0.875rem' }}
         >
-          <Link component={RouterLink} to={paths.terms} color="text.secondary">
+          <Link component={RouterLink} to={paths.terms} color="text.secondary" sx={touchTarget}>
             Termos de Uso
           </Link>
-          <Link component={RouterLink} to={paths.privacy} color="text.secondary">
+          <Link component={RouterLink} to={paths.privacy} color="text.secondary" sx={touchTarget}>
             Aviso de Privacidade
           </Link>
         </Stack>

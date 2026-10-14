@@ -265,7 +265,6 @@ export function SearchFiltersForm({
                   variant={selected ? 'filled' : 'outlined'}
                   color={selected ? 'primary' : 'default'}
                   sx={{
-                    height: 36,
                     ...(selected
                       ? {}
                       : {

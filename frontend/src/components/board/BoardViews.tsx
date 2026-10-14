@@ -19,7 +19,7 @@ import {
 import { resourceTypeLabels } from '@/domain/resource-types';
 import type { BoardRead } from '@/lib/api/types';
 import { paths } from '@/router/paths';
-import { busyPattern } from '@/theme/patterns';
+import { busyPattern, touchTarget } from '@/theme/patterns';
 import { colors, fonts } from '@/theme/tokens';
 
 const SLOT_WIDTH = 28;
@@ -154,7 +154,7 @@ export function BoardTable({ board, now }: BoardViewProps) {
                 <Link
                   component={RouterLink}
                   to={resourceLink(line, board.data)}
-                  sx={{ fontWeight: 700 }}
+                  sx={{ ...touchTarget, fontWeight: 700 }}
                 >
                   {line.recurso.nome}
                 </Link>
@@ -241,7 +241,11 @@ export function BoardList({ board, now }: BoardViewProps) {
             mt: index === 0 ? 0 : '-1px',
           }}
         >
-          <Link component={RouterLink} to={resourceLink(line, board.data)} sx={{ fontWeight: 700 }}>
+          <Link
+            component={RouterLink}
+            to={resourceLink(line, board.data)}
+            sx={{ ...touchTarget, fontWeight: 700 }}
+          >
             {line.recurso.nome}
           </Link>
           <Typography variant="body2" color="text.secondary">

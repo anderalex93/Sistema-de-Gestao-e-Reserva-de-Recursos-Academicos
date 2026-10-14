@@ -218,7 +218,7 @@ export default function ReservePage() {
                     </li>
                   ))
                 : Array.from({ length: 6 }, (_, index) => (
-                    <li key={index}>
+                    <li key={`esqueleto-${index}`}>
                       <ResourceCardSkeleton />
                     </li>
                   ))}

@@ -100,7 +100,7 @@ export default function AdminUsersPage() {
               <TableBody>
                 {query.isPending &&
                   Array.from({ length: 5 }, (_, row) => (
-                    <TableRow key={row}>
+                    <TableRow key={`esqueleto-${row}`}>
                       {COLUMNS.map((column) => (
                         <TableCell key={column}>
                           <Skeleton variant="rectangular" height={16} />

@@ -9,6 +9,7 @@ import { PageSkeleton } from '@/components/PageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { accountNav, adminNav, boardNav, primaryNav, type NavItem } from '@/layouts/navigation';
 import { paths } from '@/router/paths';
+import { touchTarget } from '@/theme/patterns';
 import { colors, layout, zIndex } from '@/theme/tokens';
 
 const MAIN_ID = 'conteudo';
@@ -163,9 +164,10 @@ export default function AppLayout() {
         sx={{
           position: 'absolute',
           left: 8,
-          top: -48,
+          top: -64,
           zIndex: zIndex.snackbar,
-          p: 1,
+          ...touchTarget,
+          px: 1.5,
           backgroundColor: colors.surface,
           '&:focus': { top: 8 },
         }}
