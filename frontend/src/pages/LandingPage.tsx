@@ -380,30 +380,20 @@ export default function LandingPage() {
       <Box
         component="section"
         aria-labelledby="landing-perguntas"
-        sx={{
-          borderTop: `1px solid ${colors.line}`,
-          pt: { xs: 4, md: 6 },
-          mt: { xs: 6, md: 8 },
-          display: 'grid',
-          gap: { xs: 3, md: 6 },
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 4fr) minmax(0, 8fr)' },
-          alignItems: 'start',
-        }}
+        sx={{ borderTop: `1px solid ${colors.line}`, pt: { xs: 4, md: 6 }, mt: { xs: 6, md: 8 } }}
       >
-        <Stack spacing={1.5} sx={{ pt: { md: 1 } }}>
-          <Typography id="landing-perguntas" variant="h2">
-            Perguntas frequentes
-          </Typography>
-          <Typography color="text.secondary" sx={{ maxWidth: '36ch' }}>
-            O essencial sobre quem reserva, prazos e o comprovante.
-          </Typography>
-          <Typography>
-            <Link component={RouterLink} to={paths.help} sx={touchTarget}>
-              Ver todas as perguntas na Ajuda
-            </Link>
-          </Typography>
-        </Stack>
+        <Typography id="landing-perguntas" variant="h2">
+          Perguntas frequentes
+        </Typography>
+        <Typography color="text.secondary" sx={{ mt: 1, mb: { xs: 3, md: 4 } }}>
+          O essencial sobre quem reserva, prazos e o comprovante.
+        </Typography>
         <FaqList items={mainFaq} />
+        <Typography sx={{ mt: 2.5 }}>
+          <Link component={RouterLink} to={paths.help} sx={touchTarget}>
+            Ver todas as perguntas na Ajuda
+          </Link>
+        </Typography>
       </Box>
 
       <Box
