@@ -29,7 +29,10 @@ export const queryKeys = {
   adminAgenda: (params: AgendaParams) => ['reservas', 'agenda', params] as const,
   myReservations: (params: MyReservationsParams) => ['reservas', 'minhas', params] as const,
   receipt: (codigo: string) => ['reservas', 'comprovante', codigo.toUpperCase()] as const,
+  // Sob "config": salvar as configurações também atualiza as regras que o app inteiro usa.
+  config: ['config'] as const,
   rules: ['config', 'regras'] as const,
+  adminSettings: ['config', 'configuracoes'] as const,
   checkin: (token: string) => ['reservas', 'checkin', token] as const,
   availability: (resourceId: number, date: string) =>
     ['recursos', 'disponibilidade', resourceId, date] as const,

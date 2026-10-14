@@ -784,6 +784,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/admin/configuracoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Horário de funcionamento e regras de uso em vigor
+     * @description Enquanto a administração não salvar, mostra os valores do ambiente (`origem = AMBIENTE`).
+     */
+    get: operations['get_settings_api_v1_admin_configuracoes_get'];
+    /**
+     * Altera o horário de funcionamento e as regras de uso
+     * @description Vale na próxima requisição, sem reiniciar a API. Reservas já feitas não mudam: as regras novas valem para as próximas reservas. Horários em blocos de 30 minutos.
+     */
+    put: operations['update_settings_api_v1_admin_configuracoes_put'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -976,6 +1000,100 @@ export interface components {
       /** Descricao */
       descricao?: string | null;
     };
+    /** CampusSettingsRead */
+    CampusSettingsRead: {
+      /**
+       * Horarios
+       * @description Dias ausentes: campus fechado
+       */
+      horarios: components['schemas']['DayHoursRead'][];
+      /** Duracao Max Minutos */
+      duracao_max_minutos: number;
+      /** Antecedencia Max Dias */
+      antecedencia_max_dias: number;
+      /** Limite Ativas Aluno */
+      limite_ativas_aluno: number;
+      /** Limite Ativas Professor */
+      limite_ativas_professor: number;
+      /** Checkin Tolerancia Min */
+      checkin_tolerancia_min: number;
+      /** Checkin Antecedencia Min */
+      checkin_antecedencia_min: number;
+      /** @description `AMBIENTE` enquanto ninguém salvou; `ADMINISTRACAO` depois do primeiro ajuste */
+      origem: components['schemas']['SettingsSource'];
+      /** Atualizado Em */
+      atualizado_em: string | null;
+      /**
+       * Atualizado Por
+       * @description Nome de quem salvou por último
+       */
+      atualizado_por: string | null;
+    };
+    /**
+     * CampusSettingsUpdate
+     * @example {
+     *       "antecedencia_max_dias": 14,
+     *       "checkin_antecedencia_min": 15,
+     *       "checkin_tolerancia_min": 15,
+     *       "duracao_max_minutos": 240,
+     *       "horarios": [
+     *         {
+     *           "abertura": "08:00",
+     *           "dia_semana": 1,
+     *           "fechamento": "21:00"
+     *         },
+     *         {
+     *           "abertura": "08:00",
+     *           "dia_semana": 2,
+     *           "fechamento": "21:00"
+     *         },
+     *         {
+     *           "abertura": "08:00",
+     *           "dia_semana": 3,
+     *           "fechamento": "21:00"
+     *         },
+     *         {
+     *           "abertura": "08:00",
+     *           "dia_semana": 4,
+     *           "fechamento": "21:00"
+     *         },
+     *         {
+     *           "abertura": "08:00",
+     *           "dia_semana": 5,
+     *           "fechamento": "21:00"
+     *         },
+     *         {
+     *           "abertura": "08:00",
+     *           "dia_semana": 6,
+     *           "fechamento": "12:00"
+     *         }
+     *       ],
+     *       "limite_ativas_aluno": 3,
+     *       "limite_ativas_professor": 10
+     *     }
+     */
+    CampusSettingsUpdate: {
+      /**
+       * Horarios
+       * @description Um item por dia aberto; dia ausente = campus fechado
+       */
+      horarios: components['schemas']['DayHoursWrite'][];
+      /** Duracao Max Minutos */
+      duracao_max_minutos: number;
+      /** Antecedencia Max Dias */
+      antecedencia_max_dias: number;
+      /** Limite Ativas Aluno */
+      limite_ativas_aluno: number;
+      /** Limite Ativas Professor */
+      limite_ativas_professor: number;
+      /**
+       * Checkin Tolerancia Min
+       * @description 0 = check-in opcional, sem liberação por não comparecimento
+       */
+      checkin_tolerancia_min: number;
+      /** Checkin Antecedencia Min */
+      checkin_antecedencia_min: number;
+    };
     /**
      * CheckinResourceRead
      * @description O espaço do QR Code, para a pessoa conferir que está no lugar certo.
@@ -1016,6 +1134,24 @@ export interface components {
     };
     /** DayHoursRead */
     DayHoursRead: {
+      /**
+       * Dia Semana
+       * @description ISO 8601: 1 = segunda, 7 = domingo
+       */
+      dia_semana: number;
+      /**
+       * Abertura
+       * Format: time
+       */
+      abertura: string;
+      /**
+       * Fechamento
+       * Format: time
+       */
+      fechamento: string;
+    };
+    /** DayHoursWrite */
+    DayHoursWrite: {
       /**
        * Dia Semana
        * @description ISO 8601: 1 = segunda, 7 = domingo
@@ -1818,6 +1954,12 @@ export interface components {
        */
       checkin_antecedencia_min: number;
     };
+    /**
+     * SettingsSource
+     * @description De onde vêm o horário e as regras em vigor.
+     * @enum {string}
+     */
+    SettingsSource: 'AMBIENTE' | 'ADMINISTRACAO';
     /** SlotRead */
     SlotRead: {
       /**
@@ -4329,6 +4471,95 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  get_settings_api_v1_admin_configuracoes_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CampusSettingsRead'];
+        };
+      };
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  update_settings_api_v1_admin_configuracoes_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CampusSettingsUpdate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CampusSettingsRead'];
+        };
+      };
+      /** @description Sem sessão válida: token ausente (`NAO_AUTENTICADO`) ou expirado, inválido ou de conta desativada (`SESSAO_INVALIDA`) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Apenas administradores (`ACESSO_NEGADO`) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };

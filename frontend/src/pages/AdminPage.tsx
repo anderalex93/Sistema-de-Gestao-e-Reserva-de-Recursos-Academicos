@@ -33,6 +33,11 @@ const sections = [
     description: 'Prédios do campus e os atributos usados nos filtros da busca.',
     to: paths.adminBuildings,
   },
+  {
+    title: 'Configurações',
+    description: 'Horário de funcionamento, duração e limites das reservas e prazos do check-in.',
+    to: paths.adminSettings,
+  },
 ] as const;
 
 export default function AdminPage() {
@@ -40,7 +45,7 @@ export default function AdminPage() {
     <>
       <PageHeader
         title="Administração"
-        description="Contas, blocos, recursos e a agenda do campus."
+        description="Contas, blocos, recursos, a agenda e as regras do campus."
       />
       <Box
         component="ul"

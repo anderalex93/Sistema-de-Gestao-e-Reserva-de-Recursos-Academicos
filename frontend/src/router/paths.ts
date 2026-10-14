@@ -22,4 +22,5 @@ export const paths = {
   adminBuildings: '/admin/blocos',
   adminAgenda: '/admin/agenda',
   adminOccupancy: '/admin/ocupacao',
+  adminSettings: '/admin/configuracoes',
 } as const;
