@@ -265,3 +265,96 @@ def test_resources_get_distinct_tokens(db_session: Session, room: Resource) -> N
     db_session.flush()
 
     assert room.checkin_token != other.checkin_token
+
+
+def end_url(reservation: Reservation) -> str:
+    return f"/api/v1/reservas/{reservation.id}/encerrar"
+
+
+def test_ending_requires_login(client: TestClient, reservation: Reservation) -> None:
+    response = client.post(end_url(reservation))
+
+    assert (response.status_code, response.json()["code"]) == (401, "NAO_AUTENTICADO")
+
+
+def test_check_in_then_end_frees_the_rest_of_the_slot(
+    client: TestClient,
+    *,
+    headers: dict[str, str],
+    clock: FixedClock,
+    room: Resource,
+    reservation: Reservation,
+) -> None:
+    url = f"{CHECKIN}/{room.checkin_token}"
+    client.post(url, headers=headers)
+    clock.current = at(14, 10)
+
+    status = client.get(url, headers=headers).json()
+    mine = client.get("/api/v1/reservas/minhas", headers=headers).json()["items"]
+    ended = client.post(end_url(reservation), headers=headers)
+    again = client.post(end_url(reservation), headers=headers)
+    after = client.get(url, headers=headers).json()
+    grid = client.get(
+        f"/api/v1/recursos/{room.id}/disponibilidade",
+        headers=headers,
+        params={"data": WEDNESDAY.isoformat()},
+    )
+    receipt = client.get(f"/api/v1/reservas/comprovante/{reservation.codigo}", headers=headers)
+
+    assert (status["situacao"], status["pode_encerrar"]) == ("FEITO", True)
+    assert status["reserva"]["id"] == reservation.id
+    assert [(item["id"], item["pode_encerrar"]) for item in mine] == [(reservation.id, True)]
+    assert ended.status_code == 200, ended.text
+    body = ended.json()
+    assert datetime.fromisoformat(body["fim"]) == at(14, 30)
+    assert datetime.fromisoformat(body["fim_previsto"]) == END
+    assert datetime.fromisoformat(body["encerrada_em"]) == at(14, 10)
+    assert (body["status"], body["pode_encerrar"], body["pode_cancelar"]) == (
+        "CONFIRMADA",
+        False,
+        False,
+    )
+    assert (again.status_code, again.json()["code"]) == (409, "RESERVA_JA_ENCERRADA")
+    assert "14:10" in again.json()["detail"]
+    assert (after["situacao"], after["pode_encerrar"]) == ("ENCERRADA", False)
+    slots = {
+        datetime.fromisoformat(slot["inicio"]): slot["status"] for slot in grid.json()["slots"]
+    }
+    assert slots[at(14, 30)] == "LIVRE"
+    assert datetime.fromisoformat(receipt.json()["encerrada_em"]) == at(14, 10)
+
+
+def test_someone_else_cannot_end_and_unknown_is_404(
+    client: TestClient,
+    *,
+    make_user: Callable[..., User],
+    headers: dict[str, str],
+    clock: FixedClock,
+    reservation: Reservation,
+) -> None:
+    ana = make_user(email="ana@umj.edu.br", nome="Ana Souza")
+    clock.current = at(14, 10)
+
+    other = client.post(end_url(reservation), headers=login(client, ana.email))
+    unknown = client.post("/api/v1/reservas/999999/encerrar", headers=headers)
+
+    assert (other.status_code, other.json()["code"]) == (403, "ACESSO_NEGADO")
+    assert (unknown.status_code, unknown.json()["code"]) == (404, "NAO_ENCONTRADO")
+
+
+def test_ending_before_the_start_or_after_the_end_is_422(
+    client: TestClient,
+    *,
+    db_session: Session,
+    headers: dict[str, str],
+    clock: FixedClock,
+    reservation: Reservation,
+) -> None:
+    early = client.post(end_url(reservation), headers=headers)
+    reservation.checkin_em = START
+    db_session.flush()
+    clock.current = END
+    late = client.post(end_url(reservation), headers=headers)
+
+    assert (early.status_code, early.json()["code"]) == (422, "RESERVA_NAO_INICIADA")
+    assert (late.status_code, late.json()["code"]) == (422, "RESERVA_ENCERRADA")

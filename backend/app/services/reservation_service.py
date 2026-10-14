@@ -1,8 +1,8 @@
-from datetime import time, timedelta
+from datetime import datetime, time, timedelta
 
 from sqlalchemy.exc import IntegrityError
 
-from app.core.campus_schedule import CampusSchedule
+from app.core.campus_schedule import SLOT, CampusSchedule
 from app.core.clock import Clock
 from app.core.enums import ReservationScope, ReservationStatus, UserRole
 from app.core.exceptions import BusinessRuleError, ConflictError, ForbiddenError, NotFoundError
@@ -84,6 +84,35 @@ class NotReservationOwnerError(ForbiddenError):
 class ReservationAlreadyEndedError(BusinessRuleError):
     code = "RESERVA_ENCERRADA"
     default_detail = "Esta reserva já terminou e não pode mais ser cancelada."
+
+
+ENDED_DETAIL = "Esta reserva já terminou: não há uso para encerrar."
+
+
+class NotEndOwnerError(ForbiddenError):
+    default_detail = "Só quem fez a reserva pode encerrar o uso."
+
+
+class ReservationNotStartedError(BusinessRuleError):
+    code = "RESERVA_NAO_INICIADA"
+    default_detail = (
+        "Esta reserva ainda não começou. Se não vai mais usar o espaço, cancele a reserva "
+        "(até 30 minutos antes do início)."
+    )
+
+
+class AlreadyEndedEarlyError(ConflictError):
+    code = "RESERVA_JA_ENCERRADA"
+    default_detail = "O uso desta reserva já foi encerrado."
+
+
+def can_end_early(reservation: Reservation, now: datetime) -> bool:
+    """Confirmada, em andamento (`inicio <= agora < fim`) e com o uso ainda não encerrado."""
+    return (
+        reservation.status is ReservationStatus.CONFIRMADA
+        and reservation.encerrada_em is None
+        and reservation.inicio <= now < reservation.fim
+    )
 
 
 class DurationExceededError(BusinessRuleError):
@@ -190,7 +219,42 @@ class ReservationService:
 
     def with_permissions(self, reservation: Reservation) -> MyReservationRead:
         base = ReservationRead.model_validate(reservation)
-        return MyReservationRead(**dict(base), pode_cancelar=self.can_cancel(reservation))
+        return MyReservationRead(
+            **dict(base),
+            pode_cancelar=self.can_cancel(reservation),
+            pode_encerrar=can_end_early(reservation, self._clock.now()),
+        )
+
+    def end_early(self, reservation_id: int, user: User) -> Reservation:
+        """Quem reservou encerra o uso antes do fim e o resto do horário fica livre.
+
+        O novo fim é a próxima marca de 30 minutos depois de agora (a grade só tem blocos
+        inteiros), nunca antes de `inicio + 30 min`. O fim original fica em `fim_previsto`. A
+        exclusion constraint passa a valer só até o novo fim, então outra pessoa já pode
+        reservar o trecho liberado.
+        """
+        reservation = self._reservations.get_for_update(reservation_id)
+        if reservation is None:
+            raise ReservationNotFoundError
+        if reservation.usuario_id != user.id:
+            raise NotEndOwnerError
+        self._ensure_not_closed(reservation)
+        now = self._clock.now()
+        if reservation.encerrada_em is not None:
+            ended_at = reservation.encerrada_em.astimezone(self._schedule.timezone)
+            msg = f"O uso desta reserva já foi encerrado às {ended_at:%H:%M}."
+            raise AlreadyEndedEarlyError(msg)
+        if now < reservation.inicio:
+            raise ReservationNotStartedError
+        if reservation.fim <= now:
+            raise ReservationAlreadyEndedError(ENDED_DETAIL)
+        new_end = max(self._schedule.next_mark(now), reservation.inicio + SLOT)
+        if new_end < reservation.fim:
+            reservation.fim_previsto = reservation.fim
+            reservation.fim = new_end
+        reservation.encerrada_em = now
+        self._uow.commit()
+        return reservation
 
     def cancel(self, reservation_id: int, user: User) -> Reservation:
         """RF04. Nada é apagado: a reserva fica CANCELADA e o horário volta a ficar livre.
@@ -270,6 +334,7 @@ class ReservationService:
             responsavel=first_name,
             cancelada_em=reservation.cancelada_em,
             checkin_em=reservation.checkin_em,
+            encerrada_em=reservation.encerrada_em,
         )
 
     def _enforce_usage_rules(self, data: ReservationCreate, user: User) -> None:

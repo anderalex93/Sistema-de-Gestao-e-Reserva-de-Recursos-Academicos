@@ -33,7 +33,9 @@ INVALID_QR: ResponsesDoc = {
         "do campus). A janela de check-in vai de `checkin_antecedencia_min` antes do início até "
         "`checkin_tolerancia_min` depois (`GET /api/v1/config/regras`). Situações:\n\n"
         "- `DISPONIVEL`: dentro da janela e sem check-in;\n"
-        "- `FEITO`: check-in já feito numa reserva que não terminou;\n"
+        "- `FEITO`: check-in já feito numa reserva que não terminou; `pode_encerrar` diz se dá "
+        "para encerrar o uso agora (`POST /api/v1/reservas/{id}/encerrar`);\n"
+        "- `ENCERRADA`: quem leu encerrou o uso mais cedo e o fim original ainda não chegou;\n"
         "- `CEDO`: há reserva confirmada mais tarde hoje; `abre_em` diz quando a janela abre;\n"
         "- `LIBERADA`: a reserva virou `NAO_COMPARECEU` e ainda não terminou;\n"
         "- `SEM_RESERVA`: nenhuma das anteriores (`reserva` nula).\n\n"
@@ -69,7 +71,8 @@ def get_checkin_status(
         409: {
             "model": ErrorResponse,
             "description": (
-                "A reserva foi liberada por falta de check-in no prazo (`RESERVA_LIBERADA`)"
+                "A reserva foi liberada por falta de check-in no prazo (`RESERVA_LIBERADA`) "
+                "ou o uso já foi encerrado (`RESERVA_JA_ENCERRADA`)"
             ),
         },
         422: {

@@ -49,7 +49,10 @@ class OccupancySummaryRead(BaseModel):
         )
     )
     horas_devolvidas: float = Field(
-        description="Horas liberadas por não comparecimento (da liberação ao fim da reserva)"
+        description=(
+            "Horas que voltaram a ficar livres: por não comparecimento (da liberação ao fim da "
+            "reserva) e por uso encerrado mais cedo (do novo fim ao fim original)"
+        )
     )
 
 

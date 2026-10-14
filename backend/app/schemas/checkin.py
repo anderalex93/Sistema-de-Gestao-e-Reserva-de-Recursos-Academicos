@@ -26,7 +26,8 @@ class CheckinStatusRead(BaseModel):
     situacao: CheckinSituation = Field(
         description=(
             "`DISPONIVEL`: dá para fazer check-in agora. `FEITO`: check-in já feito numa reserva "
-            "que não terminou. `CEDO`: há reserva confirmada mais tarde hoje; a janela abre em "
+            "que não terminou. `ENCERRADA`: quem leu encerrou o uso mais cedo e o fim original "
+            "ainda não chegou. `CEDO`: há reserva confirmada mais tarde hoje; a janela abre em "
             "`abre_em`. `LIBERADA`: a reserva de agora virou `NAO_COMPARECEU`. `SEM_RESERVA`: "
             "nenhuma reserva de quem leu neste espaço para hoje"
         )
@@ -36,4 +37,10 @@ class CheckinStatusRead(BaseModel):
     )
     abre_em: datetime | None = Field(
         description="Quando a janela de check-in abre; só na situação `CEDO`"
+    )
+    pode_encerrar: bool = Field(
+        description=(
+            "A reserva já começou e o uso ainda não foi encerrado: dá para encerrar agora por "
+            "`POST /api/v1/reservas/{reserva.id}/encerrar`"
+        ),
     )

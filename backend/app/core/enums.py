@@ -28,6 +28,8 @@ class CheckinSituation(StrEnum):
 
     DISPONIVEL = "DISPONIVEL"
     FEITO = "FEITO"
+    # Quem leu encerrou o uso mais cedo e o resto do horário ficou livre.
+    ENCERRADA = "ENCERRADA"
     CEDO = "CEDO"
     LIBERADA = "LIBERADA"
     SEM_RESERVA = "SEM_RESERVA"

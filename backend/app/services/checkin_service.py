@@ -17,7 +17,11 @@ from app.repositories.resource_repository import ResourceRepository
 from app.schemas.checkin import CheckinResourceRead, CheckinStatusRead
 from app.schemas.reservation import ReservationRead
 from app.services.no_show_service import NoShowService
-from app.services.reservation_service import ReservationReleasedError
+from app.services.reservation_service import (
+    AlreadyEndedEarlyError,
+    ReservationReleasedError,
+    can_end_early,
+)
 
 
 class InvalidQrCodeError(NotFoundError):
@@ -82,6 +86,9 @@ class CheckinService:
             situacao=finding.situation,
             reserva=ReservationRead.model_validate(reservation) if reservation else None,
             abre_em=finding.opens_at,
+            pode_encerrar=reservation is not None
+            and finding.situation is CheckinSituation.FEITO
+            and can_end_early(reservation, self._clock.now()),
         )
 
     def check_in(self, token: str, user: User) -> Reservation:
@@ -100,6 +107,8 @@ class CheckinService:
             return reservation
         if finding.situation is CheckinSituation.LIBERADA:
             raise ReservationReleasedError
+        if finding.situation is CheckinSituation.ENCERRADA:
+            raise AlreadyEndedEarlyError
         opens_at = self._opens_at(reservation).astimezone(self._schedule.timezone)
         msg = f"Ainda não dá para fazer check-in: a janela desta reserva abre às {opens_at:%H:%M}."
         raise CheckinOutsideWindowError(msg)
@@ -112,8 +121,9 @@ class CheckinService:
 
     def _find(self, resource: Resource, user: User, *, lock: bool) -> _Finding:
         """A reserva de hoje (fuso do campus) que importa para quem leu, em ordem de prioridade:
-        a que aceita check-in agora, a que já tem check-in e não terminou, a liberada que ainda
-        não terminou e a próxima confirmada do dia."""
+        a que aceita check-in agora, a que já tem check-in e não terminou, a de uso encerrado
+        mais cedo cujo fim original não chegou, a liberada que ainda não terminou e a próxima
+        confirmada do dia."""
         now = self._clock.now()
         today = self._schedule.local_date(now)
         # Até o fim de hoje mais a antecedência: a janela de uma reserva que começa logo depois da
@@ -126,12 +136,16 @@ class CheckinService:
             user.id, resource.id, window, lock=lock
         )
         confirmed = [r for r in reservations if r.status is ReservationStatus.CONFIRMADA]
-        pending = [r for r in confirmed if r.checkin_em is None]
+        in_use = [r for r in confirmed if r.encerrada_em is None]
+        pending = [r for r in in_use if r.checkin_em is None]
 
         if found := _first(pending, lambda r: self._opens_at(r) <= now < self._deadline(r)):
             return _Finding(CheckinSituation.DISPONIVEL, found)
-        if found := _first(confirmed, lambda r: r.checkin_em is not None and now < r.fim):
+        if found := _first(in_use, lambda r: r.checkin_em is not None and now < r.fim):
             return _Finding(CheckinSituation.FEITO, found)
+        ended = (r for r in confirmed if r.encerrada_em is not None)
+        if found := _first(ended, lambda r: now < (r.fim_previsto or r.fim)):
+            return _Finding(CheckinSituation.ENCERRADA, found)
         released = (r for r in reservations if r.status is ReservationStatus.NAO_COMPARECEU)
         if found := _first(released, lambda r: now < r.fim):
             return _Finding(CheckinSituation.LIBERADA, found)

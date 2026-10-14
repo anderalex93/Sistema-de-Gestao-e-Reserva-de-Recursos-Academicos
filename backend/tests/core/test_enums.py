@@ -29,6 +29,7 @@ def test_checkin_situations() -> None:
     assert [situation.value for situation in CheckinSituation] == [
         "DISPONIVEL",
         "FEITO",
+        "ENCERRADA",
         "CEDO",
         "LIBERADA",
         "SEM_RESERVA",

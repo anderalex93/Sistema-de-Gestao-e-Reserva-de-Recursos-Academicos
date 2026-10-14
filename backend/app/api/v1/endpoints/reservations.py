@@ -157,3 +157,43 @@ def cancel_reservation(
     reservation_id: int, user: CurrentUserDep, service: ReservationServiceDep
 ) -> MyReservationRead:
     return service.with_permissions(service.cancel(reservation_id, user))
+
+
+@router.post(
+    "/{reservation_id}/encerrar",
+    summary="Encerra o uso antes do fim e libera o resto do horário",
+    description=(
+        "Quem reservou avisa que saiu. Só vale para reserva `CONFIRMADA` em andamento "
+        "(`inicio <= agora < fim`, relógio do servidor). O novo `fim` é a próxima marca de 30 "
+        "minutos depois de agora, nunca antes de `inicio + 30 min`; o fim original fica em "
+        "`fim_previsto` e o trecho entre os dois volta a ficar livre na grade. `encerrada_em` "
+        "registra o momento."
+    ),
+    response_model=MyReservationRead,
+    responses={
+        **UNAUTHORIZED,
+        403: {
+            "model": ErrorResponse,
+            "description": "A reserva é de outra pessoa (`ACESSO_NEGADO`)",
+        },
+        404: {"model": ErrorResponse, "description": "Reserva inexistente"},
+        409: {
+            "model": ErrorResponse,
+            "description": (
+                "Uso já encerrado (`RESERVA_JA_ENCERRADA`), reserva cancelada "
+                "(`RESERVA_JA_CANCELADA`) ou liberada por não comparecimento (`RESERVA_LIBERADA`)"
+            ),
+        },
+        422: {
+            "model": ErrorResponse,
+            "description": (
+                "A reserva ainda não começou (`RESERVA_NAO_INICIADA`) ou já terminou "
+                "(`RESERVA_ENCERRADA`)"
+            ),
+        },
+    },
+)
+def end_reservation_early(
+    reservation_id: int, user: CurrentUserDep, service: ReservationServiceDep
+) -> MyReservationRead:
+    return service.with_permissions(service.end_early(reservation_id, user))

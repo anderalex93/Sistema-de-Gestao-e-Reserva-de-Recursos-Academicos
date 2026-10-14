@@ -77,7 +77,8 @@ class _Tally:
 class OccupancyService:
     """Painel de ocupação da administração (#44): quanto do horário de funcionamento os
     recursos ficaram reservados, quando, e quanto se perdeu com cancelamentos e não
-    comparecimentos.
+    comparecimentos. Horas devolvidas somam as liberadas por não comparecimento e as de quem
+    encerrou o uso mais cedo.
 
     Agrega em Python a partir de duas consultas enxutas (recursos e reservas que tocam o
     período). O período vai no máximo a 92 dias: algumas dezenas de milhares de linhas.
@@ -171,6 +172,9 @@ class OccupancyService:
         if span.status is ReservationStatus.NAO_COMPARECEU and span.liberada_em is not None:
             # Liberação preguiçosa: se foi liberada depois do fim, não devolveu nada.
             tally.returned += _overlap(TimeRange(span.liberada_em, span.fim), window)
+        if span.status is ReservationStatus.CONFIRMADA and span.fim_previsto is not None:
+            # Uso encerrado mais cedo: do novo fim ao fim original o horário voltou a ficar livre.
+            tally.returned += _overlap(TimeRange(span.fim, span.fim_previsto), window)
 
     def _open_pieces(self, span: ReservationSpan, period: _Period) -> Iterator[TimeRange]:
         """Partes da reserva dentro do funcionamento de cada dia do período."""

@@ -33,7 +33,7 @@ from app.services.checkin_service import (
     NoReservationNowError,
 )
 from app.services.no_show_service import NoShowService
-from app.services.reservation_service import ReservationReleasedError
+from app.services.reservation_service import AlreadyEndedEarlyError, ReservationReleasedError
 from tests.conftest import FixedClock
 from tests.services.test_reservation_service import (
     RULES,
@@ -446,3 +446,44 @@ def test_window_that_opens_the_day_before_finds_the_midnight_reservation(
 
     assert checkin.status(room.checkin_token, lucas).situacao is CheckinSituation.DISPONIVEL
     assert checkin.check_in(room.checkin_token, lucas).checkin_em is not None
+
+
+def test_after_check_in_the_status_offers_to_end_only_once_it_started(
+    db_session: Session, room: Resource, lucas: User, add: Callable[..., Reservation]
+) -> None:
+    add(lucas, checkin_em=at(13, 50))
+
+    before = service(db_session, at(13, 55)).status(room.checkin_token, lucas)
+    during = service(db_session, at(14, 20)).status(room.checkin_token, lucas)
+
+    assert (before.situacao, before.pode_encerrar) == (CheckinSituation.FEITO, False)
+    assert (during.situacao, during.pode_encerrar) == (CheckinSituation.FEITO, True)
+
+
+def test_after_ending_early_the_qr_code_shows_it_until_the_original_end(
+    db_session: Session, room: Resource, lucas: User, add: Callable[..., Reservation]
+) -> None:
+    reservation = add(lucas, checkin_em=at(13, 50))
+    build_service(db_session, now=at(14, 10)).end_early(reservation.id, lucas)
+
+    for now in (at(14, 20), at(14, 40), END - SECOND):
+        status = service(db_session, now).status(room.checkin_token, lucas)
+        assert (status.situacao, status.pode_encerrar) == (CheckinSituation.ENCERRADA, False)
+        assert status.reserva is not None
+        assert status.reserva.encerrada_em == at(14, 10)
+    with pytest.raises(AlreadyEndedEarlyError):
+        service(db_session, at(14, 20)).check_in(room.checkin_token, lucas)
+    assert service(db_session, END).status(room.checkin_token, lucas).situacao is (
+        CheckinSituation.SEM_RESERVA
+    )
+
+
+def test_receipt_shows_when_the_use_ended(
+    db_session: Session, lucas: User, add: Callable[..., Reservation]
+) -> None:
+    reservation = add(lucas, checkin_em=at(13, 50))
+    build_service(db_session, now=at(14, 10)).end_early(reservation.id, lucas)
+
+    receipt = build_service(db_session).receipt(reservation.codigo)
+
+    assert (receipt.encerrada_em, receipt.fim) == (at(14, 10), at(14, 30))

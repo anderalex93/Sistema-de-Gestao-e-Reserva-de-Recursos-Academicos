@@ -70,11 +70,23 @@ class ReservationRead(BaseModel):
     liberada_em: datetime | None = Field(
         description="Quando a reserva virou `NAO_COMPARECEU` e o horário foi liberado"
     )
+    encerrada_em: datetime | None = Field(
+        description="Quando quem reservou encerrou o uso antes do fim"
+    )
+    fim_previsto: datetime | None = Field(
+        description=(
+            "O fim original, só quando o encerramento antecipado encurtou a reserva; o trecho "
+            "entre `fim` e `fim_previsto` voltou a ficar livre"
+        )
+    )
 
 
 class MyReservationRead(ReservationRead):
     pode_cancelar: bool = Field(
         description="Confirmada e com pelo menos 30 minutos até o início (RF04)"
+    )
+    pode_encerrar: bool = Field(
+        description="Confirmada, em andamento e com o uso ainda não encerrado"
     )
 
 
@@ -108,6 +120,9 @@ class ReceiptRead(BaseModel):
     responsavel: str = Field(description="Só o primeiro nome de quem reservou")
     cancelada_em: datetime | None
     checkin_em: datetime | None = Field(description="Quando quem reservou fez check-in")
+    encerrada_em: datetime | None = Field(
+        description="Quando quem reservou encerrou o uso antes do fim"
+    )
 
 
 Reason = Annotated[str, StringConstraints(strip_whitespace=True, min_length=5, max_length=300)]

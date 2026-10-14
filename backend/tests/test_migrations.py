@@ -3,6 +3,7 @@ from collections.abc import Iterator
 import pytest
 from alembic.config import Config
 from sqlalchemy import Connection, Engine, text
+from sqlalchemy.exc import IntegrityError
 
 from alembic import command
 
@@ -117,3 +118,78 @@ def test_checkin_migration_keeps_existing_data_consistent(
     connection.commit()
     assert (status, cancelada) == ("CANCELADA", True)
     assert motivo == "Liberada por não comparecimento."
+
+
+BEFORE_EARLY_END = "165d3a7e5685"
+
+
+@pytest.fixture
+def at_head(engine: Engine) -> Iterator[Connection]:
+    """Banco no head com dados gravados de verdade (commit), apagados no final."""
+    try:
+        with engine.connect() as connection:
+            yield connection
+    finally:
+        with engine.begin() as connection:
+            connection.execute(text("DELETE FROM reserva WHERE codigo LIKE 'EDU-MIG%'"))
+            connection.execute(text("DELETE FROM recurso WHERE nome LIKE 'Sala migração%'"))
+            connection.execute(text("DELETE FROM bloco WHERE nome = 'Bloco migração'"))
+            connection.execute(text("DELETE FROM usuario WHERE email = 'migracao@umj.edu.br'"))
+
+
+def test_early_end_migration_checks_coherence_and_downgrade_keeps_the_short_end(
+    at_head: Connection, alembic_config: Config
+) -> None:
+    connection = at_head
+    user_id = connection.scalar(
+        text(
+            "INSERT INTO usuario (nome, email, senha_hash) "
+            "VALUES ('Migração', 'migracao@umj.edu.br', 'x') RETURNING id"
+        )
+    )
+    bloco_id = connection.scalar(
+        text("INSERT INTO bloco (nome) VALUES ('Bloco migração') RETURNING id")
+    )
+    resource_id = connection.scalar(
+        text(
+            "INSERT INTO recurso (bloco_id, nome, tipo, capacidade, checkin_token) "
+            "VALUES (:bloco, 'Sala migração 1', 'SALA_ESTUDO', 4, 'mig-early-end') RETURNING id"
+        ),
+        {"bloco": bloco_id},
+    )
+    insert = text(
+        "INSERT INTO reserva (codigo, recurso_id, usuario_id, inicio, fim, encerrada_em, "
+        "fim_previsto) VALUES (:codigo, :recurso, :usuario, '2030-10-23 14:00-03', "
+        "'2030-10-23 14:30-03', :encerrada, '2030-10-23 16:00-03')"
+    )
+    params = {"recurso": resource_id, "usuario": user_id}
+    connection.commit()
+    # `fim_previsto` sem `encerrada_em` não faz sentido: o CHECK recusa.
+    with pytest.raises(IntegrityError, match="ck_reserva_encerramento_coerente"):
+        connection.execute(insert, {**params, "codigo": "EDU-MIG03", "encerrada": None})
+    connection.rollback()
+    connection.execute(
+        insert, {**params, "codigo": "EDU-MIG04", "encerrada": "2030-10-23 14:10-03"}
+    )
+    connection.commit()
+
+    command.downgrade(alembic_config, BEFORE_EARLY_END)
+    try:
+        columns = connection.scalars(
+            text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'reserva' AND column_name IN ('encerrada_em', 'fim_previsto')"
+            )
+        ).all()
+        end_is_short = connection.scalar(
+            text(
+                "SELECT fim = TIMESTAMPTZ '2030-10-23 14:30-03' FROM reserva "
+                "WHERE codigo = 'EDU-MIG04'"
+            )
+        )
+        connection.commit()
+    finally:
+        command.upgrade(alembic_config, "head")
+
+    assert columns == []
+    assert end_is_short is True

@@ -22,3 +22,4 @@ class ReservationSpan:
     status: ReservationStatus
     checkin_em: datetime | None
     liberada_em: datetime | None
+    fim_previsto: datetime | None = None

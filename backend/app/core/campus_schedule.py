@@ -49,6 +49,14 @@ class CampusSchedule:
         local = instant.astimezone(self.timezone)
         return local.minute in {0, 30} and local.second == 0 and local.microsecond == 0
 
+    def next_mark(self, instant: datetime) -> datetime:
+        """A primeira marca de 30 minutos (no fuso do campus) igual ou depois do instante."""
+        local = instant.astimezone(self.timezone)
+        mark = local.replace(minute=local.minute - local.minute % 30, second=0, microsecond=0)
+        if mark < local:
+            mark += SLOT
+        return mark.astimezone(UTC)
+
     def within_opening_hours(self, inicio: datetime, fim: datetime) -> bool:
         """Começa e termina no mesmo dia de funcionamento, entre a abertura e o fechamento."""
         day = self.local_date(inicio)

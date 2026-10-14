@@ -158,6 +158,8 @@ class ReservationRepository(BaseRepository[Reservation]):
             .where(
                 Reservation.status == ReservationStatus.CONFIRMADA,
                 Reservation.checkin_em.is_(None),
+                # Quem encerrou o uso esteve lá, mesmo sem ler o QR Code ao chegar.
+                Reservation.encerrada_em.is_(None),
                 Reservation.inicio <= started_before,
             )
             .values(status=ReservationStatus.NAO_COMPARECEU, liberada_em=now)
@@ -205,15 +207,17 @@ class ReservationRepository(BaseRepository[Reservation]):
                 Reservation.status,
                 Reservation.checkin_em,
                 Reservation.liberada_em,
+                Reservation.fim_previsto,
             ).where(
                 Reservation.recurso_id.in_(resource_ids),
                 Reservation.inicio < window.fim,
-                Reservation.fim > window.inicio,
+                # Encerrada mais cedo: o trecho devolvido vai até o fim original.
+                func.coalesce(Reservation.fim_previsto, Reservation.fim) > window.inicio,
             )
         )
         return [
-            ReservationSpan(recurso_id, inicio, fim, status, checkin_em, liberada_em)
-            for recurso_id, inicio, fim, status, checkin_em, liberada_em in rows
+            ReservationSpan(recurso_id, inicio, fim, status, checkin_em, liberada_em, fim_previsto)
+            for recurso_id, inicio, fim, status, checkin_em, liberada_em, fim_previsto in rows
         ]
 
     def delete_by_code_prefix(self, prefix: str) -> int:
@@ -226,6 +230,17 @@ class ReservationRepository(BaseRepository[Reservation]):
             .execution_options(synchronize_session="fetch")
         ).all()
         return len(deleted)
+
+    def get_for_update(self, reservation_id: int) -> Reservation | None:
+        """Trava a linha (relendo o estado atual) até o fim da transação, para o encerramento
+        antecipado não disputar com outro encerramento ou com a liberação por não
+        comparecimento."""
+        return self._session.scalar(
+            select(Reservation)
+            .where(Reservation.id == reservation_id)
+            .with_for_update(of=Reservation)
+            .execution_options(populate_existing=True)
+        )
 
     def all_for_user(self, user_id: int) -> Sequence[Reservation]:
         """Histórico completo de uma pessoa, da mais recente para a mais antiga (exportação)."""

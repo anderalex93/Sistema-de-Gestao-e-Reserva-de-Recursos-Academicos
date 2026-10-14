@@ -355,3 +355,25 @@ def test_invalid_period_is_rejected(
 
     assert error.value.code == "PERIODO_INVALIDO"
     assert error.value.status_code == 422
+
+
+def test_early_end_returns_the_rest_of_the_original_slot(
+    db_session: Session, campus: dict[str, Resource], add: Callable[..., Reservation]
+) -> None:
+    # Terça 10:00-12:00, encerrada às 10:10: ocupou até 10:30 e devolveu 1h30.
+    ended = add(campus["sala"], at(2, 10), at(2, 12), checkin_em=at(2, 10))
+    ended.fim, ended.fim_previsto, ended.encerrada_em = at(2, 10, 30), at(2, 12), at(2, 10, 10)
+    # Começou na véspera do período; só os 30 min devolvidos depois da meia-noite contam.
+    before = add(campus["lab"], at(1, 0) - timedelta(hours=1), at(1, 0) + timedelta(minutes=30))
+    before.fim, before.fim_previsto = at(1, 0) - timedelta(minutes=30), before.fim
+    before.encerrada_em = before.inicio
+    db_session.flush()
+
+    report = build(db_session).report(WEEK)
+
+    summary = report.resumo
+    assert summary.horas_reservadas == 0.5
+    assert summary.horas_devolvidas == 2.0
+    assert (summary.reservas, summary.checkins) == (1, 1)
+    sala = next(r for r in report.recursos if r.id == campus["sala"].id)
+    assert (sala.horas_reservadas, sala.horas_devolvidas) == (0.5, 1.5)

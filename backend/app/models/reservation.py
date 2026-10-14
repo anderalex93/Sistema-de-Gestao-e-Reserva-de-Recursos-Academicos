@@ -15,7 +15,8 @@ class Reservation(IdMixin, TimestampMixin, Base):
     """Ocupação de um recurso por um usuário num intervalo `[inicio, fim)`.
 
     O banco garante o RNF03: duas reservas confirmadas do mesmo recurso nunca se sobrepõem.
-    Canceladas e `NAO_COMPARECEU` (#43) não ocupam o horário.
+    Canceladas e `NAO_COMPARECEU` (#43) não ocupam o horário. Quem encerra o uso mais cedo
+    encurta `fim` e guarda o original em `fim_previsto`; o resto do horário fica livre.
     Regras que dependem de configuração (múltiplo de 30 min, funcionamento) ficam no service.
     """
 
@@ -27,6 +28,10 @@ class Reservation(IdMixin, TimestampMixin, Base):
         ),
         CheckConstraint(
             "(status = 'NAO_COMPARECEU') = (liberada_em IS NOT NULL)", name="liberacao_coerente"
+        ),
+        CheckConstraint(
+            "fim_previsto IS NULL OR (encerrada_em IS NOT NULL AND fim_previsto > fim)",
+            name="encerramento_coerente",
         ),
         CheckConstraint("qtd_participantes > 0", name="participantes_positivo"),
         ExcludeConstraint(
@@ -73,6 +78,10 @@ class Reservation(IdMixin, TimestampMixin, Base):
     checkin_em: Mapped[datetime | None]
     # Quando virou NAO_COMPARECEU e o horário voltou a ficar livre.
     liberada_em: Mapped[datetime | None]
+    # Quando quem reservou encerrou o uso antes do fim.
+    encerrada_em: Mapped[datetime | None]
+    # O fim original, só quando o encerramento antecipado encurtou a reserva.
+    fim_previsto: Mapped[datetime | None]
 
     recurso: Mapped[Resource] = relationship(lazy="joined", innerjoin=True)
     usuario: Mapped[User] = relationship(foreign_keys=[usuario_id])
