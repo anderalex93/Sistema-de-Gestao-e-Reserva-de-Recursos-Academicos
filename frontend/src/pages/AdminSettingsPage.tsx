@@ -12,6 +12,7 @@ import Select from '@mui/material/Select';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { visuallyHidden } from '@mui/utils';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Controller, useForm, useWatch, type Control, type FieldPath } from 'react-hook-form';
 
@@ -69,6 +70,7 @@ function SelectField({
   error,
   options,
   disabled,
+  compactLabel = false,
 }: {
   control: Control<SettingsFormInput, unknown, SettingsFormOutput>;
   name: FieldPath<SettingsFormInput>;
@@ -78,6 +80,8 @@ function SelectField({
   error?: string;
   options: Option[];
   disabled?: boolean;
+  /** Na tabela de horários o cabeçalho das colunas já diz o que é: o rótulo fica só para leitores de tela a partir do tablet. */
+  compactLabel?: boolean;
 }) {
   const message = error ?? helperText;
   return (
@@ -86,7 +90,10 @@ function SelectField({
       name={name}
       render={({ field }) => (
         <FormControl fullWidth error={Boolean(error)} disabled={disabled}>
-          <FormLabel id={`${id}-rotulo`} sx={labelSx}>
+          <FormLabel
+            id={`${id}-rotulo`}
+            sx={compactLabel ? { ...labelSx, '@media (min-width:600px)': visuallyHidden } : labelSx}
+          >
             {label}
           </FormLabel>
           <Select
@@ -104,7 +111,11 @@ function SelectField({
               </MenuItem>
             ))}
           </Select>
-          {message && <FormHelperText id={`${id}-mensagem`}>{message}</FormHelperText>}
+          {message && (
+            <FormHelperText id={`${id}-mensagem`} sx={{ mx: 0 }}>
+              {message}
+            </FormHelperText>
+          )}
         </FormControl>
       )}
     />
@@ -225,6 +236,24 @@ function SettingsForm({ settings }: { settings: CampusSettingsRead }) {
             {daysError}
           </Typography>
         )}
+        <Box
+          aria-hidden
+          sx={{
+            display: { xs: 'none', sm: 'grid' },
+            gridTemplateColumns: '120px 140px 1fr 1fr',
+            gap: 2,
+            pb: 1,
+            borderBottom: 1,
+            borderColor: 'divider',
+            ...labelSx,
+            color: 'text.secondary',
+          }}
+        >
+          <span>Dia</span>
+          <span>Situação</span>
+          <span>Abertura</span>
+          <span>Fechamento</span>
+        </Box>
         <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }}>
           {days.map((day, index) => {
             const name = WEEKDAY_NAMES[index + 1] ?? '';
@@ -237,8 +266,8 @@ function SettingsForm({ settings }: { settings: CampusSettingsRead }) {
                   display: 'grid',
                   gridTemplateColumns: { xs: '1fr 1fr', sm: '120px 140px 1fr 1fr' },
                   gap: 2,
-                  alignItems: 'end',
-                  py: 2,
+                  alignItems: { xs: 'end', sm: 'center' },
+                  py: { xs: 2, sm: 1.5 },
                   borderTop: index === 0 ? 'none' : 1,
                   borderColor: 'divider',
                 }}
@@ -268,6 +297,7 @@ function SettingsForm({ settings }: { settings: CampusSettingsRead }) {
                   label={`Abertura de ${name}`}
                   options={timeOptions}
                   disabled={!day.aberto}
+                  compactLabel
                 />
                 <SelectField
                   control={control}
@@ -276,6 +306,7 @@ function SettingsForm({ settings }: { settings: CampusSettingsRead }) {
                   label={`Fechamento de ${name}`}
                   options={timeOptions}
                   disabled={!day.aberto}
+                  compactLabel
                   error={errors.dias?.[index]?.fechamento?.message}
                 />
               </Box>
