@@ -34,5 +34,6 @@ export const AdminResourcesPage = page(() => import('@/pages/AdminResourcesPage'
 export const AdminResourceQrPage = page(() => import('@/pages/AdminResourceQrPage'));
 export const AdminBuildingsPage = page(() => import('@/pages/AdminBuildingsPage'));
 export const AdminAgendaPage = page(() => import('@/pages/AdminAgendaPage'));
+export const AdminOccupancyPage = page(() => import('@/pages/AdminOccupancyPage'));
 export const PrivacyPage = page(() => import('@/pages/PrivacyPage'));
 export const TermsPage = page(() => import('@/pages/TermsPage'));

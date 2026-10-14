@@ -14,6 +14,11 @@ const sections = [
     to: paths.adminAgenda,
   },
   {
+    title: 'Ocupação',
+    description: 'Mapa de calor da semana, comparecimento, horas devolvidas pelo check-in e CSV.',
+    to: paths.adminOccupancy,
+  },
+  {
     title: 'Usuários',
     description: 'Crie contas de alunos, professores e administradores e consulte quem tem acesso.',
     to: paths.adminUsers,

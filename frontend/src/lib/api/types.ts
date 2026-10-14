@@ -38,6 +38,9 @@ export type RemovalRead = Schemas['RemovalRead'];
 export type AdminReservationRead = Schemas['AdminReservationRead'];
 export type CheckinSituation = Schemas['CheckinSituation'];
 export type CheckinStatusRead = Schemas['CheckinStatusRead'];
+export type OccupancyRead = Schemas['OccupancyRead'];
+export type HeatmapCellRead = Schemas['HeatmapCellRead'];
+export type ResourceOccupancyRead = Schemas['ResourceOccupancyRead'];
 
 export interface Page<Item> {
   items: Item[];

@@ -1,4 +1,5 @@
 import type { AdminResourceListParams } from '@/lib/api/admin-catalog.api';
+import type { OccupancyParams } from '@/lib/api/admin-occupancy.api';
 import type { AgendaParams } from '@/lib/api/admin-reservations.api';
 import type { UserListParams } from '@/lib/api/admin-users.api';
 import type { BoardParams } from '@/lib/api/board.api';
@@ -15,6 +16,8 @@ export const queryKeys = {
     ['admin', 'catalogo', 'recursos', params] as const,
   adminResource: (id: number) => ['admin', 'catalogo', 'recursos', 'detalhe', id] as const,
   adminBuildings: ['admin', 'catalogo', 'blocos'] as const,
+  // Sob "reservas": criar, cancelar e check-in mudam a ocupação.
+  adminOccupancy: (params: OccupancyParams) => ['reservas', 'ocupacao', params] as const,
   adminFeatures: ['admin', 'catalogo', 'caracteristicas'] as const,
   resources: ['recursos'] as const,
   resourceList: (params: ResourceListParams) => ['recursos', 'lista', params] as const,

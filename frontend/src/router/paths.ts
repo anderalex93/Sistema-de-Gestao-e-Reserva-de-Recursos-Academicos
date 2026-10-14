@@ -21,4 +21,5 @@ export const paths = {
   adminResourceQr: (id: number | string) => `/admin/recursos/${id}/qr`,
   adminBuildings: '/admin/blocos',
   adminAgenda: '/admin/agenda',
+  adminOccupancy: '/admin/ocupacao',
 } as const;
